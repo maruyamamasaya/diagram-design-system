@@ -4,9 +4,9 @@
   "stackName": "diagram-library-api",
   "stackId": "arn:aws:cloudformation:ap-northeast-1:676643701781:stack/diagram-library-api/82b6b430-c3fd-11f1-9fc8-0affe7881947",
   "codeKey": "deployments/api/edba8fba3136c58592ff3f39e1ca373641efafc2c4788d8bf23441fb5440e28a.zip",
-  "owner": "UNCONFIGURED",
+  "owner": "c7b48a68-1001-70e8-0294-b72dd358c86e",
   "createdAt": "2026-10-09T16:21:41.361Z",
-  "status": "CREATE_COMPLETE",
+  "status": "UPDATE_COMPLETE",
   "outputs": {
     "ApiURL": "https://2zpp6z8zvc.execute-api.ap-northeast-1.amazonaws.com",
     "Issuer": "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_qKFdR57RY",
@@ -16,7 +16,7 @@
   "parameters": [
     {
       "ParameterKey": "OwnerSubject",
-      "ParameterValue": "UNCONFIGURED"
+      "ParameterValue": "c7b48a68-1001-70e8-0294-b72dd358c86e"
     },
     {
       "ParameterKey": "CodeBucket",
@@ -117,5 +117,6 @@
   "secretHandling": {
     "CursorSecret": "Random 96-character value; CloudFormation NoEcho / Lambda environment; value intentionally not recorded",
     "AWScredentials": "Runtime IAM role only; not committed"
-  }
+  },
+  "updatedAt": "2026-10-10"
 }

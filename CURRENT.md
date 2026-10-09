@@ -24,3 +24,5 @@
 開発順序は **Phase 11A（S3・Web viewer拡張）→11B（既存iOS viewer連携）→12（生成・検証・保存自動化）→10（差分更新・部分再生成）**。Phase 8（大規模資料解析）・9（Git解析）は保留。ID・原資料参照・ハッシュ・生成版を維持する。
 
 入口：[AGENTS](AGENTS.md)。構造：[ARCHITECTURE](ARCHITECTURE.md)。探索：[CODEMAP](CODEMAP.md)。検証：[TESTING](TESTING.md)。運用：[OPERATIONS](OPERATIONS.md)。履歴：[sessions](sessions/README.md)。
+
+Phase 11B-3：実Cognito設定・S3公開ブロックを読取確認。本人登録・招待メール送信・owner限定更新が完了。本人の本番ログイン・資料一覧表示成功。本人報告で実機PDF/PNG/PPTXの取得・表示・保存成功。オフライン操作確認待ち。[手順と未実施事項](docs/phase11b3-validation.md)。
