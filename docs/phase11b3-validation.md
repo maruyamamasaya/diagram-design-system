@@ -23,6 +23,6 @@ S3のBlockPublicAcls／IgnorePublicAcls／BlockPublicPolicy／RestrictPublicBuck
 - 実HTTPS /v1/meと/v1/diagramsは未認証401。
 - iPhone Vesperaのアプリ起動成功。本人から本番Cognitoログイン成功・資料一覧表示成功の報告を受領。iOSログインはトークン交換後の/v1/me成功を必要とするため、認証・owner認可を通過したことを実装と照合。
 - 本人報告でPDF/PNG/PPTXのダウンロード・表示・保存成功。実装は取得したbytesのサイズとSHA256を照合してから表示／永続保存するため、この経路で整合性検査を通過。署名URLやトークンを抽出せず確認した。
-- 機内モード＋Wi-Fi無効での保存済み3形式のオフライン閲覧は確認待ち。
+- 本人報告で機内モード＋Wi-Fi無効の状態でも保存済みPDF/PNG/PPTXを開き直して閲覧成功。Phase 11B-3の全完了条件を満たす（実機操作は本人報告、AWS状態は読取確認）。
 
 パスワード、token、署名URLの値は取得・記録しない。実機操作結果は本人報告とAWS読取を区別する。全体テストは再実行しない。

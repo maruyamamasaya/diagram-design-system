@@ -25,4 +25,4 @@
 
 入口：[AGENTS](AGENTS.md)。構造：[ARCHITECTURE](ARCHITECTURE.md)。探索：[CODEMAP](CODEMAP.md)。検証：[TESTING](TESTING.md)。運用：[OPERATIONS](OPERATIONS.md)。履歴：[sessions](sessions/README.md)。
 
-Phase 11B-3：実Cognito設定・S3公開ブロックを読取確認。本人登録・招待メール送信・owner限定更新が完了。本人の本番ログイン・資料一覧表示成功。本人報告で実機PDF/PNG/PPTXの取得・表示・保存成功。オフライン操作確認待ち。[手順と未実施事項](docs/phase11b3-validation.md)。
+Phase 11B-3：実Cognito設定・S3公開ブロックを読取確認。本人登録・招待メール送信・owner限定更新が完了。本人の本番ログイン・資料一覧表示成功。本人報告で実機PDF/PNG/PPTXの取得・表示・保存成功。機内モード＋Wi-Fi無効のオフライン閲覧も3形式成功。Phase 11B-3完了。[手順と未実施事項](docs/phase11b3-validation.md)。
