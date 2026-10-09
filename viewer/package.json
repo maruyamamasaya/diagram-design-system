@@ -1,0 +1,30 @@
+{
+  "name": "diagram-viewer",
+  "version": "0.4.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "init": "node scripts/init.cjs"
+  },
+  "dependencies": {
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "jose": "6.2.12",
+    "@aws-sdk/client-s3": "3.1148.0",
+    "@aws-sdk/credential-providers": "3.1148.0",
+    "@aws-sdk/s3-request-presigner": "3.1148.0",
+    "ajv": "8.17.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.20.0"
+  }
+}

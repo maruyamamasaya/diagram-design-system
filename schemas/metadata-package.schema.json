@@ -1,0 +1,451 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:diagram-design-system:metadata-package:2",
+  "title": "Full-format local artifact package (design; runtime not implemented)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "diagramId",
+    "version",
+    "title",
+    "diagramType",
+    "createdAt",
+    "updatedAt",
+    "selection",
+    "targetNames",
+    "packageStatus",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0"
+    },
+    "diagramId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 999999
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "diagramType": {
+      "enum": [
+        "roadmap",
+        "flowchart",
+        "architecture",
+        "comparison"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "selection": {
+      "enum": [
+        "standard",
+        "explicit"
+      ]
+    },
+    "targetNames": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "source.json",
+          "diagram.svg",
+          "diagram.web.svg",
+          "thumbnail.webp",
+          "diagram.png",
+          "document.pdf",
+          "presentation.pptx",
+          "metadata.json",
+          "validation.json"
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {
+            "const": "source.json"
+          }
+        },
+        {
+          "contains": {
+            "const": "metadata.json"
+          }
+        },
+        {
+          "contains": {
+            "const": "validation.json"
+          }
+        }
+      ]
+    },
+    "packageStatus": {
+      "enum": [
+        "incomplete",
+        "complete"
+      ]
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "support",
+          "status",
+          "integrity"
+        ],
+        "properties": {
+          "name": {
+            "enum": [
+              "source.json",
+              "diagram.svg",
+              "diagram.web.svg",
+              "thumbnail.webp",
+              "diagram.png",
+              "document.pdf",
+              "presentation.pptx",
+              "metadata.json",
+              "validation.json"
+            ]
+          },
+          "support": {
+            "enum": [
+              "supported",
+              "unsupported"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "generated",
+              "verified",
+              "failed",
+              "unsupported",
+              "not_requested"
+            ]
+          },
+          "integrity": {
+            "enum": [
+              "sha256",
+              "external"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "dependencySha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "name": {
+                  "const": "metadata.json"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "integrity": {
+                  "const": "external"
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "sha256"
+                    ],
+                    "properties": {
+                      "sha256": {}
+                    }
+                  },
+                  {
+                    "required": [
+                      "sizeBytes"
+                    ],
+                    "properties": {
+                      "sizeBytes": {}
+                    }
+                  }
+                ]
+              }
+            },
+            "else": {
+              "properties": {
+                "integrity": {
+                  "const": "sha256"
+                }
+              },
+              "if": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "generated",
+                      "verified"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "sizeBytes",
+                  "sha256",
+                  "dependencySha256"
+                ],
+                "properties": {
+                  "sizeBytes": {},
+                  "sha256": {},
+                  "dependencySha256": {}
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "enum": [
+                    "unsupported",
+                    "failed",
+                    "not_requested"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "reason"
+              ],
+              "properties": {
+                "reason": {}
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "enum": [
+                    "pending",
+                    "failed",
+                    "unsupported",
+                    "not_requested"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "sizeBytes"
+                    ],
+                    "properties": {
+                      "sizeBytes": {}
+                    }
+                  },
+                  {
+                    "required": [
+                      "sha256"
+                    ],
+                    "properties": {
+                      "sha256": {}
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "unsupported"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "support": {
+                  "const": "unsupported"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "enum": [
+                    "pending",
+                    "generated",
+                    "verified",
+                    "failed"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "support": {
+                  "const": "supported"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "source.json"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "diagram.svg"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "diagram.web.svg"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "thumbnail.webp"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "diagram.png"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "document.pdf"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "presentation.pptx"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "metadata.json"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "const": "validation.json"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$comment": "Semantic checks and external metadata integrity are required by rules/storage.md. Legacy uploader accepts only 1.0."
+}

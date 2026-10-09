@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0", "type": "roadmap",
+  "title": "Linuxコマンド学習ロードマップ",
+  "purpose": "初学者が学習段階と到達点を把握する。",
+  "audience": "Linuxに初めて触れる人。",
+  "notes": ["説明用の推奨学習順序。必須の技術依存を意味しない。", "期間・ディストリビューション・必須依存は未指定。"],
+  "steps": [
+    {"id":"L1","title":"基本操作","purpose":"現在位置とファイルを確認する","items":[{"text":"pwd / ls / cd","kind":"code"}],"outcome":"現在位置と移動先を説明できる"},
+    {"id":"L2","title":"ファイル操作","purpose":"ファイルとディレクトリを扱う","items":[{"text":"mkdir / cp / mv","kind":"code"}],"outcome":"各操作の目的を区別できる"},
+    {"id":"L3","title":"権限の理解","purpose":"アクセス権を理解する","items":[{"text":"chmod / chown","kind":"code"}],"outcome":"権限と所有者の違いを説明できる"},
+    {"id":"L4","title":"プロセスの理解","purpose":"実行中の処理を確認する","items":[{"text":"ps / top","kind":"code"}],"outcome":"プロセス一覧を確認できる"}
+  ],
+  "relations":[
+    {"from":"L1","to":"L2","kind":"recommended","label":"推奨学習順序","basis":"input.mdの関係一覧"},
+    {"from":"L2","to":"L3","kind":"recommended","label":"推奨学習順序","basis":"input.mdの関係一覧"},
+    {"from":"L3","to":"L4","kind":"recommended","label":"推奨学習順序","basis":"input.mdの関係一覧"}
+  ]
+}

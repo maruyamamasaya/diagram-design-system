@@ -1,0 +1,11 @@
+{
+  "schemaVersion":"1.0",
+  "bucket":"diagram-design-system-676643701781-apne1",
+  "region":"ap-northeast-1",
+  "expectedBucketOwner":"676643701781",
+  "prefix":"library",
+  "encryption":"AES256",
+  "approved":false,
+  "maxVersions":3,
+  "profile":"default"
+}

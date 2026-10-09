@@ -1,0 +1,9 @@
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {"Sid":"ReadDestinationSecurity","Effect":"Allow","Action":["s3:GetBucketLocation","s3:GetBucketPublicAccessBlock","s3:GetBucketOwnershipControls","s3:GetEncryptionConfiguration","s3:GetBucketPolicyStatus"],"Resource":"arn:aws:s3:::diagram-design-system-676643701781-apne1"},
+    {"Sid":"ListCatalogOnly","Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::diagram-design-system-676643701781-apne1","Condition":{"StringLike":{"s3:prefix":["library/catalog/*"]}}},
+    {"Sid":"ReadLibraryArtifacts","Effect":"Allow","Action":"s3:GetObject","Resource":["arn:aws:s3:::diagram-design-system-676643701781-apne1/library/diagrams/*","arn:aws:s3:::diagram-design-system-676643701781-apne1/library/catalog/*"]},
+    {"Sid":"CreateImmutableEncryptedArtifacts","Effect":"Allow","Action":"s3:PutObject","Resource":["arn:aws:s3:::diagram-design-system-676643701781-apne1/library/diagrams/*","arn:aws:s3:::diagram-design-system-676643701781-apne1/library/catalog/*"],"Condition":{"StringEquals":{"s3:x-amz-server-side-encryption":"AES256"},"Null":{"s3:if-none-match":"false"}}}
+  ]
+}

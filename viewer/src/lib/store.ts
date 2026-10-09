@@ -1,0 +1,296 @@
+import fs from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
+import { createHash } from "node:crypto";
+import {
+  S3Client,
+  GetObjectCommand,
+  paginateListObjectsV2,
+} from "@aws-sdk/client-s3";
+import {
+  fromNodeProviderChain,
+  fromTemporaryCredentials,
+} from "@aws-sdk/credential-providers";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { config, error } from "./config";
+import { token } from "./auth";
+export type Artifact = "png" | "svg" | "input" | "validation";
+type File = {
+  name: string;
+  format: string;
+  role: string;
+  contentType: string;
+  sizeBytes: number;
+  sha256: string;
+  key: string;
+};
+export type Manifest = {
+  diagramId: string;
+  title: string;
+  diagramType: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  outputFormats: string[];
+  files: File[];
+  validation: { checks: Record<string, string> };
+  storage: {
+    bucket: string;
+    region: string;
+    expectedBucketOwner: string;
+    prefix: string;
+    encryption: string;
+  };
+  catalogKey: string;
+};
+const root = path.resolve(process.cwd(), "..");
+const requireProject = createRequire(path.join(root, "package.json"));
+const { validateMetadata } = requireProject("./src/upload/metadata.cjs");
+const { S3Storage } = requireProject("./src/upload/s3-storage.cjs");
+const target = {
+  schemaVersion: "1.0",
+  bucket: "diagram-design-system-676643701781-apne1",
+  region: "ap-northeast-1",
+  expectedBucketOwner: "676643701781",
+  prefix: "library",
+  encryption: "AES256",
+  approved: false,
+};
+const policy = {
+  Version: "2012-10-17",
+  Statement: [
+    {
+      Effect: "Allow",
+      Action: [
+        "s3:GetBucketLocation",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetBucketPolicyStatus",
+      ],
+      Resource: `arn:aws:s3:::${target.bucket}`,
+    },
+    {
+      Effect: "Allow",
+      Action: "s3:ListBucket",
+      Resource: `arn:aws:s3:::${target.bucket}`,
+      Condition: { StringLike: { "s3:prefix": "library/catalog/*" } },
+    },
+    {
+      Effect: "Allow",
+      Action: "s3:GetObject",
+      Resource: [
+        `arn:aws:s3:::${target.bucket}/library/catalog/*`,
+        `arn:aws:s3:::${target.bucket}/library/diagrams/*`,
+      ],
+    },
+  ],
+};
+let client: S3Client;
+export function s3() {
+  return (client ??= new S3Client({
+    region: target.region,
+    maxAttempts: 2,
+    credentials: fromTemporaryCredentials({
+      masterCredentials: fromNodeProviderChain({
+        profile: process.env.VIEWER_AWS_SOURCE_PROFILE || "default",
+      }),
+      clientConfig: { region: target.region },
+      params: {
+        RoleArn:
+          process.env.VIEWER_S3_ROLE_ARN ||
+          "arn:aws:iam::676643701781:role/diagram-design-system-uploader",
+        RoleSessionName: "diagram-viewer-readonly",
+        Policy: JSON.stringify(policy),
+        DurationSeconds: 900,
+      },
+    }),
+  }));
+}
+let cache: { until: number; data: Manifest[] } | null = null;
+let pending: Promise<Manifest[]> | null = null;
+async function scan(): Promise<Manifest[]> {
+  if (config().storage === "mock") {
+    const m = JSON.parse(
+      await fs.readFile(
+        path.join(root, "outputs/linux-roadmap-final/metadata.json"),
+        "utf8",
+      ),
+    );
+    validateMetadata(m);
+    return [m];
+  }
+  await new S3Storage(target, { client: s3() }).preflight();
+  const keys: string[] = [];
+  for await (const page of paginateListObjectsV2(
+    { client: s3() },
+    {
+      Bucket: target.bucket,
+      ExpectedBucketOwner: target.expectedBucketOwner,
+      Prefix: "library/catalog/",
+      MaxKeys: 1000,
+    },
+  )) {
+    for (const object of page.Contents || [])
+      if (object.Key?.endsWith("/metadata.json")) keys.push(object.Key);
+    if (keys.length > 500) error(503, "CATALOG_CAPACITY");
+  }
+  const results: Manifest[] = [];
+  for (let i = 0; i < keys.length; i += 6) {
+    const batch = await Promise.all(
+      keys.slice(i, i + 6).map(async (key) => {
+        const response = await s3().send(
+          new GetObjectCommand({
+            Bucket: target.bucket,
+            Key: key,
+            ExpectedBucketOwner: target.expectedBucketOwner,
+          }),
+        );
+        if (!response.ContentLength || response.ContentLength > 131072) {
+          (
+            response.Body as import("node:stream").Readable | undefined
+          )?.destroy();
+          error(409, "INVALID_MANIFEST");
+        }
+        const bytes = await response.Body!.transformToByteArray();
+        if (bytes.length > 131072) error(409, "INVALID_MANIFEST");
+        const m = JSON.parse(Buffer.from(bytes).toString("utf8"));
+        validateMetadata(m);
+        if (
+          m.catalogKey !== key ||
+          Object.entries(m.storage).some(
+            ([k, v]) => v !== (target as Record<string, unknown>)[k],
+          ) ||
+          response.ServerSideEncryption !== "AES256"
+        )
+          error(409, "INVALID_MANIFEST");
+        return m as Manifest;
+      }),
+    );
+    results.push(...batch);
+  }
+  return results;
+}
+export async function catalog() {
+  if (cache && cache.until > Date.now()) return cache.data;
+  if (!pending)
+    pending = scan()
+      .then((data) => {
+        cache = { until: Date.now() + 60000, data };
+        return data;
+      })
+      .finally(() => {
+        pending = null;
+      });
+  return pending;
+}
+const annotations = JSON.parse(
+  readFileSync(path.join(process.cwd(), "config/tags.json"), "utf8").replace(
+    /^\uFEFF/,
+    "",
+  ),
+) as Record<string, string[]>;
+for (const values of Object.values(annotations))
+  if (
+    !Array.isArray(values) ||
+    values.length > 20 ||
+    values.some((v) => typeof v !== "string" || v.length > 80)
+  )
+    throw Error("Invalid server tag annotations");
+export function tags(m: Manifest) {
+  return annotations[m.diagramId] || [];
+}
+export function summary(m: Manifest) {
+  return {
+    id: m.diagramId,
+    title: m.title,
+    type: m.diagramType,
+    tags: tags(m),
+    createdAt: m.createdAt,
+    updatedAt: m.updatedAt,
+    version: m.version,
+    formats: m.outputFormats,
+    previewAvailable: true,
+    validationChecks: m.validation.checks,
+  };
+}
+export async function find(id: string, version?: number) {
+  if (
+    !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(
+      id,
+    )
+  )
+    error(400, "INVALID_ID");
+  const all = (await catalog()).filter(
+    (m) => m.diagramId === id && (!version || m.version === version),
+  );
+  const m = all.sort((a, b) => b.version - a.version)[0];
+  if (!m) error(404, "NOT_FOUND");
+  return m;
+}
+export function file(m: Manifest, artifact: Artifact) {
+  const name =
+    artifact === "png" || artifact === "svg"
+      ? `diagram.${artifact}`
+      : `${artifact}.json`;
+  const f = m.files.find((f) => f.name === name);
+  if (!f) error(404, "NOT_FOUND");
+  return f;
+}
+export async function access(
+  m: Manifest,
+  artifact: Artifact,
+  purpose: string,
+  sid: string,
+  sub: string,
+) {
+  const f = file(m, artifact);
+  const seconds = 300;
+  let url: string;
+  if (config().storage === "s3")
+    url = await getSignedUrl(
+      s3(),
+      new GetObjectCommand({
+        Bucket: target.bucket,
+        ExpectedBucketOwner: target.expectedBucketOwner,
+        Key: f.key,
+        ResponseContentType: f.contentType,
+        ResponseCacheControl: "private, no-store",
+        ResponseContentDisposition: `${purpose === "download" ? "attachment" : "inline"}; filename="${f.name}"`,
+      }),
+      { expiresIn: seconds },
+    );
+  else {
+    const ticket = await token(
+      sid,
+      sub,
+      "diagram-artifact",
+      { id: m.diagramId, version: m.version, artifact, purpose },
+      seconds,
+    );
+    url = `${config().origin}/api/artifact?ticket=${ticket}`;
+  }
+  return {
+    url,
+    method: "GET",
+    expiresAt: new Date(Date.now() + seconds * 1000).toISOString(),
+    expiresIn: seconds,
+    contentType: f.contentType,
+    sizeBytes: f.sizeBytes,
+    sha256: f.sha256,
+    fileName: f.name,
+  };
+}
+export async function mockBytes(m: Manifest, artifact: Artifact) {
+  const f = file(m, artifact);
+  const bytes = await fs.readFile(
+    path.join(root, "outputs/linux-roadmap-final", f.name),
+  );
+  if (
+    bytes.length !== f.sizeBytes ||
+    createHash("sha256").update(bytes).digest("hex") !== f.sha256
+  )
+    error(409, "INTEGRITY_FAILURE");
+  return { bytes, f };
+}

@@ -1,0 +1,7 @@
+{
+  "BudgetName":"diagram-library-s3-monthly",
+  "BudgetType":"COST",
+  "TimeUnit":"MONTHLY",
+  "BudgetLimit":{"Amount":"1.00","Unit":"USD"},
+  "CostFilters":{"Service":["Amazon Simple Storage Service"]}
+}

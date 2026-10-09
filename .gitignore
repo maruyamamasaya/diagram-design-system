@@ -1,0 +1,17 @@
+outputs/
+node_modules/
+*.tmp
+config/s3.local.json
+.aws/
+.env
+.env.*
+!.env.example
+credentials
+*.pem
+
+viewer/.next/
+viewer/.local/
+viewer/*.tsbuildinfo
+viewer/.env.local
+viewer/playwright-report/
+viewer/test-results/

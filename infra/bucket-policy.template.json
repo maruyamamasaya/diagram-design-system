@@ -1,0 +1,8 @@
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {"Sid":"DenyInsecureTransport","Effect":"Deny","Principal":"*","Action":"s3:*","Resource":["arn:aws:s3:::diagram-design-system-676643701781-apne1","arn:aws:s3:::diagram-design-system-676643701781-apne1/*"],"Condition":{"Bool":{"aws:SecureTransport":"false","aws:PrincipalIsAWSService":"false"}}},
+    {"Sid":"DenyLibraryOverwrites","Effect":"Deny","Principal":"*","Action":"s3:PutObject","Resource":"arn:aws:s3:::diagram-design-system-676643701781-apne1/library/*","Condition":{"Null":{"s3:if-none-match":"true"}}},
+    {"Sid":"RequireSSES3","Effect":"Deny","Principal":"*","Action":"s3:PutObject","Resource":"arn:aws:s3:::diagram-design-system-676643701781-apne1/library/*","Condition":{"StringNotEquals":{"s3:x-amz-server-side-encryption":"AES256"}}}
+  ]
+}
