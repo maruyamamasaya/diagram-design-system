@@ -7,7 +7,11 @@
     "generate": "node src/cli.cjs",
     "upload": "node src/upload-cli.cjs",
     "test": "node --test tests/*.test.cjs",
-    "validate:s3": "node scripts/validate-s3.cjs"
+    "verify": "node scripts/verify.cjs",
+    "validate:s3": "node scripts/validate-s3.cjs",
+    "generate:presentation": "node src/presentation/cli.cjs",
+    "export:presentation": "node src/presentation/export-cli.cjs",
+    "test:exports": "node --test --test-concurrency=1 tests/export/*.test.cjs"
   },
   "engines": {
     "node": ">=22"

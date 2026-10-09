@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0",
+  "presentationId": "12345678-1234-4234-8234-123456789abc",
+  "version": 1,
+  "title": "Linuxコマンド学習",
+  "audience": "Linux初学者",
+  "purpose": "段階的な学習と練習方法を説明する",
+  "slides": [
+    {
+      "slideId": "00000000-0000-4000-8000-000000000001",
+      "slideType": "title",
+      "templateId": "slide.title.v1",
+      "content": {
+        "heading": "Linuxコマンド学習",
+        "subtitle": "初学者向け：基本操作から段階的に学ぶ"
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "00000000-0000-4000-8000-000000000002",
+      "slideType": "bullet",
+      "templateId": "slide.bullet.v1",
+      "content": {
+        "heading": "学習の進め方",
+        "items": [
+          "コマンドの原文と役割を確認する",
+          "安全な練習環境で実行する"
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "00000000-0000-4000-8000-000000000003",
+      "slideType": "two-column-comparison",
+      "templateId": "slide.two-column-comparison.v1",
+      "content": {
+        "heading": "学習方法の比較",
+        "leftLabel": "説明を読む",
+        "rightLabel": "実行して確認",
+        "rows": [
+          {
+            "axis": "確認方法",
+            "left": "役割と条件を整理",
+            "right": "出力と操作結果を確認"
+          }
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "00000000-0000-4000-8000-000000000004",
+      "slideType": "diagram",
+      "templateId": "slide.diagram.v1",
+      "content": {
+        "heading": "学習ロードマップ",
+        "diagramType": "roadmap",
+        "diagram": {
+          "diagramId": "12345678-1234-4234-8234-123456789abc",
+          "version": 1,
+          "sourcePath": "examples/linux-roadmap/input.json",
+          "sha256": "fd72ea08c7e9f11d33656860f8a9eb2582c2f5c645292dc5b1c9432b41888645"
+        }
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "00000000-0000-4000-8000-000000000005",
+      "slideType": "table",
+      "templateId": "slide.table.v1",
+      "content": {
+        "heading": "基本コマンド",
+        "columns": [
+          "コマンド",
+          "役割"
+        ],
+        "rows": [
+          [
+            "pwd",
+            "現在位置を表示"
+          ],
+          [
+            "ls",
+            "内容を一覧表示"
+          ]
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "00000000-0000-4000-8000-000000000006",
+      "slideType": "summary",
+      "templateId": "slide.summary.v1",
+      "content": {
+        "heading": "まとめ",
+        "takeaways": [
+          "役割を確認してから実行する",
+          "学習の順序に沿って練習する"
+        ],
+        "nextAction": "基本操作から練習を始める"
+      },
+      "references": [
+        "input"
+      ],
+      "notes": ""
+    }
+  ],
+  "references": [
+    {
+      "referenceId": "input",
+      "label": "Linuxロードマップ入力と説明用構成",
+      "source": "examples/linux-roadmap/input.json",
+      "locator": "比較・練習方法は説明用の提案であり実測評価ではない"
+    }
+  ],
+  "notes": "設計・スキーマ検証用。描画未実施。図解IDは説明用でS3登録を意味しない。"
+}

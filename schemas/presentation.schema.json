@@ -1,0 +1,1449 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:diagram-design-system:presentation:1",
+  "title": "Presentation semantic source v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "presentationId",
+    "version",
+    "title",
+    "audience",
+    "purpose",
+    "slides",
+    "references",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "enum": [
+        "1.0",
+        "1.1",
+        "1.2"
+      ]
+    },
+    "presentationId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "\\S"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "\\S"
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/definitions/slide"
+      }
+    },
+    "references": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "referenceId",
+          "label",
+          "source"
+        ],
+        "properties": {
+          "referenceId": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "pattern": "\\S"
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 8000
+    }
+  },
+  "definitions": {
+    "titleContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "bulletContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "items"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "two-column-comparisonContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "leftLabel",
+        "rightLabel",
+        "rows"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "leftLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "pattern": "\\S"
+        },
+        "rightLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "pattern": "\\S"
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "axis",
+              "left",
+              "right"
+            ],
+            "properties": {
+              "axis": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 24,
+                "pattern": "\\S"
+              },
+              "left": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 70,
+                "pattern": "\\S"
+              },
+              "right": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 70,
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagramContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "diagramType",
+        "diagram"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "diagramType": {
+          "enum": [
+            "roadmap",
+            "flowchart",
+            "architecture",
+            "comparison"
+          ]
+        },
+        "diagram": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "diagramId",
+            "version",
+            "sourcePath",
+            "sha256"
+          ],
+          "properties": {
+            "diagramId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourcePath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "\\S"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "tableContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "columns",
+        "rows"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24,
+            "pattern": "\\S"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "pattern": "\\S"
+            }
+          }
+        }
+      }
+    },
+    "summaryContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "takeaways"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "takeaways": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          }
+        },
+        "nextAction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "slide": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "title"
+            },
+            "templateId": {
+              "const": "slide.title.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/titleContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "bullet"
+            },
+            "templateId": {
+              "const": "slide.bullet.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/bulletContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "two-column-comparison"
+            },
+            "templateId": {
+              "const": "slide.two-column-comparison.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/two-column-comparisonContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "diagram"
+            },
+            "templateId": {
+              "const": "slide.diagram.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/diagramContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "table"
+            },
+            "templateId": {
+              "const": "slide.table.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/tableContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "summary"
+            },
+            "templateId": {
+              "const": "slide.summary.v1"
+            },
+            "content": {
+              "$ref": "#/definitions/summaryContent"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "title"
+            },
+            "templateId": {
+              "const": "slide.title.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/titleContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "bullet"
+            },
+            "templateId": {
+              "const": "slide.bullet.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/bulletContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "two-column-comparison"
+            },
+            "templateId": {
+              "const": "slide.two-column-comparison.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/two-column-comparisonContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "diagram"
+            },
+            "templateId": {
+              "const": "slide.diagram.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/diagramContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "table"
+            },
+            "templateId": {
+              "const": "slide.table.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/tableContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slideId",
+            "slideType",
+            "templateId",
+            "content",
+            "references",
+            "notes"
+          ],
+          "properties": {
+            "slideId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "slideType": {
+              "const": "summary"
+            },
+            "templateId": {
+              "const": "slide.summary.v2"
+            },
+            "content": {
+              "$ref": "#/definitions/summaryContentV2"
+            },
+            "references": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "slideVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceReferences": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "sourceId",
+                  "sourceVersion",
+                  "locator"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceVersion": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "titleContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "bulletContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "items"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "two-column-comparisonContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "leftLabel",
+        "rightLabel",
+        "rows"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "leftLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "pattern": "\\S"
+        },
+        "rightLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "pattern": "\\S"
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "axis",
+              "left",
+              "right"
+            ],
+            "properties": {
+              "axis": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 24,
+                "pattern": "\\S"
+              },
+              "left": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 70,
+                "pattern": "\\S"
+              },
+              "right": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 70,
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagramContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "diagramType",
+        "diagram"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "diagramType": {
+          "enum": [
+            "roadmap",
+            "flowchart",
+            "architecture",
+            "comparison"
+          ]
+        },
+        "diagram": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "diagramId",
+            "version",
+            "sourcePath",
+            "sha256"
+          ],
+          "properties": {
+            "diagramId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourcePath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240,
+              "pattern": "\\S"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "tableContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "columns",
+        "rows"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24,
+            "pattern": "\\S"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "pattern": "\\S"
+            }
+          }
+        }
+      }
+    },
+    "summaryContentV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "takeaways"
+      ],
+      "properties": {
+        "heading": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48,
+          "pattern": "\\S"
+        },
+        "takeaways": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "\\S"
+          }
+        },
+        "nextAction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "\\S"
+        }
+      }
+    }
+  }
+}

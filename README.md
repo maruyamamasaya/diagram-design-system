@@ -1,6 +1,24 @@
 # AI図解デザインシステム
 
-AIエージェント向けの、横長モノクロ図解の共通ルール・テンプレート・依頼プロンプト。Phase 2は構造化JSONからSVGとPNGを生成するCLI、Phase 3は非公開S3保存用の独立CLI・メタデータ管理を提供する。Phase 3Bで承認済みの専用非公開S3・IAMロール・Budgetsを構築し、実保存と再取得を検証済み。Webアプリ・常駐サーバーは含まない。
+## 開発を継続するための入口
+AIには「資料を作る」「システムを改修する」「文書を更新する」の目的と対象を伝える。同じ入力資料でも依頼に応じて経路を分ける。[AGENTS](AGENTS.md) → [現在地](CURRENT.md)から開始し、必要な[構成](ARCHITECTURE.md)、[コード探索](CODEMAP.md)、[検証](TESTING.md)、[運用](OPERATIONS.md)へ進む。[設計判断](decisions/README.md)と[作業記録](sessions/README.md)は必要な履歴だけ読む。
+
+プレゼンの実装・登録・検証の現状は[CURRENT](CURRENT.md)を参照。開発の標準検証は`npm run verify`、文書だけなら`npm run verify -- docs`。詳細は[TESTING](TESTING.md)。
+
+AIエージェント向けの、横長モノクロ図解の共通ルール・テンプレート・依頼プロンプト。Phase 2は構造化JSONからSVGとPNGを生成するCLI、Phase 3は非公開S3保存用の独立CLI・メタデータ管理を提供する。Phase 3Bで承認済みの専用非公開S3・IAMロール・Budgetsを構築し、実保存と再取得を検証済み。Phase 4は独立したローカル閲覧用ビューアーを提供する。資料の意味理解・構成設計はAIが担当し、既存CLIの対応範囲はAI生成の上限ではない。独立した図解作成アプリの開発が主目的ではない。
+
+## 自然言語による資料生成（標準）
+Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資料本文またはファイルパスを渡す。JSONの事前作成は不要。Markdown、テキスト、技術ドキュメント、仕様書・設計資料を標準入力とし、PDF・Word・PowerPointは環境の読取能力を確認する。
+
+依頼例：「AGENTS.mdを読み、examples/agent-creation/input.mdを図解して。図の種類と描画手段は内容に合わせて選び、対応可能な全形式をローカル保存し、検証記録を付けて。」
+
+1. AIが資料を読み、必須項目・階層・関係・出典を整理する。
+2. 全共通ルールと関連テンプレートを読み、構成と生成手段を選ぶ。Agent Creation Modeを標準とし、既存エンジンに適合すれば利用、範囲外ならSVG・HTML等を使う。
+3. 共通設計から対応形式を生成し、各形式を再レンダリングして内容・日本語・配置を検証し、不合格を修正する。
+4. outputs/配下でID・版、原資料、共通設計、描画ソース、形式別状態、検証記録を管理し、成果物と制約を報告する。
+5. S3は保存先と資料送信の承認、既存保存仕様への適合を確認して別工程で行う。独自成果物のS3・ビューアー連携は現行CLIでは未対応。
+
+[生成モード・責務・現状との差分](docs/agent-creation.md)と[Markdown E2Eシナリオ](examples/agent-creation/README.md)を参照。今回の自然言語入力からの生成E2Eは未実施であり、シナリオ追加や既存回帰テスト合格を意味理解の検証済みとは扱わない。
 
 ## 利用方法
 1. エージェントへ [AGENTS.md](AGENTS.md) を入口として指定する。
@@ -55,7 +73,7 @@ $env:DIAGRAM_FONT = 'C:/Windows/Fonts/NotoSansJP-VF.ttf'
 npm test
 ```
 
-CLIは `--input`（JSON）、`--template roadmap`、`--output`（このプロジェクトのoutputs配下）、`--font`、任意の `--code-font` と `--browser` を受け取る。パスは実行ディレクトリ基準。出力先は空の新規サブディレクトリを使い、既存結果は上書きしない。`.gitignore` が `outputs/` と `node_modules/` を除外する。現状のフォルダーにはGitが初期化されていないため、Git初期化後にもこの除外設定を保持する。
+CLIは `--input`（JSON）、`--template roadmap`、`--output`（このプロジェクトのoutputs配下）、`--font`、任意の `--code-font` と `--browser` を受け取る。パスは実行ディレクトリ基準。出力先は空の新規サブディレクトリを使い、既存結果は上書きしない。`.gitignore` が `outputs/` と `node_modules/` を除外する。Git管理でもこの除外設定を保持する。
 
 出力は `diagram.svg`（1600×900）、`diagram.png`（3200×1800）、入力の複製 `input.json`、`validation.json`。SVGは編集可能なtext・rect・pathと安定IDを持ち、フォントをdata URIで埋め込む。スクリプト、外部URLへの画像・フォント依存はない。フォントとライセンス情報はSVGのmetadataと検証記録に保持する。
 
@@ -97,7 +115,7 @@ S3接続はAWS SDK標準認証チェーンで短期認証を使用する。認�
 
 追加のローカル出力はmetadata.jsonとupload-status.json。ID・版・ファイルSHA256を固定し、If-None-Match条件付きPUTとGET照合で異なる内容の上書きを防ぐ。全ファイルの保存検証後にcatalogへ一覧用metadataを保存する。既定3版を超える更新を止め、棚卸し・削除は承認を得て実施する。残骸や旧版の自動削除機能は未実装。
 
-Web・iOS連携は [API仕様案](docs/viewer-api.md) で定義した。非公開S3を維持し、認証・認可後に短時間の署名付きURLで取得する。APIサーバー・認証基盤・ビューアーは今回未実装。
+Web・iOS連携は [API仕様案](docs/viewer-api.md) で定義した。非公開S3を維持し、認証・認可後に短時間の署名付きURLで取得する。公開API・公開認証基盤・iOS連携は未実装。ローカルWebビューアーの実装状況はPhase 4を参照する。
 
 初期構成はSSE-S3、S3 Standard、最小権限、監視専用Budgetsを基本とする。EC2・NAT・ALB・WAF・独自KMSキー・PrivateLink・VPC Endpointは追加しない。将来Lambdaは不要なVPC接続を避け、CloudWatch Logs保持14日を初期案とする。課金する設定・監査機能の作成変更は、料金と必要性を示して承認を得る。
 
@@ -109,6 +127,7 @@ Web・iOS連携は [API仕様案](docs/viewer-api.md) で定義した。非公�
 今後の技術案：他テンプレートのアダプター、自動ページ分割、禁則処理、フォントサブセット化、PDFと編集可能PPTXを追加する。続くPhaseで認証・認可を持つWeb・iOSビューアー、旧論理版・残骸の削除計画ツールを検討する。採用前にフォント・アイコンの許諾、PDF埋め込み、PPTX個別編集と互換性を評価する。自動検査を導入しても内容の正確性と視覚検証は残す。
 
 ## 変更記録
+- 2026-10-09：Agent Creation Modeを標準、Deterministic Rendering Modeを補助として定義。自然言語入力、柔軟な描画手段、共通検証・ローカル管理、Markdown E2Eシナリオを追加。Phase 2〜4のコード・スキーマ・保存形式は変更せず、既存出力の移行は不要。自然言語生成E2Eは未実施。
 - 全形式標準化（設計）：export/storageルール、参照プロンプト、metadata-package 2.0スキーマを追加。1.0と既存CLIは維持。新レンダラー・AWS変更・2.0実行経路は未実装。旧成果物の改名や自動移行を行わず、移行条件はstorage.mdを参照。
 - 初期版：ルール5種、テンプレート4種、プロンプト2種、説明用入力と検証ひな形を定義。図解・レンダラーは未生成。
 - Phase 2（0.2.0）：論理JSON Schema、Roadmapエンジン、SVG・PNG、CLI、保存アダプター、回帰テストを追加。初期の入力例を保持し、対応するJSONと検証記録を追加。
@@ -154,3 +173,51 @@ http://127.0.0.1:3000 を開き、viewer/.local/login.txtのランダムパス�
 [Phase 4実装・検証](docs/phase4-validation.md)、[認証・公開候補・料金](docs/phase4-deployment.md)、[共通API](docs/viewer-api.md)。現在はローカル専用。別PC/iPhoneからの利用には承認後の公開構築とOIDC認証が必要。
 
 iOSは既存Presentation-Viewerへ図解ライブラリを追加する方針を推奨する。[連携案・実装順序](docs/ios-integration.md)。現在は設計のみで既存iOSアプリを変更していない。
+
+## Phase 5：プレゼン設計基盤
+登録されたTitle / Bullet / Two Column Comparison / Diagram / Table / Summaryを選択・組合せする設計を追加。[設計](docs/presentation-design.md)、[選択・配置ルール](rules/presentation.md)、[プロンプト](prompts/presentation.md)、[6ページJSON例](examples/linux-presentation/source.json)。描画経路の存在と認定状況は[CURRENT](CURRENT.md)を参照する。既存単一RoadmapのSVG/PNG機能は維持。
+
+```powershell
+node -e "require('./src/presentation/validate.cjs').validatePresentation(require('./examples/linux-presentation/source.json')); console.log('valid')"
+npm test
+```
+
+入力JSON検証は構造と意味の一部だけを確認し、視覚品質や参照ファイルの実測ハッシュを保証しない。描画品質を確認したテンプレートを本番登録する工程は次フェーズ。[検証記録](docs/phase5-validation.md)。
+
+## Phase 6：複数スライドSVG/PNG生成
+
+Development Modeでエンジンを実装。Creation ModeではAIがMarkdownを読み、登録テンプレートで構成したJSONをCLIへ渡す。CLI自身が自然言語を解析する機能はない。Linux技術資料の8節をAIが8ページに整理した再現例はexamples/linux-operations/。
+
+```powershell
+$env:DIAGRAM_BROWSER='C:/Program Files/Google/Chrome/Application/chrome.exe'
+npm run generate:presentation -- --input examples/linux-operations/presentation.json --source examples/linux-operations/input.md
+# --output ディレクトリ / --font OFL日本語TTF / --browser 実行ファイル を指定可能
+npm test
+```
+
+出力はoutputs/<presentationId>/versions/<6桁版>/。同じID・版を上書きしない。例の版は2（開発中の失敗版1を保持）。再実行は入力のversionを増やすか別の--outputを指定する。版番号を自動採番して資料同一性を曖昧にしない。途中失敗はローカル成果物を保持しvalidation.jsonへ記録する。既存generate/uploadのCLIは維持。
+
+6種のSVG/PNGと800×450 PNGサムネイル、構成JSON、原資料、参照図解、検証と専用metadataを生成。Diagramは直列Roadmapのみ対応。表・箇条書き・比較軸の実測高さ超過は単位ごとに分割し、元slideId＋part、固有pageIdを保持。単一要素が登録上限に収まらない場合は停止し、AIによる分割・構成修正を要求する。文字を縮小/切捨てしない。
+
+PDF・PPTX・軽量Web SVG・WebPはunsupported。現行uploadやviewerへプレゼンパッケージを直接渡さない。[実装・検証と残課題](docs/phase6-validation.md)、[内部構造・互換性](docs/presentation-engine.md)。
+
+## Phase 6.5：改善版プレゼン
+6種のv2を登録し、従来v1も利用できる。[採用方針](docs/presentation-skill-policy.md)・[配置仕様](docs/presentation-layout-v2.md)・[比較記録](docs/phase65-validation.md)。
+
+```powershell
+$env:DIAGRAM_BROWSER="C:/Program Files/Google/Chrome/Application/chrome.exe"
+npm run generate:presentation -- --input examples/linux-operations/presentation-dense.json --source examples/linux-operations/input.md --output outputs/phase65-reproduction
+```
+
+既存の同じID・版があれば上書き拒否。再実行では構成JSONのversionを上げるか、新しい出力先を指定する。PDF/PPTXは未実装。
+
+## Phase 7：ベクターPDF・編集可能PPTX
+新規資料はv2を標準とし、明示v1は維持します。手順・環境・書体の制約は[出力仕様](docs/presentation-export.md)、結果は[Phase 7検証](docs/phase7-validation.md)。
+
+```powershell
+$env:DIAGRAM_BROWSER="C:/Program Files/Google/Chrome/Application/chrome.exe"
+npm run generate:presentation -- --input examples/linux-operations/presentation-phase7.json --source examples/linux-operations/input.md --output outputs/phase7-reproduction
+npm run test:exports
+```
+
+標準でSVG/PNG/サムネイル・構成/メタデータ・PDF・PPTXを生成。画像だけなら`--formats svg,png`、既存の未変換パッケージは`npm run export:presentation -- --input <package-directory>`。同じID・版や既存の変換ファイルは上書き拒否。AWS・viewer連携は別工程です。

@@ -1,0 +1,126 @@
+{
+  "registryVersion": "1.0",
+  "templates": [
+    {
+      "templateId": "slide.title.v1",
+      "slideType": "title",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/titleContent",
+      "spec": "../templates/slides/title.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.bullet.v1",
+      "slideType": "bullet",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/bulletContent",
+      "spec": "../templates/slides/bullet.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.two-column-comparison.v1",
+      "slideType": "two-column-comparison",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/two-column-comparisonContent",
+      "spec": "../templates/slides/two-column-comparison.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.diagram.v1",
+      "slideType": "diagram",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/diagramContent",
+      "spec": "../templates/slides/diagram.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.table.v1",
+      "slideType": "table",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/tableContent",
+      "spec": "../templates/slides/table.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.summary.v1",
+      "slideType": "summary",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/summaryContent",
+      "spec": "../templates/slides/summary.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase6-validation.md"
+    },
+    {
+      "templateId": "slide.title.v2",
+      "slideType": "title",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/titleContentV2",
+      "spec": "../templates/slides/title.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.bullet.v2",
+      "slideType": "bullet",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/bulletContentV2",
+      "spec": "../templates/slides/bullet.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.two-column-comparison.v2",
+      "slideType": "two-column-comparison",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/two-column-comparisonContentV2",
+      "spec": "../templates/slides/two-column-comparison.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.diagram.v2",
+      "slideType": "diagram",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/diagramContentV2",
+      "spec": "../templates/slides/diagram.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.table.v2",
+      "slideType": "table",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/tableContentV2",
+      "spec": "../templates/slides/table.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.summary.v2",
+      "slideType": "summary",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/summaryContentV2",
+      "spec": "../templates/slides/summary.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/phase65-validation.md"
+    }
+  ],
+  "defaultTemplateVersion": 2
+}
