@@ -15,48 +15,12 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config, error } from "./config";
 import { token } from "./auth";
-export type Artifact = "png" | "svg" | "input" | "validation";
-type File = {
-  name: string;
-  format: string;
-  role: string;
-  contentType: string;
-  sizeBytes: number;
-  sha256: string;
-  key: string;
-};
-export type Manifest = {
-  diagramId: string;
-  title: string;
-  diagramType: string;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
-  outputFormats: string[];
-  files: File[];
-  validation: { checks: Record<string, string> };
-  storage: {
-    bucket: string;
-    region: string;
-    expectedBucketOwner: string;
-    prefix: string;
-    encryption: string;
-  };
-  catalogKey: string;
-};
+import { presentationManifest, target, type Manifest, type Artifact } from "./manifest";
+export type { Manifest, Artifact } from "./manifest";
 const root = path.resolve(process.cwd(), "..");
 const requireProject = createRequire(path.join(root, "package.json"));
 const { validateMetadata } = requireProject("./src/upload/metadata.cjs");
 const { S3Storage } = requireProject("./src/upload/s3-storage.cjs");
-const target = {
-  schemaVersion: "1.0",
-  bucket: "diagram-design-system-676643701781-apne1",
-  region: "ap-northeast-1",
-  expectedBucketOwner: "676643701781",
-  prefix: "library",
-  encryption: "AES256",
-  approved: false,
-};
 const policy = {
   Version: "2012-10-17",
   Statement: [
@@ -92,7 +56,7 @@ export function s3() {
   return (client ??= new S3Client({
     region: target.region,
     maxAttempts: 2,
-    credentials: fromTemporaryCredentials({
+    credentials: process.env.VIEWER_AUTH_MODE === "oidc" ? fromNodeProviderChain() : fromTemporaryCredentials({
       masterCredentials: fromNodeProviderChain({
         profile: process.env.VIEWER_AWS_SOURCE_PROFILE || "default",
       }),
@@ -110,16 +74,19 @@ export function s3() {
 }
 let cache: { until: number; data: Manifest[] } | null = null;
 let pending: Promise<Manifest[]> | null = null;
+const mockFolders=new Map<string,string>();
 async function scan(): Promise<Manifest[]> {
   if (config().storage === "mock") {
-    const m = JSON.parse(
-      await fs.readFile(
-        path.join(root, "outputs/linux-roadmap-final/metadata.json"),
-        "utf8",
-      ),
-    );
-    validateMetadata(m);
-    return [m];
+    const index=JSON.parse(await fs.readFile(path.join(process.cwd(),'.local/mock/index.json'),'utf8')) as string[];
+    const result:Manifest[]=[];
+    for(const name of index) {
+      if(!/^[a-z0-9-]+$/.test(name)) error(409,'INVALID_MANIFEST');
+      const folder=path.join(process.cwd(),'.local/mock',name);
+      const m=JSON.parse(await fs.readFile(path.join(folder,'metadata.json'),'utf8'));
+      const normalized=m.schemaVersion==='presentation-s3-1.0' ? presentationManifest(m,m.catalogKey,'2026-10-09T00:00:00.000Z') : {...validateMetadata(m),pageCount:1};
+      mockFolders.set(normalized.catalogKey,folder);result.push(normalized);
+    }
+    return result;
   }
   await new S3Storage(target, { client: s3() }).preflight();
   const keys: string[] = [];
@@ -133,7 +100,7 @@ async function scan(): Promise<Manifest[]> {
     },
   )) {
     for (const object of page.Contents || [])
-      if (object.Key?.endsWith("/metadata.json")) keys.push(object.Key);
+      if (object.Key?.endsWith("/metadata.json") || object.Key?.endsWith("/upload-manifest.json")) keys.push(object.Key);
     if (keys.length > 500) error(503, "CATALOG_CAPACITY");
   }
   const results: Manifest[] = [];
@@ -156,7 +123,9 @@ async function scan(): Promise<Manifest[]> {
         const bytes = await response.Body!.transformToByteArray();
         if (bytes.length > 131072) error(409, "INVALID_MANIFEST");
         const m = JSON.parse(Buffer.from(bytes).toString("utf8"));
-        validateMetadata(m);
+        const normalized:Manifest=m.schemaVersion==='presentation-s3-1.0'
+          ? presentationManifest(m,key,response.LastModified?.toISOString()||'')
+          : {...validateMetadata(m),pageCount:1};
         if (
           m.catalogKey !== key ||
           Object.entries(m.storage).some(
@@ -165,7 +134,7 @@ async function scan(): Promise<Manifest[]> {
           response.ServerSideEncryption !== "AES256"
         )
           error(409, "INVALID_MANIFEST");
-        return m as Manifest;
+        return normalized;
       }),
     );
     results.push(...batch);
@@ -211,7 +180,8 @@ export function summary(m: Manifest) {
     updatedAt: m.updatedAt,
     version: m.version,
     formats: m.outputFormats,
-    previewAvailable: true,
+    previewAvailable: m.files.some(f=>f.format==='png'),
+    pageCount:m.pageCount,
     validationChecks: m.validation.checks,
   };
 }
@@ -229,14 +199,12 @@ export async function find(id: string, version?: number) {
   if (!m) error(404, "NOT_FOUND");
   return m;
 }
-export function file(m: Manifest, artifact: Artifact) {
-  const name =
-    artifact === "png" || artifact === "svg"
-      ? `diagram.${artifact}`
-      : `${artifact}.json`;
-  const f = m.files.find((f) => f.name === name);
-  if (!f) error(404, "NOT_FOUND");
-  return f;
+export function file(m:Manifest,artifact:Artifact,page=1) {
+  if(!Number.isInteger(page)||page<1||page>m.pageCount)error(400,'INVALID_PAGE');
+  const name=m.diagramType==='presentation'
+    ? artifact==='png'?`slides/${String(page).padStart(3,'0')}/slide.png`:artifact==='pdf'?'document.pdf':artifact==='pptx'?'presentation.pptx':''
+    : artifact==='png'||artifact==='svg'?`diagram.${artifact}`:`${artifact}.json`;
+  const f=m.files.find(f=>f.name===name);if(!f)error(404,'NOT_FOUND');return f;
 }
 export async function access(
   m: Manifest,
@@ -244,8 +212,9 @@ export async function access(
   purpose: string,
   sid: string,
   sub: string,
+  page = 1,
 ) {
-  const f = file(m, artifact);
+  const f = file(m, artifact, page);
   const seconds = 300;
   let url: string;
   if (config().storage === "s3")
@@ -257,7 +226,7 @@ export async function access(
         Key: f.key,
         ResponseContentType: f.contentType,
         ResponseCacheControl: "private, no-store",
-        ResponseContentDisposition: `${purpose === "download" ? "attachment" : "inline"}; filename="${f.name}"`,
+        ResponseContentDisposition: `${purpose === "download" ? "attachment" : "inline"}; filename="${path.basename(f.name)}"`,
       }),
       { expiresIn: seconds },
     );
@@ -266,7 +235,7 @@ export async function access(
       sid,
       sub,
       "diagram-artifact",
-      { id: m.diagramId, version: m.version, artifact, purpose },
+      { id: m.diagramId, version: m.version, artifact, purpose, page },
       seconds,
     );
     url = `${config().origin}/api/artifact?ticket=${ticket}`;
@@ -279,13 +248,13 @@ export async function access(
     contentType: f.contentType,
     sizeBytes: f.sizeBytes,
     sha256: f.sha256,
-    fileName: f.name,
+    fileName: path.basename(f.name),
   };
 }
-export async function mockBytes(m: Manifest, artifact: Artifact) {
-  const f = file(m, artifact);
+export async function mockBytes(m: Manifest, artifact: Artifact, page=1) {
+  const f = file(m, artifact, page);
   const bytes = await fs.readFile(
-    path.join(root, "outputs/linux-roadmap-final", f.name),
+    path.join(mockFolders.get(m.catalogKey)!, f.name),
   );
   if (
     bytes.length !== f.sizeBytes ||

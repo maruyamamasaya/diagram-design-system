@@ -469,3 +469,7 @@ footer {
     padding: 20px;
   }
 }
+
+.pdf-preview iframe { width:100%; height: min(75vh, 900px); min-height:400px; border:1px solid #ddd; border-radius:12px; }
+.preview-options { align-items:end; }
+.preview-options label { min-width:100px; }

@@ -38,3 +38,11 @@ DB・ORM・マイグレーションはない。入力JSON、ローカル成果�
 ビューアーはローカルパスワード、Cookie/CSRF、短期Bearer、単一owner認可。S3はサーバー側短期認証で読取し、キーをブラウザーへ渡さない。公開ホストでは起動拒否を行う。秘密情報はGit対象外。
 
 デプロイはルートのローカルCLIとループバックのviewer。リポジトリにCI/CD workflowはない。`infra/`の提案JSONは自動適用するデプロイ設定ではない。公開案は[Phase 4デプロイ](docs/phase4-deployment.md)、起動条件は[OPERATIONS](OPERATIONS.md)。
+
+## Phase 11Aのviewer拡張
+
+viewer/src/lib/manifest.tsで旧metadataとPhase 7.6の成果物限定manifestを共通モデルへ正規化する。S3 catalog以外を一覧探索せず、固定バケット・ID・版・許可形式・MIME・キー・ページ連続性を検査する。APIはpageCountとページ指定を提供し、UIはPNGのページ切替、PDF iframe、形式別取得を担う。現行の短期ロールに読取専用session policyを適用する。公開認証は[設計](docs/phase11a-deployment.md)段階。生成・upload・iOSの責務は変更しない。
+
+## Phase 11B-2公開API境界
+
+viewer/src/lambda.tsから共通handleへ入り、OIDCモードでCognito JWKS検証とowner認可を実施。実行ロールの短期認証でS3読取。ローカルNext.jsのcookie/password経路は維持し公開モードで拒否する。iOSは別リポジトリのCloudOIDC.swiftとHTTPSCloudAPI。公開リソースは未適用。[証跡](docs/phase11b2-validation.md)。

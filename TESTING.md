@@ -16,9 +16,11 @@ npm --prefix viewer run typecheck
 
 ## 変更と検証
 
+検証レベルの正本は[rules/quality](rules/quality.md)。通常はLevel 1と、新資料・デザイン変更のLevel 2を適用する。Level 3は形式変換・安全性などの変更時や明示要求時に対象範囲へ絞る。既存の合格証跡を変更理由なく再実行しない。
+
 標準入口は`npm run verify`（Full）。`npm run verify -- docs`は入口文書のローカルリンク先存在と`git diff --check`。`npm run verify -- fast`はそれにルートtest、viewer test/typecheckを追加。Fullはさらにviewer build。既存コマンドを逐次実行し、最初の失敗で停止する。依存追加・AWS通信・ブラウザーE2Eはない。実描画試験はローカルChromiumを起動する。
 
-実装中は関連テストまたはFast、完了前は変更範囲に応じたFull。文書のみならdocsでよい。リンク検査は入口・子AGENTS・decisions/sessionsの対象のみで、アンカーや全仕様文書の意味、秘密漏洩、コードとの鮮度は自動判定しない。
+実装中は関連テストまたはFast、完了前は変更範囲に応じた関連テスト。全体に影響する実装変更はFull。文書のみならdocsでよい。リンク検査は入口・子AGENTS・decisions/sessionsの対象のみで、アンカーや全仕様文書の意味、秘密漏洩、コードとの鮮度は自動判定しない。
 
 |変更|必要な検証|
 |---|---|
@@ -35,3 +37,13 @@ npm --prefix viewer run typecheck
 契約検査、モック、実描画、内容確認、目視、実AWS接続を区別して記録する。失敗や未実施を合格として扱わない。
 
 Phase 7の変換は`npm run test:exports`で実行する。v1/v2を別々にPDF/PPTXへ変換し、構造・manifest・上書き拒否・SVG不正ハッシュ時の保持を検査。Codex依存・Chromeが必要。root testの描画回帰は画像出力を指定して維持する。Linux8枚の実PowerPoint・Poppler比較は[出力手順](docs/presentation-export.md)に従う別検証。
+
+Phase 7.6保存変更：`node --test tests/upload.test.cjs tests/presentation-upload.test.cjs`（13件、サイズ境界・SVG削除後を含む）と`node --test tests/engine.test.cjs`（既存3グループ）。実AWS確認は`node scripts/validate-presentation-s3.cjs --input <版> --config <設定>`の読取専用経路。認証なし・モック合格を実接続成功としない。
+
+## Phase 11A検証
+
+`npm --prefix viewer test` はローカルmock fixtureを準備し旧／新APIと拒否条件を検証する。fixtureのPDF/PPTXは実成果物があればそれを使い、なければAPI契約用の短いダミーであり表示品質を証明しない。`npm --prefix viewer run typecheck`、`npm --prefix viewer run build` を実施する。
+
+ローカル起動後 `DIAGRAM_BROWSER="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" VIEWER_STORAGE=s3 node viewer/scripts/browser-check.cjs`。認証済みAWS profileと実RAG成果物のmock:initコピーが必要。PNG/PDF/PPTX取得SHA256、ページ8、PDF表示、検索、ズーム、ログアウト、390px幅を検証しoutputs/phase11a-validationへ記録する。PNG/PDFの画像を目視し、自動操作だけで目視済みとしない。実S3チェックは読み取りのみ。
+
+Phase 11B-2：viewer testにoidc.test.tsを含む。認証済み一覧はfixture注入、実Cognito接続ではない。`node viewer/scripts/package-lambda.cjs`はローカルbundleのみ。実S3の署名GET検証はviewer内で既存.env.localと短期認証を使い`VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-signed-download.ts`（読取のみ）。公開／iPhone実S3の証跡と区別する。

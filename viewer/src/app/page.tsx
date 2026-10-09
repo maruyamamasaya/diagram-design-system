@@ -11,12 +11,14 @@ type Diagram = {
   updatedAt: string;
   validationChecks: Record<string, string>;
   unverified?: string[];
+  pageCount: number;
 };
 const types: Record<string, string> = {
   roadmap: "Roadmap",
   flowchart: "Flowchart",
   architecture: "Architecture",
   comparison: "Comparison",
+  presentation: "プレゼン",
 };
 async function call(path: string, csrf: string, body?: unknown) {
   const res = await fetch(`/api/web/${path}`, {
@@ -90,7 +92,8 @@ export default function Home() {
     [selected, setSelected] = useState<Diagram | null>(null),
     [url, setUrl] = useState(""),
     [format, setFormat] = useState("png"),
-    [refresh, setRefresh] = useState(0);
+    [refresh, setRefresh] = useState(0),
+    [pageNumber, setPageNumber] = useState(1);
   useEffect(() => {
     call("session", "")
       .then((d) => setCsrf(d.csrf))
@@ -138,6 +141,7 @@ export default function Home() {
     call(`diagrams/${selected.id}/access-url`, csrf, {
       version: selected.version,
       artifact: format,
+      page:pageNumber,
       purpose: "preview",
     })
       .then((d) => {
@@ -152,7 +156,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, [selected, format, csrf, refresh]);
+  }, [selected, format, pageNumber, csrf, refresh]);
   const reset = () => {
     setCsrf("");
     setSelected(null);
@@ -172,7 +176,7 @@ export default function Home() {
           </span>
           <div>
             <span className="eyebrow">DIAGRAM DESIGN SYSTEM</span>
-            <h1>図解ライブラリ</h1>
+            <h1>資料ライブラリ</h1>
           </div>
         </div>
         {csrf && (
@@ -199,7 +203,7 @@ export default function Home() {
         <section className="login">
           <span className="eyebrow">PRIVATE LIBRARY</span>
           <h2>ライブラリにログイン</h2>
-          <p>保存した図解を安全に閲覧します。</p>
+          <p>保存した資料を安全に閲覧します。</p>
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -254,7 +258,7 @@ export default function Home() {
               </p>
             </div>
             <div className="actions">
-              {["png", "svg"].map((f) => (
+              {selected.formats.filter(f=>["png","svg","pdf","pptx"].includes(f)).map((f) => (
                 <button
                   key={f}
                   onClick={async () => {
@@ -265,6 +269,7 @@ export default function Home() {
                         {
                           version: selected.version,
                           artifact: f,
+                          page:pageNumber,
                           purpose: "download",
                         },
                       );
@@ -284,35 +289,25 @@ export default function Home() {
             </div>
           </div>
           <div className="preview-options">
-            <button
-              aria-pressed={format === "png"}
-              onClick={() => setFormat("png")}
-            >
-              PNG表示
-            </button>
-            <button
-              aria-pressed={format === "svg"}
-              onClick={() => setFormat("svg")}
-            >
-              SVG表示（約13 MB）
-            </button>
+            {selected.formats.filter(f=>['png','svg','pdf'].includes(f)).map(f=>(
+              <button key={f} aria-pressed={format===f} onClick={()=>setFormat(f)}>{f.toUpperCase()}表示</button>
+            ))}
+            {selected.pageCount>1 && format!=="pdf" && <label>ページ
+              <select value={pageNumber} onChange={e=>setPageNumber(Number(e.target.value))}>
+                {Array.from({length:selected.pageCount},(_,i)=><option key={i+1} value={i+1}>{i+1} / {selected.pageCount}</option>)}
+              </select>
+            </label>}
           </div>
-          {url ? (
-            <DiagramCanvas
-              url={url}
-              title={selected.title}
-              onImageError={() => {
-                setUrl("");
-                setMessage(
-                  "表示URLが失効したか、画像を取得できません。再試行してください。",
-                );
-              }}
-            />
+          {url ? format==='pdf' ? (
+            <section className="pdf-preview">
+              <iframe src={url} title={`${selected.title}のPDF`} referrerPolicy="no-referrer" />
+              <p className="hint"><a href={url} target="_blank" rel="noreferrer">PDFを別タブで開く</a></p>
+            </section>
           ) : (
-            <div className="placeholder" role="status">
-              プレビューを読み込み中…
-            </div>
-          )}
+            <DiagramCanvas url={url} title={`${selected.title} ${pageNumber}/${selected.pageCount}`}
+              onImageError={()=>{setUrl('');setMessage('表示URLが失効したか、画像を取得できません。再試行してください。');}} />
+          ) : (<div className="placeholder" role="status">プレビューを読み込み中…</div>)}
+          {selected.formats.includes('pptx') && <p className="hint">PPTXの内容はページPNGで確認できます。編集にはダウンロードしたファイルをPowerPoint等で開いてください。</p>}
           <details className="validation">
             <summary>検証結果と未検証項目</summary>
             <dl>
@@ -330,8 +325,8 @@ export default function Home() {
           <section className="intro">
             <div>
               <span className="eyebrow">YOUR COLLECTION</span>
-              <h2>保存した図解</h2>
-              <p className="muted">技術・業務の図解を、すぐに見つける。</p>
+              <h2>保存した資料</h2>
+              <p className="muted">技術・業務の資料を、すぐに見つける。</p>
             </div>
             <span className="count">
               {items.length}件{cursor ? "以上" : ""}
@@ -349,7 +344,7 @@ export default function Home() {
               />
             </label>
             <label>
-              図解タイプ
+              資料タイプ
               <select value={type} onChange={(e) => setType(e.target.value)}>
                 <option value="">すべてのタイプ</option>
                 {Object.entries(types).map(([k, v]) => (
@@ -363,7 +358,7 @@ export default function Home() {
           {loading ? (
             <p role="status">読み込み中…</p>
           ) : !items.length ? (
-            <div className="empty">該当する図解がありません。</div>
+            <div className="empty">該当する資料がありません。</div>
           ) : (
             <div className="grid">
               {items.map((d) => (
@@ -373,6 +368,7 @@ export default function Home() {
                     onClick={async () => {
                       setLoading(true);
                       try {
+                        setPageNumber(1);setFormat(d.formats.includes("png")?"png":d.formats[0]);
                         setSelected(
                           await call(
                             `diagrams/${d.id}?version=${d.version}`,
@@ -398,7 +394,7 @@ export default function Home() {
                         ))}
                       </div>
                       <p className="muted">
-                        {d.updatedAt.slice(0, 10)} <span>図解を開く →</span>
+                        {d.updatedAt.slice(0, 10)} <span>資料を開く →</span>
                       </p>
                     </div>
                   </button>
@@ -427,7 +423,7 @@ export default function Home() {
         </>
       )}
       <footer>
-        非公開ライブラリ · 図解は横長16:9を維持 · SVG原本は必要なときに取得
+        非公開ライブラリ · 形式別ダウンロード · プレゼンはページごとに表示
       </footer>
     </main>
   );

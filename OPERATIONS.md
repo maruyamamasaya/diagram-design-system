@@ -31,3 +31,17 @@ S3保存は[保存仕様](docs/s3-storage.md)、[AWS構成](docs/aws-plan.md)、
 - 過密・OVERFLOW：項目分割とテンプレート制約を確認。省略して通さない。
 - `Run npm run init` / `ORIGIN_REJECTED`：viewer初期化、originと試験ポートの一致を確認。秘密値をログに出さない。
 - S3認証期限・保存拒否：短期セッションと承認・版衝突・ハッシュを確認。拒否を権限拡大で解消しない。
+
+Phase 7.6プレゼン保存も既存`npm run upload`を使用する。実行前のdry-run、書込承認、読取検証と旧viewer未対応は[保存仕様](docs/s3-storage.md#phase-76プレゼン保存)。Windowsの認証状態はMacへ継承されない。保存設定・短期認証は各端末で準備し、秘密をチャットやGitへ転記しない。
+
+Macの接続確認済みプロファイル：diagram-design-system-signin（ブラウザ短期ログイン）→diagram-design-system-uploader（既存専用ロール）。AWS CLIは今回/tmpの署名確認済み配布を使用。認証期限切れ時は公式CLIでsigninプロファイルへ再ログインする。詳細は[Phase 7.6](docs/phase76-validation.md)。
+
+## Phase 11Aローカル運用
+
+Node 22以上で `npm --prefix viewer ci`、初回のみ `npm --prefix viewer run init`。viewer/.local/login.txtと.env.localは秘密を含むGit管理外ファイル。mockは `npm --prefix viewer run mock:init` とVIEWER_STORAGE=mock、実S3は.env.localにVIEWER_STORAGE=s3とVIEWER_AWS_SOURCE_PROFILEを認証済み短期認証のsource profile名に設定する。Macで確認したsourceはdiagram-design-system-signin。AWSログイン期限切れは再ログインが必要。viewerは専用ロールを読取専用session policy付きで引き受ける。
+
+`npm --prefix viewer run build` 後 `npm --prefix viewer run start` で127.0.0.1:3000限定。外部公開は既存ガードで拒否する。公開前には[Phase 11A公開設計](docs/phase11a-deployment.md)に従いOIDCを実装・検証・承認する。
+
+Phase 11B-2の公開APIは未デプロイ。承認後にproposed CloudFormationとローカルbundleを用いる。VIEWER_AUTH_MODE=oidc、VIEWER_STORAGE=s3、HTTPSのVIEWER_ORIGIN、64文字以上のVIEWER_SECRET（cursor署名）、VIEWER_OIDC_ISSUER／CLIENT_ID／OWNER_SUBが必要。パスワード設定は不要、owner未設定で認可しない。Lambdaは実行ロールだけを使い、profile／AWSキーを設定しない。[実装と承認境界](docs/phase11b2-validation.md)。
+
+公開APIは承認後CREATE_COMPLETE。[適用パラメーターと再適用手順](docs/phase11b2-deployment.md)、[実リソースJSON](infra/phase11b2-deployment.json)を正本とする。OwnerSubject未設定で全資料アクセス拒否。CursorSecret値は記録・Git管理しない。

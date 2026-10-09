@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs/promises');
 const path=require('node:path');
+const {assertUploadSize}=require('./limits.cjs');
 const {loadBundle,validateConfig,createMetadata,verifyLocalMetadata,jsonBytes,parseJson,readRegularFile}=require('./metadata.cjs');
 
 async function atomicJson(file,value) {
@@ -10,6 +11,11 @@ async function atomicJson(file,value) {
 }
 async function uploadDirectory(directory,config,{storage,dryRun=false,approveContent=false,previous=null}={}) {
   validateConfig(config);
+  const packageFile=path.join(path.resolve(directory),'metadata.json');
+  try {
+    const metadata=parseJson(await readRegularFile(packageFile));
+    if(metadata.schemaVersion==='presentation-package-1.0') return require('./presentation.cjs').uploadPresentationDirectory(path.resolve(directory),config,{storage,dryRun,approveContent,previous});
+  } catch(e) {if(e.code!=='ENOENT') throw e;}
   if(!dryRun&&(!config.approved||!approveContent)) throw new Error('Both approved destination config and --approve-content are required for upload.');
   const dir=path.resolve(directory),lock=path.join(dir,'.upload.lock');
   const handle=await fs.open(lock,'wx').catch(e=>{if(e.code==='EEXIST') throw new Error('Upload already running or stale .upload.lock. Confirm no uploader is active before removing this lock.');throw e;});
@@ -19,6 +25,7 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
     let metadata;
     try {metadata=parseJson(await readRegularFile(metadataFile));verifyLocalMetadata(metadata,bundle,config);if(previous&&(metadata.diagramId!==previous.diagramId||metadata.version!==previous.version+1)) throw new Error('Previous version differs from prepared metadata.');}
     catch(e) {if(e.code!=='ENOENT') throw e;metadata=createMetadata(bundle,config,{previous});await fs.writeFile(metadataFile,jsonBytes(metadata),{flag:'wx'});}
+    assertUploadSize([...bundle.files,{name:'metadata.json',sizeBytes:jsonBytes(metadata).length},{name:'catalog/metadata.json',sizeBytes:jsonBytes(metadata).length}]);
     status={diagramId:metadata.diagramId,version:metadata.version,state:dryRun?'planned':'uploading',startedAt:new Date().toISOString(),verified:[],lastStage:'preflight'};
     await atomicJson(path.join(dir,'upload-status.json'),status);
     if(dryRun) return {metadata,status};

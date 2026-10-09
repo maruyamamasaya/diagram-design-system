@@ -32,3 +32,15 @@ git grep -n 'validateInput' -- src tests
 プレゼンv2の描画：`src/presentation/dense.cjs`、数値正本：`config/presentation-profile.json`。既存engine.cjsが登録IDに応じて選択する。
 
 PDF/PPTX：src/presentation/export.cjs、ネイティブ表罫線：normalize-pptx.py、既存パッケージ変換：export-cli.cjs、新規v2選択：defaults.cjs。実形式比較：scripts/validate-presentation-formats.py、PowerPoint確認：scripts/validate-powerpoint.ps1。
+
+プレゼンS3：src/upload/presentation.cjs（許可リスト・計画・保存）、workflow.cjsでschemaVersion分岐。読取確認：scripts/validate-presentation-s3.cjs。回帰：tests/presentation-upload.test.cjs。旧catalog metadataとは別マーカーを使用。
+
+## Phase 11A追加入口
+
+- viewer/src/lib/manifest.ts：最小presentation manifestの安全な正規化。
+- viewer/src/lib/store.ts、api.ts：旧／新catalog、ページ指定、PDF/PPTX取得。
+- viewer/scripts/mock-init.cjs、viewer/tests/presentation.test.ts：ポータブルな旧／新fixtureと契約・改ざん拒否検証。
+- viewer/scripts/browser-check.cjs：ローカルUIから成果物取得／SHA256と画面を検証。
+- [検証結果](docs/phase11a-validation.md)、[公開設計](docs/phase11a-deployment.md)。
+
+Phase 11B-2：viewer/src/lib/oidc.ts（JWT／owner）、viewer/src/lambda.ts（HTTP API入口）、viewer/scripts/package-lambda.cjs（ローカルbundle）、viewer/tests/oidc.test.ts（公開認証回帰）、infra/phase11b2-api.proposed.json（未適用）。

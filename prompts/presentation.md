@@ -11,7 +11,7 @@ schemas/presentation.schema.jsonに適合するsource.jsonを作り、src/presen
 ## Phase 6 Creation Modeの実行
 上のPhase 5未実装説明は当時の記録。現在はdocs/presentation-engine.mdに沿い、対応6種・直列Roadmapの構成をJSONへ保存する。AIが読取範囲と重要入力→slideId/sourceReferencesの対応を確認する。追加追跡情報はschemaVersion=1.1、slideVersionとsourceReferences(sourceId/sourceVersion/locator)を使う。原資料を--sourceで渡すとsourceVersionは実バイト列SHA256と照合される。既存1.0を無断書換えしない。
 
-generate:presentationでSVG/PNG/サムネイル/JSONを作り、全ページを実表示で確認する。自動のcontentAccuracy/visualReviewはnot_reviewedのままなので別途AI/人間のreview記録を残す。オーバーフローで停止した単一項目は意味を保持してページへ分割し構成JSONの改訂版を生成する。未対応図解型やPDF/PPTXを成功と報告しない。AWS操作やWeb公開を生成と同時に実施しない。
+generate:presentationでSVG/PNG/サムネイル/JSONを作り、quality.mdのレベルに沿って全ページ一覧を確認し、気になるページだけ詳細確認する。自動のcontentAccuracy/visualReviewはnot_reviewedのままなので別途AI/人間のreview記録を残す。オーバーフローで停止した単一項目は意味を保持してページへ分割し構成JSONの改訂版を生成する。未対応図解型やPDF/PPTXを成功と報告しない。AWS操作やWeb公開を生成と同時に実施しない。
 
 ## Phase 7の標準
-新規JSONでは登録v2（slide.<type>.v2）を使用する。旧資料の明示v1を移行しない。標準CLIはSVG/PNG/PDF/PPTXを出力する。全ページの形式別検証・目視を行う。必要な実行環境がなければSVG/PNGを保持し、PDF/PPTXの未生成・未検証を明示する。
+新規JSONでは登録v2（slide.<type>.v2）を使用する。旧資料の明示v1を移行しない。標準CLIはSVG/PNG/PDF/PPTXを出力する。quality.mdの標準検証と一覧目視を行う。変換変更・編集性不具合等は影響範囲の詳細検証を追加する。必要な実行環境がなければSVG/PNGを保持し、PDF/PPTXの未生成・未検証を明示する。

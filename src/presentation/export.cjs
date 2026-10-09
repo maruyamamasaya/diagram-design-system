@@ -313,8 +313,9 @@ async function exportPptx(pages, directory) {
         for (const [i, l] of segments(n.d).entries())
           s.shapes.add({
             name: n.id + "-segment-" + i,
-            geometry: "connector",
-            kind: "straight",
+            // SVG paths are independent editable segments, not attached connectors.
+            geometry: "line",
+            fill: "none",
             position: {
               left: Math.min(l.x, l.nx),
               top: Math.min(l.y, l.ny),

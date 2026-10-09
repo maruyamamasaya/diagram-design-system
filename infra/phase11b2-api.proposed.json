@@ -1,0 +1,348 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "CognitoDomainPrefix": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9-]+",
+      "Default": "diagram-library-676643701781"
+    },
+    "OwnerSubject": {
+      "Type": "String",
+      "Default": "UNCONFIGURED",
+      "Description": "Cognito sub of the single allowed owner. UNCONFIGURED denies everyone."
+    },
+    "CursorSecret": {
+      "Type": "String",
+      "NoEcho": true,
+      "MinLength": 64
+    },
+    "CodeBucket": {
+      "Type": "String",
+      "Default": "diagram-design-system-676643701781-apne1"
+    },
+    "CodeKey": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "Pool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "UserPoolName": "diagram-library",
+        "UserPoolTier": "ESSENTIALS",
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "UsernameAttributes": [
+          "email"
+        ],
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 14,
+            "RequireUppercase": true,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true
+          }
+        },
+        "UserPoolTags": {
+          "Project": "diagram-design-system"
+        }
+      }
+    },
+    "Scope": {
+      "Type": "AWS::Cognito::UserPoolResourceServer",
+      "Properties": {
+        "UserPoolId": {
+          "Ref": "Pool"
+        },
+        "Identifier": "diagram-library",
+        "Name": "Diagram library",
+        "Scopes": [
+          {
+            "ScopeName": "read",
+            "ScopeDescription": "Read owner library"
+          }
+        ]
+      }
+    },
+    "Client": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "DependsOn": "Scope",
+      "Properties": {
+        "UserPoolId": {
+          "Ref": "Pool"
+        },
+        "ClientName": "ios-public",
+        "GenerateSecret": false,
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthFlows": [
+          "code"
+        ],
+        "AllowedOAuthScopes": [
+          "openid",
+          "diagram-library/read"
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "CallbackURLs": [
+          "presentationviewer://oauth/callback"
+        ],
+        "EnableTokenRevocation": true,
+        "AccessTokenValidity": 5,
+        "IdTokenValidity": 5,
+        "RefreshTokenValidity": 1,
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        },
+        "PreventUserExistenceErrors": "ENABLED"
+      }
+    },
+    "Domain": {
+      "Type": "AWS::Cognito::UserPoolDomain",
+      "Properties": {
+        "Domain": {
+          "Ref": "CognitoDomainPrefix"
+        },
+        "UserPoolId": {
+          "Ref": "Pool"
+        },
+        "ManagedLoginVersion": 1
+      }
+    },
+    "Api": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "diagram-library",
+        "ProtocolType": "HTTP",
+        "Tags": {
+          "Project": "diagram-design-system"
+        }
+      }
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "diagram-design-system"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "LibraryReadOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation",
+                    "s3:GetBucketPublicAccessBlock",
+                    "s3:GetBucketOwnershipControls",
+                    "s3:GetEncryptionConfiguration",
+                    "s3:GetBucketPolicyStatus"
+                  ],
+                  "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:ListBucket",
+                  "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1",
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": "library/catalog/*"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": [
+                    "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/catalog/*",
+                    "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/diagrams/*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/diagram-library-api:*"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Logs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/diagram-library-api",
+        "RetentionInDays": 14,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "diagram-design-system"
+          }
+        ]
+      }
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": "Logs",
+      "Properties": {
+        "FunctionName": "diagram-library-api",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 20,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeBucket"
+          },
+          "S3Key": {
+            "Ref": "CodeKey"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "diagram-design-system"
+          }
+        ],
+        "Environment": {
+          "Variables": {
+            "VIEWER_AUTH_MODE": "oidc",
+            "VIEWER_STORAGE": "s3",
+            "VIEWER_ORIGIN": {
+              "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.amazonaws.com"
+            },
+            "VIEWER_SECRET": {
+              "Ref": "CursorSecret"
+            },
+            "VIEWER_OIDC_ISSUER": {
+              "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${Pool}"
+            },
+            "VIEWER_OIDC_CLIENT_ID": {
+              "Ref": "Client"
+            },
+            "VIEWER_OIDC_OWNER_SUB": {
+              "Ref": "OwnerSubject"
+            }
+          }
+        }
+      }
+    },
+    "Integration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "Api"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "Function",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0"
+      }
+    },
+    "Route": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "Api"
+        },
+        "RouteKey": "ANY /v1/{proxy+}",
+        "Target": {
+          "Fn::Sub": "integrations/${Integration}"
+        }
+      }
+    },
+    "Permission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*/v1/*"
+        }
+      }
+    },
+    "Stage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "Properties": {
+        "ApiId": {
+          "Ref": "Api"
+        },
+        "StageName": "$default",
+        "AutoDeploy": true,
+        "DefaultRouteSettings": {
+          "ThrottlingBurstLimit": 5,
+          "ThrottlingRateLimit": 1
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiURL": {
+      "Value": {
+        "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.amazonaws.com"
+      }
+    },
+    "Issuer": {
+      "Value": {
+        "Fn::Sub": "https://cognito-idp.${AWS::Region}.amazonaws.com/${Pool}"
+      }
+    },
+    "ClientID": {
+      "Value": {
+        "Ref": "Client"
+      }
+    },
+    "LoginDomain": {
+      "Value": {
+        "Fn::Sub": "https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
+      }
+    }
+  },
+  "Metadata": {
+    "Status": "PROPOSED_NOT_DEPLOYED",
+    "ApprovalRequired": "Creation, IAM changes, HTTPS publication, code upload and owner setup require explicit user approval."
+  }
+}

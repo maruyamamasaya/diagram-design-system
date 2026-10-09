@@ -1,3 +1,4 @@
+import { oidcPrincipal } from "./oidc";
 import { ApiError, config, error } from "./config";
 import {
   bearer,
@@ -11,7 +12,7 @@ import {
   web,
 } from "./auth";
 import { access, Artifact, catalog, find, mockBytes, summary } from "./store";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, type JWTVerifyGetKey } from "jose";
 const headers = {
   "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff",
@@ -28,12 +29,14 @@ export async function handle(
   req: Request,
   mode: "web" | "api" | "artifact",
   segments: string[] = [],
+  dependencies: {oidcKeys?: JWTVerifyGetKey; catalog?: typeof catalog} = {},
 ): Promise<Response> {
   try {
     const c = config();
     const url = new URL(req.url);
     if ((req.headers.get("host") || url.host) !== new URL(c.origin).host)
       error(403, "ORIGIN_REJECTED");
+    if (c.publicAPI && (mode !== "api" || segments[0] === "auth")) error(404, "NOT_FOUND");
     if (mode === "artifact") {
       if (c.storage !== "mock") error(404, "NOT_FOUND");
       const p = await verify(
@@ -41,7 +44,7 @@ export async function handle(
         "diagram-artifact",
       );
       const m = await find(String(p.id), Number(p.version));
-      const { bytes, f } = await mockBytes(m, p.artifact as Artifact);
+      const { bytes, f } = await mockBytes(m, p.artifact as Artifact, Number(p.page || 1));
       return new Response(new Uint8Array(bytes), {
         headers: {
           ...headers,
@@ -71,7 +74,7 @@ export async function handle(
       });
     }
     const principal =
-      mode === "web" ? web(req, req.method !== "GET") : await bearer(req);
+      c.publicAPI ? await oidcPrincipal(req, dependencies.oidcKeys) : mode === "web" ? web(req, req.method !== "GET") : await bearer(req);
     const sid = String("id" in principal ? principal.id : principal.sid);
     const sub = String(principal.sub);
     if (mode === "web" && route === "session" && req.method === "GET")
@@ -87,14 +90,17 @@ export async function handle(
       revoke(sid);
       return response({ revoked: true });
     }
+    if (c.publicAPI && route === "me" && req.method === "GET") return response({issuer: (principal as {issuer: string}).issuer, subject: sub});
     if (segments[0] !== "diagrams") error(404, "NOT_FOUND");
     if (segments.length === 1 && req.method === "GET") {
       const q = url.searchParams.get("q") || "";
       const type = url.searchParams.get("type") || "";
+      const scope = url.searchParams.get("scope") || "all";
+      if (!["all", "title", "tags"].includes(scope)) error(400, "INVALID_FILTER");
       if (
         q.length > 100 ||
         (type &&
-          !["roadmap", "flowchart", "architecture", "comparison"].includes(
+          !["roadmap", "flowchart", "architecture", "comparison", "presentation"].includes(
             type,
           ))
       )
@@ -110,7 +116,7 @@ export async function handle(
             audience: "diagram-cursor",
             algorithms: ["HS256"],
           });
-          if (payload.sub !== sub || payload.q !== q || payload.type !== type)
+          if (payload.sub !== sub || payload.q !== q || payload.type !== type || (payload.scope || "all") !== scope)
             error(400, "INVALID_CURSOR");
           offset = Number(payload.offset);
           if (!Number.isInteger(offset) || offset < 0)
@@ -120,7 +126,7 @@ export async function handle(
         }
       }
       const latest = new Map<string, Awaited<ReturnType<typeof find>>>();
-      for (const m of await catalog())
+      for (const m of await (dependencies.catalog || catalog)())
         if (
           !latest.has(m.diagramId) ||
           latest.get(m.diagramId)!.version < m.version
@@ -132,14 +138,14 @@ export async function handle(
           (m) =>
             (!type || m.type === type) &&
             (!q ||
-              `${m.title} ${m.tags.join(" ")}`
+              (scope === "title" ? m.title : scope === "tags" ? m.tags.join(" ") : `${m.title} ${m.tags.join(" ")}`)
                 .toLocaleLowerCase()
                 .includes(q.toLocaleLowerCase())),
         )
         .sort((a, b) => a.id.localeCompare(b.id));
       const nextCursor =
         offset + limit < all.length
-          ? await new SignJWT({ q, type, offset: offset + limit })
+          ? await new SignJWT({ q, type, scope, offset: offset + limit })
               .setProtectedHeader({ alg: "HS256" })
               .setAudience("diagram-cursor")
               .setSubject(sub)
@@ -196,12 +202,13 @@ export async function handle(
       const body = await json(req);
       if (
         Object.keys(body).some(
-          (k) => !["version", "artifact", "purpose"].includes(k),
+          (k) => !["version", "artifact", "purpose", "page"].includes(k),
         ) ||
-        !["png", "svg", "input", "validation"].includes(body.artifact) ||
+        !["png", "svg", "pdf", "pptx", "input", "validation"].includes(body.artifact) ||
         !["preview", "download"].includes(body.purpose) ||
         (body.purpose === "preview" &&
-          !["png", "svg"].includes(body.artifact)) ||
+          !["png", "svg", "pdf"].includes(body.artifact)) ||
+        (body.page !== undefined && (!Number.isInteger(body.page) || body.page < 1 || body.page > 999)) ||
         (body.version !== undefined &&
           (!Number.isInteger(body.version) ||
             body.version < 1 ||
@@ -215,6 +222,7 @@ export async function handle(
           body.purpose,
           sid,
           sub,
+          body.page || 1,
         ),
       );
     }

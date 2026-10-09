@@ -1,10 +1,12 @@
 export function config() {
   const origin = process.env.VIEWER_ORIGIN || "http://127.0.0.1:3000";
-  if (
+  const publicAPI = process.env.VIEWER_AUTH_MODE === "oidc";
+  if (publicAPI && (new URL(origin).protocol !== "https:" || process.env.VIEWER_STORAGE !== "s3")) throw Error("Public API requires HTTPS and S3");
+  if (!publicAPI && (
     !["localhost", "127.0.0.1", "[::1]"].includes(new URL(origin).hostname) ||
     process.env.VERCEL ||
     process.env.AWS_LAMBDA_FUNCTION_NAME
-  )
+  ))
     throw Error(
       "Local password auth cannot be hosted. Configure a reviewed OIDC deployment first.",
     );
@@ -15,6 +17,7 @@ export function config() {
   if (!["mock", "s3"].includes(storage)) throw Error("Invalid storage mode");
   return {
     origin,
+    publicAPI,
     secret: new TextEncoder().encode(secret),
     hash: process.env.VIEWER_PASSWORD_HASH || "",
     owner: process.env.VIEWER_OWNER || "local-owner",

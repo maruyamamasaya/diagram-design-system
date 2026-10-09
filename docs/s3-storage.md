@@ -1,6 +1,6 @@
 # Phase 3：非公開S3保存
 
-新しい全形式パッケージの規範は [storage.md](../rules/storage.md)。本書のCLI・固定許可リスト・metadata 1.0は既存互換経路の仕様であり、全形式パッケージのアップロード対応を意味しない。
+新しい全形式パッケージの規範は [storage.md](../rules/storage.md)。本書のCLI・固定許可リスト・metadata 1.0は既存互換経路の仕様であり、一般の全形式パッケージ2.0のアップロード対応を意味しない。Phase 7.6の登録プレゼン専用経路は末尾を参照。
 
 ## 保存モデル
 論理モデルは [metadata.schema.json](../schemas/metadata.schema.json)。設定は [s3-config.schema.json](../schemas/s3-config.schema.json)。一意IDはUUID v4、版は1から始まる整数。初版のcreatedAtは生成日時、更新版はcreatedAtを継承してupdatedAtを更新する。メタデータは版ごとに不変とする。
@@ -72,3 +72,26 @@ maxVersionsは既定3。新しい版の前にcatalogを確認し、上限に達�
 
 ## 将来の生成連続実行
 生成CLIとupload CLIは独立している。承認済み設定と内容送信の許可がある場合に限り、生成成功後にuploadDirectoryを呼ぶ薄いオーケストレーターを追加できる。生成成功だけを理由に自動送信しない。
+
+## Phase 7.6：プレゼン保存
+
+presentation-package-1.0を既存upload CLIが識別し、src/upload/presentation.cjsへ分岐する。元metadata.json、presentationId、生成版を保持し、別のs3-artifacts-manifest.jsonで保存計画を固定する。schemaVersionはpresentation-s3-1.0。一般metadata-package 2.0への移行ではない。
+
+送信するのは完成した各ページのPNGとdocument.pdf/presentation.pptxだけ。SVGは生成・変換の中間形式として使用し、完成後はユーザー指定で削除できる。アップロード対象・合計サイズに含めず、保存処理はSVG不在でも動作する。サムネイル、元metadata.json、validation、原資料、構成JSON、図入力、review、中間ファイル、design、認証設定、フォントファイルはローカルに保持する。これらをローカルで読んでスキーマ・参照ハッシュ・生成検査を照合するが送信しない。S3には一覧・整合性管理用の最小manifest（ID/版/タイトル/保存先/形式/成果物キー・サイズ・SHA256）を2コピー保存し、ローカル絶対パスや原資料本文を含めない。元パッケージと旧1.0保存契約を維持し、旧保存は既存許可リストのまま。
+
+**サイズストッパー**は両CLI経路に適用。1ファイル20,000,000 bytes以上、または対象全体50,000,000 bytes以上でAWS通信前に停止する。MBは10進、ちょうど閾値も停止。最小manifest2コピーも合計に含める。通常の内容承認では解除せず、バイパス引数は提供しない。dry-runにも同じ条件を適用し、超過サイズ・停止理由を表示。プレゼンのupload-statusはblockedとなる。ファイル上限の判定は低水準S3 writeにも適用する。
+
+キーはlibrary/diagrams/<presentationId>/versions/<6桁版>/<相対パス>。保存manifestを同版のupload-manifest.jsonへ保存し、全GET照合の最後にlibrary/catalog/<ID>/versions/<版>/upload-manifest.jsonを作る。既存IAMのdiagrams/catalog範囲内で追加権限・AWSリソースは不要。ただし実環境の権限確認は別工程。旧viewerはmetadata.jsonだけを走査するので新マーカーを表示しない。新形式対応済みとは扱わない。
+
+条件付きPUT、SSE-S3、ExpectedBucketOwner、preflight、GETでSHA256/サイズ/Content-Type/暗号化照合、失敗再開、保持上限、承認分離は旧経路と同じ。保持上限はプレゼン用upload-manifest.jsonの完了版を数える。完成後の同内容再実行はGETのみ。同版の対象・保存先変更は拒否し、新生成版を要求する。--previous-metadataはこの経路では使わない。
+
+```sh
+# AWS通信なし。保存先承認フラグはfalseのままで計画可能
+npm run upload -- --input <outputs内のプレゼン版> --config <保存設定> --dry-run
+# 認証・専用S3の読取確認。既存catalog/PNGと、保存済みならサンプル全対象をGET照合
+node scripts/validate-presentation-s3.cjs --input <プレゼン版> --config <保存設定>
+# 保存先・対象資料の人間承認後のみ
+npm run upload -- --input <プレゼン版> --config <承認済み設定> --approve-content
+```
+
+元metadata内の書体情報とローカルパスは送信しない。dry-run対象と費用、実接続の未完了事項は[Phase 7.6](phase76-validation.md)。

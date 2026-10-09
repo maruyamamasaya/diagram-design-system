@@ -3,6 +3,7 @@ const {S3Client,GetBucketLocationCommand,GetPublicAccessBlockCommand,GetBucketEn
 const {fromNodeProviderChain}=require('@aws-sdk/credential-providers');
 const {NodeHttpHandler}=require('@smithy/node-http-handler');
 const {sha256,validateConfig}=require('./metadata.cjs');
+const {assertUploadSize}=require('./limits.cjs');
 const notFound=e=>e?.name==='NoSuchKey'||e?.name==='NotFound'||e?.$metadata?.httpStatusCode===404;
 class S3Storage {
   constructor(config,{client}={}) {
@@ -33,12 +34,12 @@ class S3Storage {
     const bytes=Buffer.from(await response.Body.transformToByteArray());
     return {bytes,contentType:response.ContentType,encryption:response.ServerSideEncryption,versionId:response.VersionId};
   }
-  async checkCapacity(metadata) {
+  async checkCapacity(metadata,marker='metadata.json') {
     const prefix=`${this.config.prefix}/catalog/${metadata.diagramId}/versions/`;
     let token,count=0;
     do {
       const response=await this.client.send(new ListObjectsV2Command({...this.params(),Prefix:prefix,MaxKeys:1000,...(token?{ContinuationToken:token}:{})}));
-      count+=(response.Contents||[]).filter(o=>o.Key.endsWith('/metadata.json')).length;
+      count+=(response.Contents||[]).filter(o=>o.Key.endsWith('/'+marker)).length;
       if(count>=(this.config.maxVersions||3)) throw new Error('Version retention limit reached. Review old versions and obtain deletion approval before uploading another version.');
       token=response.IsTruncated?response.NextContinuationToken:null;
       if(response.IsTruncated&&!token) throw new Error('Invalid S3 pagination response.');
@@ -50,6 +51,7 @@ class S3Storage {
     return {key,sha256:sha256(bytes),sizeBytes:bytes.length,versionId:existing.versionId||null};
   }
   async write(key,bytes,contentType) {
+    assertUploadSize([{name:key,sizeBytes:bytes.length}]);
     this.assertKey(key);
     if(!this.config.approved) throw new Error('Destination approval is required before writes.');
     const checksum=Buffer.from(sha256(bytes),'hex').toString('base64');

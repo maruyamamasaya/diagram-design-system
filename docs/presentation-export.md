@@ -3,7 +3,7 @@
 SVGが配置・文字折返し・ページ分割の正本。Chromium印刷でベクターPDF、SVGのtext/rect/pathを共通sceneへ読み、Artifact ToolでネイティブPPTXを作る。表はネイティブ表、矢印は個別編集可能な線分。接続先移動への自動追従は未対応。表セルのOOXMLは順序を保って罫線を設定し、v2へ既定グリッドを加えない。v1は既存グリッドを保持する。新規templateId省略はv2へ補完するが、保存済みの明示v1は移行しない。
 
 ## 環境と依存
-既存Node/Chrome、Codex同梱@oai/artifact-tool 2.8.89・Python・Presentationsスキルのfinalizerを使用。必要に応じDIAGRAM_ARTIFACT_TOOL（mjs）、DIAGRAM_PYTHON、DIAGRAM_PRESENTATIONS_SKILL、RUNTIME_NODE_MODULESを絶対パスで指定する。既定は今回確認したCodex primary runtimeの位置。別環境では同じ配置を仮定しない。依存の不足で出力に失敗したらローカルSVG/PNGを保持し、画像だけの--formats svg,pngを利用できる。
+既存Node/Chrome、Codex同梱Artifact Tool・Python・Presentationsスキルのfinalizerを使用。初期Windows証跡は2.8.89、MacのMVP再検証は2.8.59。独立線分はgeometry=lineを使い、接続先なしのconnector APIに依存しない。必要に応じDIAGRAM_ARTIFACT_TOOL（mjs）、DIAGRAM_PYTHON、DIAGRAM_PRESENTATIONS_SKILL、RUNTIME_NODE_MODULESを絶対パスで指定する。既定は初期Windowsで確認したCodex primary runtimeの位置。別環境では同じ配置を仮定せず、load_workspace_dependenciesで実行ファイルとスキル位置を確認して上記変数へ渡す。通常の検証は[rules/quality](../rules/quality.md)、MVP証跡は[Phase 7](phase7-validation.md)を参照。依存の不足で出力に失敗したらローカルSVG/PNGを保持し、画像だけの--formats svg,pngを利用できる。
 
 新規npm依存なし。Artifact Toolのpackage.jsonはprivateで公開ライセンス欄がない。同梱ランタイムを使用し再配布しない。単独配布可能なOSSとは扱わない。Python側のOOXML処理は標準ライブラリ。フォントは既存OFLメタデータ検査を継承。PDFは埋込み、PPTXは非埋込み。編集端末にNoto Sans JPとNoto Sans Monoが必要。
 

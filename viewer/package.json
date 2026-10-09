@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
-    "init": "node scripts/init.cjs"
+    "test": "node scripts/mock-init.cjs && tsx --test tests/*.test.ts",
+    "init": "node scripts/init.cjs",
+    "mock:init": "node scripts/mock-init.cjs"
   },
   "dependencies": {
     "next": "16.4.0",

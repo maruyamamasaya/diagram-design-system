@@ -1,0 +1,121 @@
+{
+  "region": "ap-northeast-1",
+  "account": "676643701781",
+  "stackName": "diagram-library-api",
+  "stackId": "arn:aws:cloudformation:ap-northeast-1:676643701781:stack/diagram-library-api/82b6b430-c3fd-11f1-9fc8-0affe7881947",
+  "codeKey": "deployments/api/edba8fba3136c58592ff3f39e1ca373641efafc2c4788d8bf23441fb5440e28a.zip",
+  "owner": "UNCONFIGURED",
+  "createdAt": "2026-10-09T16:21:41.361Z",
+  "status": "CREATE_COMPLETE",
+  "outputs": {
+    "ApiURL": "https://2zpp6z8zvc.execute-api.ap-northeast-1.amazonaws.com",
+    "Issuer": "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_qKFdR57RY",
+    "ClientID": "56ai6vn12eq9j6bof1hpvrv5g9",
+    "LoginDomain": "https://diagram-library-676643701781.auth.ap-northeast-1.amazoncognito.com"
+  },
+  "parameters": [
+    {
+      "ParameterKey": "OwnerSubject",
+      "ParameterValue": "UNCONFIGURED"
+    },
+    {
+      "ParameterKey": "CodeBucket",
+      "ParameterValue": "diagram-design-system-676643701781-apne1"
+    },
+    {
+      "ParameterKey": "CodeKey",
+      "ParameterValue": "deployments/api/edba8fba3136c58592ff3f39e1ca373641efafc2c4788d8bf23441fb5440e28a.zip"
+    },
+    {
+      "ParameterKey": "CognitoDomainPrefix",
+      "ParameterValue": "diagram-library-676643701781"
+    }
+  ],
+  "resources": [
+    {
+      "logicalId": "Api",
+      "physicalId": "2zpp6z8zvc",
+      "type": "AWS::ApiGatewayV2::Api",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Client",
+      "physicalId": "56ai6vn12eq9j6bof1hpvrv5g9",
+      "type": "AWS::Cognito::UserPoolClient",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Domain",
+      "physicalId": "diagram-library-676643701781",
+      "type": "AWS::Cognito::UserPoolDomain",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Function",
+      "physicalId": "diagram-library-api",
+      "type": "AWS::Lambda::Function",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Integration",
+      "physicalId": "87rblfa",
+      "type": "AWS::ApiGatewayV2::Integration",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Logs",
+      "physicalId": "/aws/lambda/diagram-library-api",
+      "type": "AWS::Logs::LogGroup",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Permission",
+      "physicalId": "diagram-library-api-Permission-ehA0MIOcIFpA",
+      "type": "AWS::Lambda::Permission",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Pool",
+      "physicalId": "ap-northeast-1_qKFdR57RY",
+      "type": "AWS::Cognito::UserPool",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Role",
+      "physicalId": "diagram-library-api-Role-kKDOVnaoMyam",
+      "type": "AWS::IAM::Role",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Route",
+      "physicalId": "rrx9dzr",
+      "type": "AWS::ApiGatewayV2::Route",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Scope",
+      "physicalId": "diagram-library",
+      "type": "AWS::Cognito::UserPoolResourceServer",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "Stage",
+      "physicalId": "$default",
+      "type": "AWS::ApiGatewayV2::Stage",
+      "status": "CREATE_COMPLETE"
+    }
+  ],
+  "lambda": {
+    "CodeSha256": "7bqPujE2xYWS/z854co3NkHvr8LEeI2L8jRB+1RA4oo=",
+    "Role": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam",
+    "Runtime": "nodejs22.x",
+    "MemorySize": 256,
+    "Timeout": 20,
+    "State": "Active"
+  },
+  "templateSHA256": "3ecb590911cd7b1402bf640f9212e3754848ee1668bd3da271f8996dd7675dd7",
+  "secretHandling": {
+    "CursorSecret": "Random 96-character value; CloudFormation NoEcho / Lambda environment; value intentionally not recorded",
+    "AWScredentials": "Runtime IAM role only; not committed"
+  }
+}
