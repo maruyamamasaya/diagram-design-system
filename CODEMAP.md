@@ -44,3 +44,13 @@ PDF/PPTX：src/presentation/export.cjs、ネイティブ表罫線：normalize-pp
 - [検証結果](docs/phase11a-validation.md)、[公開設計](docs/phase11a-deployment.md)。
 
 Phase 11B-2：viewer/src/lib/oidc.ts（JWT／owner）、viewer/src/lambda.ts（HTTP API入口）、viewer/scripts/package-lambda.cjs（ローカルbundle）、viewer/tests/oidc.test.ts（公開認証回帰）、infra/phase11b2-api.proposed.json（未適用）。
+
+Phase 12：src/workflow/cli.cjs → run.cjs（入力束縛、試行隔離、プレビュー、資料/保存先承認、独立upload、verifyApi）。tests/workflow.test.cjs。運用は[一括手順](docs/phase12-workflow.md)。
+
+Phase 10A：src/update/cli.cjs → plan.cjs（diffSource/createUpdatePlan/toMarkdown）。tests/update-plan.test.cjs。原資料差分・旧行参照・更新計画専用。[仕様](docs/phase10a-update-plan.md)。
+
+独立一枚図：src/illustration/cli.cjs → create.cjs、src/upload/illustration.cjs、viewer/src/lib/manifest.ts。[制作入口](prompts/illustration.md)。
+
+Phase 10B：src/update/regenerate-cli.cjs → regenerate.cjs（prepare/regenerate、既存generatePresentation呼出）→ compose.py（PDFページとPPTX OPC依存グラフの再構成）。schemas/presentation-metadata.schema.jsonの任意update記録。tests/partial-update.test.cjs、tests/export/partial-composition.test.cjs。[仕様](docs/phase10b-partial-update.md)。
+
+ゴミ箱：viewer/src/lib/store.tsのlibraryState/setLibraryState/requireActive、api.tsのstateフィルターとtrash/restore。viewer/tests/trash.test.ts。[仕様・本番反映範囲](docs/library-trash.md)。

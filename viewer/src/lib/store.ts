@@ -6,6 +6,8 @@ import { createHash } from "node:crypto";
 import {
   S3Client,
   GetObjectCommand,
+  PutObjectCommand,
+  ListObjectsV2Command,
   paginateListObjectsV2,
 } from "@aws-sdk/client-s3";
 import {
@@ -39,7 +41,7 @@ const policy = {
       Effect: "Allow",
       Action: "s3:ListBucket",
       Resource: `arn:aws:s3:::${target.bucket}`,
-      Condition: { StringLike: { "s3:prefix": "library/catalog/*" } },
+      Condition: { StringLike: { "s3:prefix": ["library/catalog/*", "library/state/*"] } },
     },
     {
       Effect: "Allow",
@@ -47,8 +49,10 @@ const policy = {
       Resource: [
         `arn:aws:s3:::${target.bucket}/library/catalog/*`,
         `arn:aws:s3:::${target.bucket}/library/diagrams/*`,
+        `arn:aws:s3:::${target.bucket}/library/state/*`,
       ],
     },
+    ...(process.env.VIEWER_TRASH_ENABLED === "true" ? [{Effect: "Allow", Action: "s3:PutObject", Resource: `arn:aws:s3:::${target.bucket}/library/state/*`}] : []),
   ],
 };
 let client: S3Client;
@@ -83,7 +87,7 @@ async function scan(): Promise<Manifest[]> {
       if(!/^[a-z0-9-]+$/.test(name)) error(409,'INVALID_MANIFEST');
       const folder=path.join(process.cwd(),'.local/mock',name);
       const m=JSON.parse(await fs.readFile(path.join(folder,'metadata.json'),'utf8'));
-      const normalized=m.schemaVersion==='presentation-s3-1.0' ? presentationManifest(m,m.catalogKey,'2026-10-09T00:00:00.000Z') : {...validateMetadata(m),pageCount:1};
+      const normalized=['presentation-s3-1.0','illustration-s3-1.0'].includes(m.schemaVersion) ? presentationManifest(m,m.catalogKey,'2026-10-09T00:00:00.000Z') : {...validateMetadata(m),pageCount:1};
       mockFolders.set(normalized.catalogKey,folder);result.push(normalized);
     }
     return result;
@@ -123,7 +127,7 @@ async function scan(): Promise<Manifest[]> {
         const bytes = await response.Body!.transformToByteArray();
         if (bytes.length > 131072) error(409, "INVALID_MANIFEST");
         const m = JSON.parse(Buffer.from(bytes).toString("utf8"));
-        const normalized:Manifest=m.schemaVersion==='presentation-s3-1.0'
+        const normalized:Manifest=['presentation-s3-1.0','illustration-s3-1.0'].includes(m.schemaVersion)
           ? presentationManifest(m,key,response.LastModified?.toISOString()||'')
           : {...validateMetadata(m),pageCount:1};
         if (
@@ -192,6 +196,7 @@ export async function find(id: string, version?: number) {
     )
   )
     error(400, "INVALID_ID");
+  await requireActive(id);
   const all = (await catalog()).filter(
     (m) => m.diagramId === id && (!version || m.version === version),
   );
@@ -203,7 +208,7 @@ export function file(m:Manifest,artifact:Artifact,page=1) {
   if(!Number.isInteger(page)||page<1||page>m.pageCount)error(400,'INVALID_PAGE');
   const name=m.diagramType==='presentation'
     ? artifact==='png'?`slides/${String(page).padStart(3,'0')}/slide.png`:artifact==='pdf'?'document.pdf':artifact==='pptx'?'presentation.pptx':''
-    : artifact==='png'||artifact==='svg'?`diagram.${artifact}`:`${artifact}.json`;
+    : artifact==='png'||artifact==='svg'||artifact==='pdf'?`diagram.${artifact}`:`${artifact}.json`;
   const f=m.files.find(f=>f.name===name);if(!f)error(404,'NOT_FOUND');return f;
 }
 export async function access(
@@ -262,4 +267,53 @@ export async function mockBytes(m: Manifest, artifact: Artifact, page=1) {
   )
     error(409, "INTEGRITY_FAILURE");
   return { bytes, f };
+}
+
+// Mutable visibility lives outside immutable artifact/version packages.
+export type LibraryState = { schemaVersion: "library-state-1.0"; id: string; trashed: boolean; updatedAt: string };
+const statePrefix = "library/state/";
+function stateKey(id: string) {
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id)) error(400, "INVALID_ID");
+  return `${statePrefix}${id}.json`;
+}
+export async function libraryState(id: string): Promise<LibraryState | null> {
+  const key = stateKey(id);
+  if (config().storage === "s3" && process.env.VIEWER_TRASH_ENABLED !== "true") return null;
+  let bytes: string;
+  try {
+    if (config().storage === "mock") bytes = await fs.readFile(path.join(process.cwd(), ".local/mock/state", `${id}.json`), "utf8");
+    else {
+      const listed = await s3().send(new ListObjectsV2Command({Bucket: target.bucket, Prefix: key, MaxKeys: 1, ExpectedBucketOwner: target.expectedBucketOwner}));
+      if (!(listed.Contents || []).some(object => object.Key === key)) return null;
+      const r = await s3().send(new GetObjectCommand({Bucket: target.bucket, Key: key, ExpectedBucketOwner: target.expectedBucketOwner}));
+      if (!r.ContentLength || r.ContentLength > 4096 || r.ServerSideEncryption !== "AES256") error(409, "INVALID_LIBRARY_STATE");
+      const data = await r.Body!.transformToByteArray();
+      if (data.length > 4096) error(409, "INVALID_LIBRARY_STATE");
+      bytes = Buffer.from(data).toString("utf8");
+    }
+  } catch (e) {
+    if ((e as {code?:string}).code === "ENOENT" || (e as {name?:string}).name === "NoSuchKey") return null;
+    throw e;
+  }
+  const state = JSON.parse(bytes);
+  if (state.schemaVersion !== "library-state-1.0" || state.id !== id || typeof state.trashed !== "boolean" || typeof state.updatedAt !== "string" || !Number.isFinite(Date.parse(state.updatedAt)) || Object.keys(state).length !== 4) error(409, "INVALID_LIBRARY_STATE");
+  return state;
+}
+export async function setLibraryState(id: string, trashed: boolean): Promise<LibraryState> {
+  const key = stateKey(id);
+  if (config().storage === "s3" && process.env.VIEWER_TRASH_ENABLED !== "true") error(503, "TRASH_NOT_ENABLED");
+  // Validate existence against the complete catalog, including all hidden versions.
+  if (!(await catalog()).some(m => m.diagramId === id)) error(404, "NOT_FOUND");
+  const state: LibraryState = {schemaVersion: "library-state-1.0", id, trashed, updatedAt: new Date().toISOString()};
+  if (config().storage === "mock") {
+    const folder = path.join(process.cwd(), ".local/mock/state");
+    await fs.mkdir(folder, {recursive: true});
+    const temporary = path.join(folder, `${id}-${crypto.randomUUID()}.tmp`);
+    await fs.writeFile(temporary, JSON.stringify(state));
+    await fs.rename(temporary, path.join(folder, `${id}.json`));
+  } else await s3().send(new PutObjectCommand({Bucket: target.bucket, Key: key, ExpectedBucketOwner: target.expectedBucketOwner, Body: JSON.stringify(state), ContentType: "application/json", ServerSideEncryption: "AES256"}));
+  return state;
+}
+export async function requireActive(id: string) {
+  if ((await libraryState(id))?.trashed) error(404, "NOT_FOUND");
 }

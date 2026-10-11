@@ -30,3 +30,7 @@ iOSのconfig/cloud-connection.jsonとInfo.plistへ公開設定を反映、既定
 Node22で`node viewer/scripts/package-lambda.cjs`を実行し、zipを構成。短期AWS認証が必要で、失効時は既存AWS CLIでsignin profileへ再ログイン／更新する。scripts/deploy-phase11b2.cjsは承認済み新規作成とstatus確認の入口。既存スタックの更新はparametersを明示し、CursorSecretを再生成せずUsePreviousValueで保持する。コード追加はhash別の不変キーを使用する。OwnerSubject以外の既存設定を暗黙に変更しない。
 
 費用目標は[約33～36円/月の試算](phase11b-public-api-plan.md)。請求上限ではない。発行済みJWT最大5分／S3 URL300秒の残存と、ログアウト時の保存資料保持は前段の設計どおり。
+
+2026-10-10独立一枚図：ユーザー明示承認後、CodeKeyのみ更新。既存templateと全他パラメーター（CursorSecret含む）はUsePreviousValue。UPDATE_COMPLETE・コードSHA256一致、Role/Memory/Timeout維持、未認証401。[証跡](../sessions/2026-10-10-illustration-workflow.md)。
+
+2026-10-10ゴミ箱：本人がデプロイを承認。実スタックのtemplateを基にstate専用List/Get/Put権限、trash flag、CodeKeyだけを更新。Role/FunctionとIntegrationの間接更新、置換なし。UPDATE_COMPLETE・コードSHA256一致・既存owner/Role/Memory/Timeout維持。既存Vesperaへ署名更新・起動成功。[仕様と検証境界](library-trash.md)。

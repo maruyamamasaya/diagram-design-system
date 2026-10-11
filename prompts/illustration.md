@@ -1,0 +1,38 @@
+# 一枚図の制作入口
+
+プレゼンとは独立した一枚図を制作する。文章はCodex / Workが直接読み、原資料の事実と配置判断を区別する。制作方法をユーザーが指定したら優先する。未指定なら内容から推奨し、仕上がりに影響する場合は「SVG主体／画像部品＋組立／画像生成のみ」の選択を質問する。サイズ・比率が未指定なら[rules/layout](../rules/layout.md)の横長標準で制作し、明示指定を優先する。情報量が不足する場合は[rules/content](../rules/content.md)に従って必要な説明を補う。サーバー構成図のような複雑な図も定型Roadmapへ押し込まない。
+
+- svg：エージェントが自由にSVGを制作。文字・接続を細かく制御する。
+- hybrid：利用可能な画像生成スキルで部品を生成し、SVGにdata:image/pngで埋め込む。文字と接続を後から組み立てる。外部パス参照禁止。
+- image：利用可能な画像生成スキルで一枚全体を生成し、選択したPNGを制作フォルダーへ保存する。中間SVGはPNGを包含するだけでよい。
+
+画像生成には環境のimagegenスキルを使用。CLI自身は画像生成ツールを呼ばず、制作済み画像を受け取る。新しいAPIキーや独自画像生成サービスを要求しない。プロンプトには原文のラベルをそのまま記載し、必要な関係・境界・凡例、キャンバスの横長比率、補足と原資料を区別するラベルを指示する。画像生成のみでは文字を自動照合できないため、目視で誤字・文字化け・読めることを確認し、再生成またはhybridへ切り替える。品質は文字確認を中心とし、複雑なレイアウトの重い自動重なり検査を必須にしない。意味を改変しないことは制作の前提。
+
+制作フォルダーに原文、描画ソースまたはPNG、部品、job.jsonを置く。ジョブ例：
+
+```json
+{
+  "schemaVersion": "illustration-job-1.0",
+  "diagramId": "40dfe0b6-faec-4a34-8d90-f7c12155f6cf",
+  "version": 1,
+  "title": "説明用サーバー構成",
+  "mode": "svg",
+  "source": "source.md",
+  "artwork": "artwork.svg",
+  "labels": ["利用者", "Webサーバー"],
+  "prompt": "原文から構成・接続を整理し、白背景で描く",
+  "assets": [],
+  "review": {"text": "pending", "notes": "未確認"}
+}
+```
+
+review.text=passedはエージェントが文字を目視確認してから設定し、notesに対象・確認結果を記す。未確認でもローカル試作できるがS3保存は拒否。修正時は版を増やし、同版を上書きしない。svg/hybridにはlabelsとOFL日本語フォントを使用。imageでは文字確認は手動。SVGには幅・高さ（64〜4096）とviewBoxを明示し、スクリプト・外部参照を含めない。部品はPNG。
+
+```sh
+npm run create:illustration -- --input <制作フォルダー/job.json> --font <OFL日本語.ttf>
+npm run upload -- --input <出力版> --config config/s3.local.json --dry-run
+# 保存先と、この資料の送信が承認済みの場合
+npm run upload -- --input <出力版> --config config/s3.local.json --approve-content
+```
+
+生成物はoutputs/<ID>/versions/<6桁版>。PNG/PDF・サムネイル・原資料・job・SVG・部品・検証記録と全ファイルハッシュをローカル保持する。画像主体PDFは画像PDF、SVG主体はChromiumの印刷変換。PDF化しても画像内の文字はベクターにならない。S3へ送るのはdiagram.png／diagram.pdfと最小manifestのみ。SVG・原資料・プロンプト・部品・フォントは送らない。S3通信の承認・費用・サイズ上限は既存保存仕様を維持する。

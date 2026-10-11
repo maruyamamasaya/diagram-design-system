@@ -14,6 +14,7 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
   const packageFile=path.join(path.resolve(directory),'metadata.json');
   try {
     const metadata=parseJson(await readRegularFile(packageFile));
+    if(metadata.schemaVersion==='illustration-package-1.0') return require('./presentation.cjs').uploadPresentationDirectory(path.resolve(directory),config,{storage,dryRun,approveContent,previous,loadPackage:require('./illustration.cjs').loadIllustration});
     if(metadata.schemaVersion==='presentation-package-1.0') return require('./presentation.cjs').uploadPresentationDirectory(path.resolve(directory),config,{storage,dryRun,approveContent,previous});
   } catch(e) {if(e.code!=='ENOENT') throw e;}
   if(!dryRun&&(!config.approved||!approveContent)) throw new Error('Both approved destination config and --approve-content are required for upload.');

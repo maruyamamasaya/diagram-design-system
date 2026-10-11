@@ -5,9 +5,11 @@ AIには「資料を作る」「システムを改修する」「文書を更新
 
 プレゼンの実装・登録・検証の現状は[CURRENT](CURRENT.md)を参照。開発の標準検証は`npm run verify`、文書だけなら`npm run verify -- docs`。詳細は[TESTING](TESTING.md)。
 
-AIエージェント向けの、横長モノクロ図解の共通ルール・テンプレート・依頼プロンプト。Phase 2は構造化JSONからSVGとPNGを生成するCLI、Phase 3は非公開S3保存用の独立CLI・メタデータ管理を提供する。Phase 3Bで承認済みの専用非公開S3・IAMロール・Budgetsを構築し、実保存と再取得を検証済み。Phase 4は独立したローカル閲覧用ビューアーを提供する。資料の意味理解・構成設計はAIが担当し、既存CLIの対応範囲はAI生成の上限ではない。独立した図解作成アプリの開発が主目的ではない。
+AIエージェント向けの、白背景・モノクロを土台にした横長図解の共通ルール・テンプレート・依頼プロンプト。Phase 2は構造化JSONからSVGとPNGを生成するCLI、Phase 3は非公開S3保存用の独立CLI・メタデータ管理を提供する。Phase 3Bで承認済みの専用非公開S3・IAMロール・Budgetsを構築し、実保存と再取得を検証済み。Phase 4は独立したローカル閲覧用ビューアーを提供する。資料の意味理解・構成設計はAIが担当し、既存CLIの対応範囲はAI生成の上限ではない。独立した図解作成アプリの開発が主目的ではない。
 
 ## 自然言語による資料生成（標準）
+
+プレゼンの新規制作では、表現モードを「通常モード／グラフィック版」から選ぶ。未指定なら制作前に確認する。[専用プロンプト](prompts/presentation.md)と[グラフィック版の運用](docs/presentation-graphic-mode.md)を参照。
 Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資料本文またはファイルパスを渡す。JSONの事前作成は不要。Markdown、テキスト、技術ドキュメント、仕様書・設計資料を標準入力とし、PDF・Word・PowerPointは環境の読取能力を確認する。
 
 依頼例：「AGENTS.mdを読み、examples/agent-creation/input.mdを図解して。図の種類と描画手段は内容に合わせて選び、対応可能な全形式をローカル保存し、検証記録を付けて。」
@@ -225,3 +227,23 @@ npm run test:exports
 ### Phase 11A：資料ライブラリ
 
 既存Web viewerは旧SVG/PNG図解とPhase 7.6のPDF/PPTX/ページPNG成果物に対応。検索・一覧・ページ切替・PDFプレビュー・形式別取得をローカル認証環境で利用できる。PPTXはPNGでプレビューし対応アプリで編集する。外部公開用OIDCは未実装。[検証](docs/phase11a-validation.md)と[公開方式・費用案](docs/phase11a-deployment.md)を参照。開発順序は11A→11B→12→10、8・9は保留。
+
+## Phase 12：制作ワークフロー
+
+`npm run create:presentation -- --input <構成JSON> --source <原資料Markdown>` で全形式・検査・一覧プレビューをローカル生成。Codexの原資料読取からの手順、資料単位の送信承認、API確認と安全な再実行は[一括ワークフロー](docs/phase12-workflow.md)を参照。
+
+Phase 12一括ワークフローの標準納品はPNG/PDF/PPTX・サムネイル。SVGは内部変換後に削除する（既存単独生成CLIの互換仕様は維持）。
+
+## Phase 10A：更新計画
+
+`npm run plan:presentation -- --input <構成JSON> --before <旧sourceId辞書JSON> --after <新sourceId辞書JSON> --output <新規ディレクトリ>`。差分とスライド更新計画をJSON/Markdownで出力する。再生成・アップロードは行わない。[Linux例・判定仕様](docs/phase10a-update-plan.md)。
+
+### 制作の基本配色と密度
+
+白背景・モノクロは土台とし、公式サービスアイコンと必要な補助色を使えます。配色は[design](rules/design.md)、プレゼンの標準枚数と関連テーマの統合は[layout](rules/layout.md)を正とします。既存の定型レンダラーの配色・分割動作は変更していません。
+
+独立した複雑な一枚図は `npm run create:illustration -- --input <job.json> --font <OFL日本語.ttf>`。[制作方法の選択と画像生成](prompts/illustration.md)。新規図解は未指定なら[横長標準](rules/layout.md)とし、説明不足は[補足ルール](rules/content.md)に従って補う。PNG/PDFを既存uploadへ渡せる。
+
+## Phase 10B：部分更新
+
+`npm run update:presentation -- --baseline <旧版> --plan <Phase10A計画JSON> --input <新構成JSON> --sources <新sourceId辞書JSON> --output <出力ルート> [--font <TTF>] [--browser <Chrome>]`。更新対象だけ描画、維持対象をハッシュ一致で再利用し、新版PNG/PDF/PPTX/サムネイルを作成。要確認が残れば保留する。[手順・Linux例・制約](docs/phase10b-partial-update.md)。

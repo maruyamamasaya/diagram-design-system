@@ -57,3 +57,9 @@ viewer/の/v1はローカルAPIを実装済み。qによるタイトル・タグ
 一覧に`scope=all|title|tags`を追加（省略all）。qと同じ部分一致・大小文字非区別で、cursorをsubject/q/type/scopeに束縛。実APIの未取得ページも検索対象とする。
 
 公開リソースは未作成。JWTのstateless検証ではCognito revokeの即時失効を保証せずaccess token最大5分、発行済みS3 URL300秒の残存を許容する設計。iOSはログアウト時にKeychain削除・本番保存資料非表示、資料は同じ利用者での再ログイン用に保持。検証の境界は[Phase 11B-2](phase11b2-validation.md)。
+
+illustration-s3-1.0に対応。type=illustration、pageCount=1、formats=png/pdf。成果物はdiagram.png/diagram.pdf。旧データの書換えなし。[契約](illustration-workflow.md)。
+
+## ゴミ箱（ローカル実装・本番未適用）
+
+資料ID単位で通常一覧と取得対象から外し、復元できる。`GET diagrams?state=active|trashed`、`POST diagrams/{id}/trash|restore`。既存owner認可/CSRFを維持し、成果物は保持。契約・権限と費用の正本は[ゴミ箱仕様](library-trash.md)。

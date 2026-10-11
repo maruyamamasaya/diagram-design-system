@@ -270,6 +270,156 @@
           }
         }
       }
+    },
+    "update": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "baselineVersion",
+        "baselineMetadataHash",
+        "planHash",
+        "inputHash",
+        "regeneratedSlideIds",
+        "reusedSlideIds",
+        "removedSlideIds",
+        "svgPolicy",
+        "pages"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "partial-update-1.0"
+        },
+        "baselineVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "baselineMetadataHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "planHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "inputHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "regeneratedSlideIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reusedSlideIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "removedSlideIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "svgPolicy": {
+          "const": "removed-after-export"
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pageId",
+              "slideId",
+              "part",
+              "pageNumber",
+              "action",
+              "fromVersion",
+              "fromPageNumber",
+              "fromPageId",
+              "dependencyHash",
+              "artifacts"
+            ],
+            "properties": {
+              "pageId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "slideId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "part": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "pageNumber": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "action": {
+                "enum": [
+                  "reused",
+                  "regenerated"
+                ]
+              },
+              "fromVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fromPageNumber": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fromPageId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dependencyHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "artifacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "from",
+                    "path",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "path": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

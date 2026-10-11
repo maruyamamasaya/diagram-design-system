@@ -11,7 +11,11 @@
     "validate:s3": "node scripts/validate-s3.cjs",
     "generate:presentation": "node src/presentation/cli.cjs",
     "export:presentation": "node src/presentation/export-cli.cjs",
-    "test:exports": "node --test --test-concurrency=1 tests/export/*.test.cjs"
+    "test:exports": "node --test --test-concurrency=1 tests/export/*.test.cjs",
+    "create:presentation": "node src/workflow/cli.cjs",
+    "plan:presentation": "node src/update/cli.cjs",
+    "update:presentation": "node src/update/regenerate-cli.cjs",
+    "create:illustration": "node src/illustration/cli.cjs"
   },
   "engines": {
     "node": ">=22"

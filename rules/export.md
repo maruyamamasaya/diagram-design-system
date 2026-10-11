@@ -39,7 +39,7 @@ MUST：ユーザー指定形式を優先する。未指定時は対応済みの�
 |source.json|共通の構造化入力。UTF-8 JSON、使用経路のスキーマ検証、入力版を保持。既存diagram.schema.jsonへの適合は既存エンジン利用時のみ必須|標準名は未対応。Phase 2のinput.jsonを互換入力として保持|
 |diagram.svg|編集用。上記SVG条件に従う|対応済み|
 |diagram.web.svg|Web閲覧用。編集用と同じ内容・座標、外部参照なし。フォントのサブセット化・アウトライン化時は許諾と日本語表示を検証し編集用SVGを保持|未対応|
-|thumbnail.webp|一覧用。白背景・モノクロ・sRGB、可逆WebP。標準800 × 450、別比率は幅800で比率維持。デコード、寸法、欠落を検査|未対応|
+|thumbnail.webp|一覧用。design.mdの基本配色・sRGB、可逆WebP。標準800 × 450、別比率は幅800で比率維持。デコード、寸法、欠落を検査|未対応|
 |diagram.png|上記PNG条件に従う|対応済み|
 |document.pdf|対応後に上記PDF条件で生成|未対応|
 |presentation.pptx|対応後に上記PPTX条件で生成|未対応|
@@ -51,3 +51,5 @@ validation.jsonは補助の必須検証記録として併置する。標準成�
 
 ## Phase 7：プレゼン専用の対応
 単一図解CLIの上表は変更しない。プレゼンCLIはSVG/PNGに加え、8ページ等をdocument.pdf・presentation.pptxに一括出力できる。PDFは960×540pt、PPTXは同じ16:9の13⅓×7½inch。SVG1600×900を共通設計として0.6pt/単位へ等方変換するため、本文24は14.4pt、補足20は12ptに対応する。文字だけを縮小していない。PPTXはネイティブの文字・図形・表と個別編集できる線、PDFはベクター・フォント埋込み。PPTXはフォント非埋込みなので同じNoto Sans JP/Monoが必要。[手順と制約](../docs/presentation-export.md)を参照。
+
+独立一枚図のsvg/hybrid/image経路はPNG/PDFのみ標準出力。[仕様](../docs/illustration-workflow.md)。imageのPDFはラスター画像で、編集可能文字・図形を保証しない。

@@ -513,6 +513,7 @@ async function generatePresentation(
     fontPath = process.env.DIAGRAM_FONT || "C:/Windows/Fonts/NotoSansJP-VF.ttf",
     browserPath = process.env.DIAGRAM_BROWSER,
     sourceFiles = {},
+    pageNumberStart = 1,
     allowUnreviewedTemplates = false,
     exportFormats = ["pdf", "pptx"],
   } = {},
@@ -523,6 +524,8 @@ async function generatePresentation(
     exportFormats.some((f) => !["pdf", "pptx"].includes(f))
   )
     throw Error("Invalid export formats");
+  if (!Number.isInteger(pageNumberStart) || pageNumberStart < 1)
+    throw Error("Invalid page number start");
   input = require("./defaults.cjs").applyTemplateDefaults(input);
   validatePresentation(input);
   const registry = require("../../config/slide-templates.json");
@@ -654,7 +657,7 @@ async function generatePresentation(
             codeFont,
             rules,
             diagram,
-            pageNumber: metadata.slides.length + 1,
+            pageNumber: metadata.slides.length + pageNumberStart,
             referenceLabel: current.references
               .map(
                 (id) =>

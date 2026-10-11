@@ -11,7 +11,7 @@ import {
   verify,
   web,
 } from "./auth";
-import { access, Artifact, catalog, find, mockBytes, summary } from "./store";
+import { access, Artifact, catalog, find, mockBytes, summary, libraryState, setLibraryState } from "./store";
 import { SignJWT, jwtVerify, type JWTVerifyGetKey } from "jose";
 const headers = {
   "Cache-Control": "no-store",
@@ -96,11 +96,13 @@ export async function handle(
       const q = url.searchParams.get("q") || "";
       const type = url.searchParams.get("type") || "";
       const scope = url.searchParams.get("scope") || "all";
+      const state = url.searchParams.get("state") || "active";
+      if (!["active", "trashed"].includes(state)) error(400, "INVALID_FILTER");
       if (!["all", "title", "tags"].includes(scope)) error(400, "INVALID_FILTER");
       if (
         q.length > 100 ||
         (type &&
-          !["roadmap", "flowchart", "architecture", "comparison", "presentation"].includes(
+          !["roadmap", "flowchart", "architecture", "comparison", "presentation", "illustration"].includes(
             type,
           ))
       )
@@ -116,7 +118,7 @@ export async function handle(
             audience: "diagram-cursor",
             algorithms: ["HS256"],
           });
-          if (payload.sub !== sub || payload.q !== q || payload.type !== type || (payload.scope || "all") !== scope)
+          if ((payload.state || "active") !== state || payload.sub !== sub || payload.q !== q || payload.type !== type || (payload.scope || "all") !== scope)
             error(400, "INVALID_CURSOR");
           offset = Number(payload.offset);
           if (!Number.isInteger(offset) || offset < 0)
@@ -132,7 +134,9 @@ export async function handle(
           latest.get(m.diagramId)!.version < m.version
         )
           latest.set(m.diagramId, m);
+      const states = new Map(await Promise.all([...latest.keys()].map(async id => [id, await libraryState(id)] as const)));
       const all = [...latest.values()]
+        .filter(m => Boolean(states.get(m.diagramId)?.trashed) === (state === "trashed"))
         .map(summary)
         .filter(
           (m) =>
@@ -145,7 +149,7 @@ export async function handle(
         .sort((a, b) => a.id.localeCompare(b.id));
       const nextCursor =
         offset + limit < all.length
-          ? await new SignJWT({ q, type, scope, offset: offset + limit })
+          ? await new SignJWT({ q, type, scope, state, offset: offset + limit })
               .setProtectedHeader({ alg: "HS256" })
               .setAudience("diagram-cursor")
               .setSubject(sub)
@@ -153,6 +157,11 @@ export async function handle(
               .sign(c.secret)
           : null;
       return response({ items: all.slice(offset, offset + limit), nextCursor });
+    }
+    if (segments.length === 3 && ["trash", "restore"].includes(segments[2]) && req.method === "POST") {
+      const body = await json(req);
+      if (Object.keys(body).length || url.search) error(400, "INVALID_REQUEST");
+      return response(await setLibraryState(segments[1], segments[2] === "trash"));
     }
     const v = url.searchParams.get("version");
     const version = v ? Number(v) : undefined;

@@ -59,13 +59,13 @@ async function loadPresentation(dir,config) {
     metadataKey:`${base}/upload-manifest.json`,catalogKey:`${config.prefix}/catalog/${meta.presentationId}/versions/${String(meta.presentationVersion).padStart(6,'0')}/upload-manifest.json`};
   return {files,manifest};
 }
-async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,approveContent=false,previous=null}={}) {
+async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,approveContent=false,previous=null,loadPackage=loadPresentation}={}) {
   validateConfig(config);if(previous) throw Error('Presentation version is fixed by generation; --previous-metadata unsupported');
   if(!dryRun&&(!config.approved||!approveContent)) throw Error('Approved destination and --approve-content required');
   const lock=await fs.open(path.join(dir,'.upload.lock'),'wx');let status;
   const save=async()=>{const tmp=path.join(dir,`upload-status.json.${process.pid}.tmp`);await fs.writeFile(tmp,jsonBytes(status));await fs.rename(tmp,path.join(dir,'upload-status.json'));};
   try {
-    const {files,manifest}=await loadPresentation(dir,config),bytes=jsonBytes(manifest),plan=path.join(dir,'s3-artifacts-manifest.json');
+    const {files,manifest}=await loadPackage(dir,config),bytes=jsonBytes(manifest),plan=path.join(dir,'s3-artifacts-manifest.json');
     const sizeFiles=[...files,{name:'upload-manifest.json',sizeBytes:bytes.length},{name:'catalog/upload-manifest.json',sizeBytes:bytes.length}];
     try {assertUploadSize(sizeFiles);} catch(e) {
       status={diagramId:manifest.diagramId,version:manifest.version,state:'blocked',verified:[],lastStage:'size-check',sizeCheck:e.sizeCheck};await save();throw e;
@@ -90,4 +90,4 @@ async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,appr
   }catch(e){if(status){status.state=e.name==='UploadSizeLimitError'?'blocked':'failed';status.errorCode=e.name;await save().catch(()=>{});}throw e;}
   finally{await lock.close();await fs.unlink(path.join(dir,'.upload.lock'));}
 }
-module.exports={loadPresentation,uploadPresentationDirectory};
+module.exports={loadPresentation,uploadPresentationDirectory,safeRead};

@@ -20,7 +20,7 @@ async function main() {
   try {
     if(!values['dry-run']) {if(!config.approved||!values['approve-content']) throw new Error('Approved destination config and --approve-content are required.');const {S3Storage}=require('./upload/s3-storage.cjs');storage=new S3Storage(config);}
     const {metadata,status}=await uploadDirectory(directory,config,{storage,dryRun:!!values['dry-run'],approveContent:!!values['approve-content'],previous});
-    console.log(`${status.state}: ${metadata.diagramId} version ${metadata.version}\nLocal files preserved: ${directory}\nMetadata: ${path.join(directory,metadata.schemaVersion==='presentation-s3-1.0'?'s3-artifacts-manifest.json':'metadata.json')}`);
+    console.log(`${status.state}: ${metadata.diagramId} version ${metadata.version}\nLocal files preserved: ${directory}\nMetadata: ${path.join(directory,['presentation-s3-1.0','illustration-s3-1.0'].includes(metadata.schemaVersion)?'s3-artifacts-manifest.json':'metadata.json')}`);
   } finally {storage?.close();}
 }
 if(require.main===module) main().catch(e=>{console.error(`Upload error: ${e.message}`);process.exitCode=1;});

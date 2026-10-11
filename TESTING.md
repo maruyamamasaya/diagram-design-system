@@ -47,3 +47,15 @@ Phase 7.6保存変更：`node --test tests/upload.test.cjs tests/presentation-up
 ローカル起動後 `DIAGRAM_BROWSER="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" VIEWER_STORAGE=s3 node viewer/scripts/browser-check.cjs`。認証済みAWS profileと実RAG成果物のmock:initコピーが必要。PNG/PDF/PPTX取得SHA256、ページ8、PDF表示、検索、ズーム、ログアウト、390px幅を検証しoutputs/phase11a-validationへ記録する。PNG/PDFの画像を目視し、自動操作だけで目視済みとしない。実S3チェックは読み取りのみ。
 
 Phase 11B-2：viewer testにoidc.test.tsを含む。認証済み一覧はfixture注入、実Cognito接続ではない。`node viewer/scripts/package-lambda.cjs`はローカルbundleのみ。実S3の署名GET検証はviewer内で既存.env.localと短期認証を使い`VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-signed-download.ts`（読取のみ）。公開／iPhone実S3の証跡と区別する。
+
+Phase 12：`node --test tests/workflow.test.cjs`で生成失敗からの試行隔離、完成後再利用、資料変更/破損拒否、機密送信拒否、HTTPS/API認証・ページング・成果物ハッシュ確認を検証。既存保存テストが条件付き書込・途中失敗・再実行を担う。実AWS/API/端末は別証跡。
+
+Phase 10A：`node --test tests/update-plan.test.cjs`でLinux8枚の局所追加と維持、変更/削除、要確認、旧原資料照合、CLI上書き拒否を検証。ルートnpm testに含む。描画・AWS検証ではない。
+
+独立一枚図：`node --test tests/illustration.test.cjs`。API新manifestとPNG/PDF参照はviewer test、iOS分類は別repoのCloudLibraryTests。実画像生成・AWS・実機は個別証跡。
+
+Phase 10B：`node --test tests/partial-update.test.cjs`（対象限定、再利用/分割/順序、保留・不変版・破損/失敗）をルートtestに追加。`node --test tests/export/partial-composition.test.cjs`（実pypdf/native XML/notes/master参照/入力保持）をtest:exportsに追加。DIAGRAM_PYTHONは既存Codex同梱Python。Linux実E2Eと簡易目視は[記録](docs/phase10b-partial-update.md)参照。
+
+実S3の一枚図読取：viewer内で短期認証・既存.env.localを使用し `VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-illustration.ts <ID>`。署名URL/認証情報をログへ出さずPNG/PDFのサイズ・SHA256を確認。公開認証/実機の証跡とは分ける。
+
+ゴミ箱：viewer/tests/trash.test.tsで移動/復元・取得拒否・認証・未知入力・破損・S3限定キー/SSE・無効書込/障害を検証。mock状態ファイルを変更するためviewerテストはtest-concurrency=1。別repoのCloudLibraryTestsで端末保存維持・失敗時一覧保持・復元を検証。本番は別承認。[仕様](docs/library-trash.md)。

@@ -1,0 +1,249 @@
+{
+  "schemaVersion": "1.2",
+  "presentationId": "66666666-6666-4666-8666-666666666666",
+  "version": 16,
+  "title": "Linuxインフラ運用",
+  "audience": "Linuxインフラエンジニア",
+  "purpose": "基本確認と安全な障害調査を説明する",
+  "slides": [
+    {
+      "slideId": "60000000-0000-4000-8000-000000000001",
+      "slideVersion": 2,
+      "slideType": "title",
+      "templateId": "slide.title.v2",
+      "content": {
+        "heading": "Linuxインフラ運用",
+        "subtitle": "サービスと各資源の状態を確認し、安全に変更する"
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:1-2"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000002",
+      "slideVersion": 2,
+      "slideType": "bullet",
+      "templateId": "slide.bullet.v2",
+      "content": {
+        "heading": "基本コマンド",
+        "items": [
+          "pwd：現在位置を確認",
+          "ls：ファイルを一覧表示",
+          "cd：ディレクトリを移動",
+          "cat：ファイル内容を表示",
+          "観測値は単位と採取時刻を合わせて判断する"
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:3-4"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000003",
+      "slideVersion": 2,
+      "slideType": "table",
+      "templateId": "slide.table.v2",
+      "content": {
+        "heading": "CPU・メモリ・ディスク監視",
+        "columns": [
+          "対象",
+          "コマンド",
+          "確認内容"
+        ],
+        "rows": [
+          [
+            "CPU・プロセス",
+            "top",
+            "負荷とプロセス"
+          ],
+          [
+            "メモリ",
+            "free",
+            "メモリ使用状況"
+          ],
+          [
+            "ディスク",
+            "df",
+            "ファイルシステム使用量"
+          ]
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:5-6"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000004",
+      "slideVersion": 2,
+      "slideType": "bullet",
+      "templateId": "slide.bullet.v2",
+      "content": {
+        "heading": "ネットワーク確認",
+        "items": [
+          "ip addr：アドレスを確認",
+          "ip route：経路を確認",
+          "ss：ソケットを確認",
+          "pingの失敗だけで停止を断定しない",
+          "ICMP制限の可能性も確認する"
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:7-8"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000005",
+      "slideVersion": 3,
+      "slideType": "diagram",
+      "templateId": "slide.diagram.v2",
+      "content": {
+        "heading": "障害調査の順序",
+        "diagramType": "roadmap",
+        "diagram": {
+          "diagramId": "77777777-7777-4777-8777-777777777777",
+          "version": 2,
+          "sourcePath": "examples/linux-operations/roadmap-systemd.json",
+          "sha256": "a9b378ac4d736b03e170cb08657462068ed8c71751f66453f1780f8ac87abede"
+        },
+        "caption": "検証用の推奨手順。条件分岐フローではない。systemdの状態・対象サービスのログから原因を切り分ける。"
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:9-11"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000006",
+      "slideVersion": 2,
+      "slideType": "two-column-comparison",
+      "templateId": "slide.two-column-comparison.v2",
+      "content": {
+        "heading": "代表的なコマンド比較",
+        "leftLabel": "top",
+        "rightLabel": "ps",
+        "rows": [
+          {
+            "axis": "用途",
+            "left": "全体を継続して観察",
+            "right": "採取時点の一覧を確認"
+          },
+          {
+            "axis": "判断の限界",
+            "left": "原因を自動確定しない",
+            "right": "原因を自動確定しない"
+          }
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:12-13"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000007",
+      "slideVersion": 2,
+      "slideType": "bullet",
+      "templateId": "slide.bullet.v2",
+      "content": {
+        "heading": "運用時の注意点",
+        "items": [
+          "操作前に対象とバックアップを確認",
+          "機密ログを無断で共有しない",
+          "提供コマンドやオプションは環境で異なる"
+        ]
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:14-15"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "slideId": "60000000-0000-4000-8000-000000000008",
+      "slideVersion": 2,
+      "slideType": "summary",
+      "templateId": "slide.summary.v2",
+      "content": {
+        "heading": "まとめ",
+        "takeaways": [
+          "状態・採取時刻・単位を記録",
+          "仮説と観測結果を区別",
+          "変更後に結果を確認"
+        ],
+        "nextAction": "環境に合わせて確認手順を整備する"
+      },
+      "references": [
+        "input"
+      ],
+      "sourceReferences": [
+        {
+          "sourceId": "input",
+          "sourceVersion": "a8fa6f5acd65683d22034ab2b5feb7ab8fb9cc2a8f7aa7668c57bfcbb4c8acf1",
+          "locator": "lines:16-17"
+        }
+      ],
+      "notes": ""
+    }
+  ],
+  "references": [
+    {
+      "referenceId": "input",
+      "label": "検証用Linux技術資料",
+      "source": "examples/linux-operations/input.md",
+      "locator": "全8節"
+    }
+  ],
+  "notes": "検証用に作成した入力資料。自動Markdown解析は行わずAIが構成した。"
+}

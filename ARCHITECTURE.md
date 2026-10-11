@@ -46,3 +46,13 @@ viewer/src/lib/manifest.tsで旧metadataとPhase 7.6の成果物限定manifest�
 ## Phase 11B-2公開API境界
 
 viewer/src/lambda.tsから共通handleへ入り、OIDCモードでCognito JWKS検証とowner認可を実施。実行ロールの短期認証でS3読取。ローカルNext.jsのcookie/password経路は維持し公開モードで拒否する。iOSは別リポジトリのCloudOIDC.swiftとHTTPSCloudAPI。公開リソースは未適用。[証跡](docs/phase11b2-validation.md)。
+
+Phase 12のsrc/workflowは既存プレゼン生成と独立uploadを呼ぶオーケストレーター。原資料→Codex構成JSON→ローカル生成/検査/プレビュー→内容/目視と送信承認→既存S3 catalog→共通API一覧/詳細確認。Web/iOSは既存catalogを再読込する。状態はoutputs内のローカルJSON、追加DBやAWSリソースなし。
+
+Phase 10Aのsrc/updateは既存構成JSON＋新旧原資料から更新計画JSON/Markdownを出す独立経路。描画・保存・AWSを呼ばない。[契約](docs/phase10a-update-plan.md)。
+
+独立一枚図はsrc/illustrationで自由SVG／画像部品／全体PNGを変換・ローカル保存。専用loaderから共通upload処理を利用しillustration-s3-1.0をcatalog公開。共通APIがtype=illustrationへ正規化する。[契約](docs/illustration-workflow.md)。
+
+Phase 10B：src/updateは計画を原資料から照合し、既存登録描画へ更新対象だけを渡す。旧成果物のコピー・ネイティブPDF/PPTX再構成は独立のローカル保存工程。旧版とS3/viewer境界を変更しない。[責務・版管理](docs/phase10b-partial-update.md)。
+
+ゴミ箱の状態は成果物から分離し、viewerのowner認可後にlibrary/state/{id}.jsonへ保存するローカル実装。資料全版の可視性だけ変更。承認後の本番反映案と未検証境界は[仕様](docs/library-trash.md)。

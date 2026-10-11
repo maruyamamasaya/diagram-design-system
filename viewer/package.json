@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/mock-init.cjs && tsx --test tests/*.test.ts",
+    "test": "node scripts/mock-init.cjs && tsx --test --test-concurrency=1 tests/*.test.ts",
     "init": "node scripts/init.cjs",
     "mock:init": "node scripts/mock-init.cjs"
   },

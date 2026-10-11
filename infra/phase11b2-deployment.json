@@ -3,7 +3,7 @@
   "account": "676643701781",
   "stackName": "diagram-library-api",
   "stackId": "arn:aws:cloudformation:ap-northeast-1:676643701781:stack/diagram-library-api/82b6b430-c3fd-11f1-9fc8-0affe7881947",
-  "codeKey": "deployments/api/edba8fba3136c58592ff3f39e1ca373641efafc2c4788d8bf23441fb5440e28a.zip",
+  "codeKey": "deployments/api/9e0d173f3be911101d907452f16429d8ebf7bab6cf535ad75b1dea9b8ce477f7.zip",
   "owner": "c7b48a68-1001-70e8-0294-b72dd358c86e",
   "createdAt": "2026-10-09T16:21:41.361Z",
   "status": "UPDATE_COMPLETE",
@@ -24,7 +24,7 @@
     },
     {
       "ParameterKey": "CodeKey",
-      "ParameterValue": "deployments/api/edba8fba3136c58592ff3f39e1ca373641efafc2c4788d8bf23441fb5440e28a.zip"
+      "ParameterValue": "deployments/api/9e0d173f3be911101d907452f16429d8ebf7bab6cf535ad75b1dea9b8ce477f7.zip"
     },
     {
       "ParameterKey": "CognitoDomainPrefix",
@@ -106,14 +106,16 @@
     }
   ],
   "lambda": {
-    "CodeSha256": "7bqPujE2xYWS/z854co3NkHvr8LEeI2L8jRB+1RA4oo=",
+    "CodeSha256": "ng0XPzvpERAdkHRS8WQp2Ov3urbPU1rXWx3qm4zkd/c=",
     "Role": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam",
     "Runtime": "nodejs22.x",
     "MemorySize": 256,
     "Timeout": 20,
-    "State": "Active"
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "trashEnabled": true
   },
-  "templateSHA256": "3ecb590911cd7b1402bf640f9212e3754848ee1668bd3da271f8996dd7675dd7",
+  "templateSHA256": "e7f2a9e5ca0136a7be582e8b3155f18afa1e98b9a34b57a2bba405b6b954c4bd",
   "secretHandling": {
     "CursorSecret": "Random 96-character value; CloudFormation NoEcho / Lambda environment; value intentionally not recorded",
     "AWScredentials": "Runtime IAM role only; not committed"

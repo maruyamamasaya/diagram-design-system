@@ -15,7 +15,7 @@ Diagramはハッシュ検証したリポジトリ内のRoadmap JSONを読取り�
 ## 互換性と追跡
 presentation.schema.jsonは既存1.0を維持し、互換拡張1.1に対応。presentationId/versionを再利用し、metadataでpresentationVersionへ投影。slideVersionは省略時1。sourceReferencesはsourceId/sourceVersion/locator（例lines:3-4）。原資料を渡した場合sourceVersionは実バイト列SHA256と一致が必須。元データの1.0を自動移行しない。
 
-presentation-metadata.schema.jsonは専用presentation-package-1.0。ID・版・pageId/part・templateId・生成時刻・contentHash・sourceReferences・成果物サイズ/SHA256・原資料のSHA256・フォント・ルール/テンプレート/エンジン依存ハッシュを記録する。contentHashはキー順を正規化し配列順を保持する。差分更新エンジンは未実装で、ハッシュは将来の比較材料。依存ハッシュは資料単位で粗く、今後スライド単位の依存集合を追加できる。
+presentation-metadata.schema.jsonは専用presentation-package-1.0。ID・版・pageId/part・templateId・生成時刻・contentHash・sourceReferences・成果物サイズ/SHA256・原資料のSHA256・フォント・ルール/テンプレート/エンジン依存ハッシュを記録する。contentHashはキー順を正規化し配列順を保持する。部分再生成は[Phase 10B](phase10b-partial-update.md)の専用経路。原資料差分と更新計画は[Phase 10A](phase10a-update-plan.md)で扱い、contentHashは変更しない。依存ハッシュは資料単位で粗く、今後スライド単位の依存集合を追加できる。
 
 outputs/<presentationId>/versions/<版>/source/にpresentation.jsonとinput.md、source/diagramsに参照Roadmap、slides/<連番>/slide.svg・slide.png、thumbnails/<連番>.png、metadata.json・validation.jsonを保存する。既存ディレクトリはEEXISTで拒否する。失敗した版に途中ファイルを残し検証失敗を記録。現在は不足分再開ではなく次版または別出力で再実行。metadataのgeneratedは描画成功で、内容/目視の全検証完了ではない。
 
@@ -23,3 +23,5 @@ outputs/<presentationId>/versions/<版>/source/にpresentation.jsonとinput.md�
 
 ## 品質と制約
 自動検査で意味の完全性・実運用の正しさは確認しない。自動JSONのcontentAccuracy/visualReviewはnot_reviewed。AI/人間の原資料対応と画像確認は別の証跡に記録する。PDF/PPTX/webSvg/WebPはmetadataでunsupported。編集可能PPTX・日本語PDF・差分更新・構造化大規模解析は次フェーズ。未実装形式の空ファイルを出力しない。
+
+Phase 10Bの部分再生成は[専用経路](phase10b-partial-update.md)。generatePresentationへ更新対象のみを渡し、pageNumberStart（既定1）で開始番号を指定。旧ページの再利用と新版保存/形式再構成はsrc/updateが担当し、既存生成CLIは維持する。

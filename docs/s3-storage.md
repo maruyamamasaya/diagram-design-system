@@ -95,3 +95,5 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 ```
 
 元metadata内の書体情報とローカルパスは送信しない。dry-run対象と費用、実接続の未完了事項は[Phase 7.6](phase76-validation.md)。
+
+独立一枚図のillustration-package-1.0は既存uploadの条件付き保存経路へ接続。PNG/PDFと最小manifestだけを送信。新契約は[制作仕様](illustration-workflow.md)。

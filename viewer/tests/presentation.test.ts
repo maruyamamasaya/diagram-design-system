@@ -27,3 +27,12 @@ test('common API exposes pages/formats without internal keys, serves selected PN
  assert.equal((await handle(request({artifact:'svg',purpose:'preview'}),'api',['diagrams',raw.diagramId,'access-url'])).status,404);
  await handle(request({}),'api',['auth','revoke']);assert.equal((await handle(new Request(ticket),'artifact')).status,401);
 });
+
+test('standalone illustration accepts only one PNG/PDF and resolves PDF without presentation names',async()=>{
+ const {file}=await import('../src/lib/store');
+ const m=structuredClone(raw);m.schemaVersion='illustration-s3-1.0';m.uploadPolicy='png-pdf-v1';m.formats=['png','pdf'];
+ m.files=[{...m.files[0],name:'diagram.png',contentType:'image/png'}, {...m.files.find((f:any)=>f.name==='document.pdf'),name:'diagram.pdf'}];
+ for(const f of m.files)f.key=m.metadataKey.replace('upload-manifest.json',f.name);
+ const normalized=decode(m);assert.equal(normalized.diagramType,'illustration');assert.equal(normalized.pageCount,1);assert.equal(file(normalized,'pdf').name,'diagram.pdf');assert.throws(()=>file(normalized,'png',2),/INVALID_PAGE/);
+ for(const mutate of [(n:any)=>n.files.push(n.files[0]),(n:any)=>n.formats.push('pptx'),(n:any)=>n.files[0].name='slides/001/slide.png',(n:any)=>n.uploadPolicy='pdf-pptx-png-v1']) {const n=structuredClone(m);mutate(n);assert.throws(()=>decode(n),/INVALID_MANIFEST/);}
+});

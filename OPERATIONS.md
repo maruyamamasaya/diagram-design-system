@@ -45,3 +45,9 @@ Node 22以上で `npm --prefix viewer ci`、初回のみ `npm --prefix viewer ru
 Phase 11B-2の公開APIは未デプロイ。承認後にproposed CloudFormationとローカルbundleを用いる。VIEWER_AUTH_MODE=oidc、VIEWER_STORAGE=s3、HTTPSのVIEWER_ORIGIN、64文字以上のVIEWER_SECRET（cursor署名）、VIEWER_OIDC_ISSUER／CLIENT_ID／OWNER_SUBが必要。パスワード設定は不要、owner未設定で認可しない。Lambdaは実行ロールだけを使い、profile／AWSキーを設定しない。[実装と承認境界](docs/phase11b2-validation.md)。
 
 公開APIは承認後CREATE_COMPLETE。[適用パラメーターと再適用手順](docs/phase11b2-deployment.md)、[実リソースJSON](infra/phase11b2-deployment.json)を正本とする。OwnerSubject未設定で全資料アクセス拒否。CursorSecret値は記録・Git管理しない。
+
+Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](docs/phase12-workflow.md)に従う。API検証のCognito access tokenはDIAGRAM_API_TOKENから読み、状態/ログへ保存しない。新規AWS設定やiOS変更は不要。
+
+一枚図はcreate:illustrationでローカル生成し、uploadのdry-run後に資料送信承認の範囲内で保存する。[手順](prompts/illustration.md)。
+
+ゴミ箱の本番有効化はVIEWER_TRASH_ENABLED=true、既存ロールへのstate専用権限とLambdaコード更新が必要。本機能は2026-10-10本人承認後に適用済み。追加変更は対象を確認する。[構成・費用・操作](docs/library-trash.md)。

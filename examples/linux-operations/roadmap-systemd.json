@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0",
+  "type": "roadmap",
+  "title": "障害調査の順序",
+  "purpose": "検証用の推奨手順",
+  "audience": "Linux運用担当者",
+  "notes": [
+    "条件分岐ではなく推奨順序"
+  ],
+  "steps": [
+    {
+      "id": "s0",
+      "title": "影響確認",
+      "purpose": "対象を特定",
+      "items": [
+        {
+          "text": "利用者と範囲",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "id": "s1",
+      "title": "状態収集",
+      "purpose": "証跡を保存",
+      "items": [
+        {
+          "text": "時刻と状態",
+          "kind": "text"
+        },
+        {
+          "text": "systemctl status <unit>",
+          "kind": "code"
+        },
+        {
+          "text": "journalctl -u <unit>",
+          "kind": "code"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "原因切分",
+      "purpose": "仮説を確認",
+      "items": [
+        {
+          "text": "観測と比較",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "結果確認",
+      "purpose": "復旧を確認",
+      "items": [
+        {
+          "text": "変更後の状態",
+          "kind": "text"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "s0",
+      "to": "s1",
+      "kind": "recommended",
+      "label": "次へ",
+      "basis": "検証用入力の推奨順序"
+    },
+    {
+      "from": "s1",
+      "to": "s2",
+      "kind": "recommended",
+      "label": "次へ",
+      "basis": "検証用入力の推奨順序"
+    },
+    {
+      "from": "s2",
+      "to": "s3",
+      "kind": "recommended",
+      "label": "次へ",
+      "basis": "検証用入力の推奨順序"
+    }
+  ]
+}
