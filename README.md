@@ -9,7 +9,9 @@ AIエージェント向けの、白背景・モノクロを土台にした横長
 
 ## 自然言語による資料生成（標準）
 
-プレゼンの新規制作では、表現モードを「通常モード／グラフィック版」から選ぶ。未指定なら制作前に確認する。[専用プロンプト](prompts/presentation.md)と[グラフィック版の運用](docs/presentation-graphic-mode.md)を参照。
+プレゼンは[内容に応じたページ設計](rules/layout.md#内容に応じたページ設計)を共通方針とする。情報量と構成の工夫が明示された制作では[専用プロンプト](prompts/presentation.md)の専用登録経路を選べる。
+
+プレゼンの新規制作では、表現モードを「通常モード／グラフィック版」から選ぶ。未指定時の確認条件と制作条件から選択できる場合は[専用プロンプト](prompts/presentation.md)と[グラフィック版の運用](docs/presentation-graphic-mode.md)を参照。
 Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資料本文またはファイルパスを渡す。JSONの事前作成は不要。Markdown、テキスト、技術ドキュメント、仕様書・設計資料を標準入力とし、PDF・Word・PowerPointは環境の読取能力を確認する。
 
 依頼例：「AGENTS.mdを読み、examples/agent-creation/input.mdを図解して。図の種類と描画手段は内容に合わせて選び、対応可能な全形式をローカル保存し、検証記録を付けて。」
