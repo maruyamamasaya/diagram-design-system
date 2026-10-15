@@ -63,3 +63,12 @@ illustration-s3-1.0に対応。type=illustration、pageCount=1、formats=png/pdf
 ## ゴミ箱（ローカル実装・本番未適用）
 
 資料ID単位で通常一覧と取得対象から外し、復元できる。`GET diagrams?state=active|trashed`、`POST diagrams/{id}/trash|restore`。既存owner認可/CSRFを維持し、成果物は保持。契約・権限と費用の正本は[ゴミ箱仕様](library-trash.md)。
+
+
+## 資料限定の大容量対応（2026-10-15、本番反映済み）
+
+manifest検査後にsrc/upload/limits.cjsの共有サイズ判定を使い、[資料限定承認](s3-storage.md#2026-10-15の資料限定サイズ承認)に保存先・キー・サイズ・SHA256が一致する40ページの資料だけを受理する。全42成果物がそろうことも確認する。通常の20MB/50MB上限、認証・owner認可・キー制約・短期署名URL・整合性情報は維持する。サイズや版を変えたmanifest、最終PNGを欠いたmanifestも拒否する。
+
+viewer/tests/large-presentation.test.tsを追加。check-large-presentation.tsはローカル共通APIの一覧・詳細・全40PNG/PDF/PPTXを実S3から署名取得しSHA256照合する読取専用検証。URLやトークンを出力しない。公開APIと実機の確認とは区別する。
+
+本人が今回限りの本番反映を承認。既存スタックのCodeKeyのみ更新しUPDATE_COMPLETE。コードSHA256一致・認証環境/IAM Role/256MB/20秒/API接続不変を確認。本番の未認証401・公開禁止auth交換404を確認。ログイン後のiPhone実機閲覧は未確認。[記録](../sessions/2026-10-15-industry-2040-large-viewer-deploy.md)。

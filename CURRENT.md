@@ -15,7 +15,7 @@
 
 - 単一図解のFlowchart/Architecture/Comparison・PDF/PPTX、パッケージ2.0の実行・移行。
 - プレゼンのArchitecture/分岐Flowchart/Comparison図描画（比較スライドと表は対応）、WebP、軽量SVG・フォントサブセット。部分再生成はPhase 10Bの登録プレゼン経路に限定。
-- プレゼンS3はPhase 7.6の保存経路・dry-run・モック検証を実装済み。Phase 7.6完了。Macの短期認証・専用ロール引受・非公開S3読取、承認済みRAG1件の保存・全12個GET/SHA256一致を確認。送信はPDF/PPTX/各ページPNG＋最小manifestのみ（今回の3資料のSVGはユーザー指定で削除済み）。1ファイル20 MB以上／合計50 MB以上を停止する。[Phase 7.6](docs/phase76-validation.md)。Phase 11Aの複数ページWeb viewer・PDFプレビュー・形式別取得はローカル対応済み。実S3読取と取得SHA256を確認。[Phase 11A](docs/phase11a-validation.md)。iOSはPhase 11B-1のモックライブラリ・SHA256保存・オフライン読取を別リポジトリで実装し、Macの19テストを確認。[iOS現在地](docs/phase11b1-status.md)。Phase 11B-2の公開OIDC API・iOS PKCE/Keychainをローカル実装済み。API9グループ・iOS27テスト合格、実S3の署名付きPDF/PNG/PPTX読取を確認。AWS公開APIを承認後にデプロイ済み（CREATE_COMPLETE）。実パラメーターは[記録](docs/phase11b2-deployment.md)。iOSへ公開接続先を反映済み。本人の登録メール／owner sub設定と認証後の実機操作は未完了。[Phase 11B-2](docs/phase11b2-validation.md)。このリポジトリとは別のPresentation-Viewerの実装状況を混同しない。
+- プレゼンS3はPhase 7.6の保存経路・dry-run・モック検証を実装済み。Phase 7.6完了。Macの短期認証・専用ロール引受・非公開S3読取、承認済みRAG1件の保存・全12個GET/SHA256一致を確認。送信はPDF/PPTX/各ページPNG＋最小manifestのみ（今回の3資料のSVGはユーザー指定で削除済み）。原則1ファイル20 MB以上／合計50 MB以上を停止する。2040年産業資料の版1のみ、本人承認のキー・サイズ・SHA256固定例外を追加（[保存仕様](docs/s3-storage.md#2026-10-15の資料限定サイズ承認)）。[Phase 7.6](docs/phase76-validation.md)。Phase 11Aの複数ページWeb viewer・PDFプレビュー・形式別取得はローカル対応済み。実S3読取と取得SHA256を確認。[Phase 11A](docs/phase11a-validation.md)。iOSはPhase 11B-1のモックライブラリ・SHA256保存・オフライン読取を別リポジトリで実装し、Macの19テストを確認。[iOS現在地](docs/phase11b1-status.md)。Phase 11B-2の公開OIDC API・iOS PKCE/Keychainをローカル実装済み。API9グループ・iOS27テスト合格、実S3の署名付きPDF/PNG/PPTX読取を確認。AWS公開APIを承認後にデプロイ済み（CREATE_COMPLETE）。実パラメーターは[記録](docs/phase11b2-deployment.md)。iOSへ公開接続先を反映済み。本人の登録メール／owner sub設定と認証後の実機操作は未完了。[Phase 11B-2](docs/phase11b2-validation.md)。このリポジトリとは別のPresentation-Viewerの実装状況を混同しない。
 - PPTXは書体非埋込み、線は独立線分でノード移動に追従しない。細かな書体差・全ページの詳細画像比較・別端末・投影は未検証。
 - 原資料をAIが読み構成JSONを作る。自動自然言語解析・大規模資料の階層的要約は未実装。
 
@@ -52,3 +52,7 @@ Phase 10B：Phase 10A計画の照合・要確認保留、更新スライド限�
 資料整理の最新方針：本人の実機ゴミ箱操作失敗の報告と希望を受け、別repo iOSを端末内の非表示へ切替。非表示/再表示は利用者別ローカル保存のみ。既存クラウドAPI/AWSは変更しない。先行ゴミ箱APIの操作失敗原因は未特定。[記録](sessions/2026-10-10-ios-local-hide.md)。
 
 図解制作の標準：未指定の新規図解は独立一枚図を含め横長で制作し、理解に必要な不足説明を根拠付きで補足する。[配置](rules/layout.md)、[内容](rules/content.md)。エージェント制作指示の更新であり、既存CLIの自動自然言語解析は追加していない。
+
+2040年産業資料の大容量閲覧：API側も保存時のハッシュ固定承認を共用し、全42成果物のある40ページ資料を受理。viewer14件・型検査・ビルド・ローカル共通API＋実S3全42取得一致。本人の今回限りの明示承認で本番APIへ反映済み（UPDATE_COMPLETE・配備コードSHA256一致、権限/環境/実行設定維持）。実機閲覧は未確認。[API仕様](docs/viewer-api.md)。
+
+iOS続報（2026-10-15）：移動先Development/zukan内にも20MB制限が残っており、今回の原本PDF/PPTX限定で修正。実29.64MB PDFの40ページ/保存/オフライン再表示含む53 XCTest合格、Vespera更新/起動成功。本人の資料表示操作は未確認。[記録](sessions/2026-10-15-industry-2040-ios-open-fix.md)。

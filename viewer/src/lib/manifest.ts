@@ -1,4 +1,5 @@
 import { error } from './config';
+import { uploadSizeCheck } from '../../../src/upload/limits.cjs';
 export type Artifact = 'png' | 'svg' | 'pdf' | 'pptx' | 'input' | 'validation';
 export type File = {name:string;format:string;role:string;contentType:string;sizeBytes:number;sha256:string;key:string};
 export type Manifest = {
@@ -28,10 +29,14 @@ export function presentationManifest(value:unknown,key:string,modified:string):M
   if(illustration){if(f.name==='diagram.png'){format='png';pages.push(1);}else if(f.name==='diagram.pdf')format='pdf';else fail();}
   else if(page){const n=Number(page[1]);if(n<1)fail();pages.push(n);format='png';}
   else if(f.name==='document.pdf')format='pdf';else if(f.name==='presentation.pptx')format='pptx';else fail();
-  if(f.key!==base+'/'+f.name||f.contentType!==mime[format]||!Number.isSafeInteger(f.sizeBytes)||f.sizeBytes<1||f.sizeBytes>=20_000_000||typeof f.sha256!=='string'||!/^[a-f0-9]{64}$/.test(f.sha256))fail();
+  if(f.key!==base+'/'+f.name||f.contentType!==mime[format]||!Number.isSafeInteger(f.sizeBytes)||f.sizeBytes<1||typeof f.sha256!=='string'||!/^[a-f0-9]{64}$/.test(f.sha256))fail();
   return {...f,format,role:format==='png'?'preview':'document'};
  });
  pages.sort((a,b)=>a-b);
- if((illustration?m.files.length!==2||!seen.has('diagram.pdf'):!seen.has('document.pdf')||!seen.has('presentation.pptx'))||!pages.length||pages.some((n,i)=>n!==i+1)||files.reduce((n,f)=>n+f.sizeBytes,0)>=50_000_000||!Number.isFinite(Date.parse(modified)))fail();
+ if((illustration?m.files.length!==2||!seen.has('diagram.pdf'):!seen.has('document.pdf')||!seen.has('presentation.pptx'))||!pages.length||pages.some((n,i)=>n!==i+1)||!Number.isFinite(Date.parse(modified)))fail();
+ // Reuse the upload policy after schema/key checks. Only exact approved hashes
+ // and destination receive the exception; a new version or changed byte does not.
+ const size=uploadSizeCheck(files.map(f=>({name:f.key,sizeBytes:f.sizeBytes,sha256:f.sha256})),m.storage);
+ if(size.blocked||(size.approvedObjectCount&&files.length+2!==size.approvedObjectCount))fail();
  return {diagramId:m.diagramId,title:m.title,diagramType:illustration?'illustration':'presentation',version:m.version,createdAt:modified,updatedAt:modified,outputFormats:m.formats,files,validation:{checks:{manifestSchema:'合格',artifactIntegrity:'未検証',visualReview:'未検証'}},pageCount:pages.length,storage:m.storage,catalogKey:m.catalogKey};
 }

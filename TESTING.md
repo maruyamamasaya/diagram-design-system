@@ -59,3 +59,7 @@ Phase 10B：`node --test tests/partial-update.test.cjs`（対象限定、再利�
 実S3の一枚図読取：viewer内で短期認証・既存.env.localを使用し `VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-illustration.ts <ID>`。署名URL/認証情報をログへ出さずPNG/PDFのサイズ・SHA256を確認。公開認証/実機の証跡とは分ける。
 
 ゴミ箱：viewer/tests/trash.test.tsで移動/復元・取得拒否・認証・未知入力・破損・S3限定キー/SSE・無効書込/障害を検証。mock状態ファイルを変更するためviewerテストはtest-concurrency=1。別repoのCloudLibraryTestsで端末保存維持・失敗時一覧保持・復元を検証。本番は別承認。[仕様](docs/library-trash.md)。
+
+資料限定サイズ承認：tests/upload-size-approval.test.cjsで承認済み44オブジェクト、別保存先・別版・改ざん・追加対象・重複・低水準writeのAWS通信前拒否を確認する。通常保存モック・描画回帰も維持する。
+
+大容量閲覧：viewer/tests/large-presentation.test.ts。読取実証はviewer内で `VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-large-presentation.ts`。ローカル共通APIを経由する実S3検証であり、本番認証/実機の成功とは区別する。

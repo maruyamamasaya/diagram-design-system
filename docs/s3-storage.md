@@ -79,7 +79,7 @@ presentation-package-1.0を既存upload CLIが識別し、src/upload/presentatio
 
 送信するのは完成した各ページのPNGとdocument.pdf/presentation.pptxだけ。SVGは生成・変換の中間形式として使用し、完成後はユーザー指定で削除できる。アップロード対象・合計サイズに含めず、保存処理はSVG不在でも動作する。サムネイル、元metadata.json、validation、原資料、構成JSON、図入力、review、中間ファイル、design、認証設定、フォントファイルはローカルに保持する。これらをローカルで読んでスキーマ・参照ハッシュ・生成検査を照合するが送信しない。S3には一覧・整合性管理用の最小manifest（ID/版/タイトル/保存先/形式/成果物キー・サイズ・SHA256）を2コピー保存し、ローカル絶対パスや原資料本文を含めない。元パッケージと旧1.0保存契約を維持し、旧保存は既存許可リストのまま。
 
-**サイズストッパー**は両CLI経路に適用。1ファイル20,000,000 bytes以上、または対象全体50,000,000 bytes以上でAWS通信前に停止する。MBは10進、ちょうど閾値も停止。最小manifest2コピーも合計に含める。通常の内容承認では解除せず、バイパス引数は提供しない。dry-runにも同じ条件を適用し、超過サイズ・停止理由を表示。プレゼンのupload-statusはblockedとなる。ファイル上限の判定は低水準S3 writeにも適用する。
+**サイズストッパー**は両CLI経路に適用。1ファイル20,000,000 bytes以上、または対象全体50,000,000 bytes以上でAWS通信前に停止する。MBは10進、ちょうど閾値も停止。最小manifest2コピーも合計に含める。通常の内容承認では解除せず、バイパス引数は提供しない。明示された資料限定の上限変更は、後述のハッシュ固定承認に限る。dry-runにも同じ条件を適用し、超過サイズ・停止理由を表示。プレゼンのupload-statusはblockedとなる。ファイル上限の判定は低水準S3 writeにも適用する。
 
 キーはlibrary/diagrams/<presentationId>/versions/<6桁版>/<相対パス>。保存manifestを同版のupload-manifest.jsonへ保存し、全GET照合の最後にlibrary/catalog/<ID>/versions/<版>/upload-manifest.jsonを作る。既存IAMのdiagrams/catalog範囲内で追加権限・AWSリソースは不要。ただし実環境の権限確認は別工程。旧viewerはmetadata.jsonだけを走査するので新マーカーを表示しない。新形式対応済みとは扱わない。
 
@@ -97,3 +97,14 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 元metadata内の書体情報とローカルパスは送信しない。dry-run対象と費用、実接続の未完了事項は[Phase 7.6](phase76-validation.md)。
 
 独立一枚図のillustration-package-1.0は既存uploadの条件付き保存経路へ接続。PNG/PDFと最小manifestだけを送信。新契約は[制作仕様](illustration-workflow.md)。
+
+
+## 2026-10-15の資料限定サイズ承認
+
+本人が明示承認した2040年産業プレゼンID `4f2af5d0-86c9-4709-9dad-9f6a67e5ac10` の版1だけ、1ファイル30,000,000 bytes未満・全体120,000,000 bytes未満を適用する。正本は `config/upload-size-approvals.json`。保存先5項目、44オブジェクト（40PNG、PDF、PPTX、最小manifest2コピー）の完全なキー・サイズ・SHA256を固定し、他の資料・新版・変更バイト・別バケット・追加対象は従来上限へ戻す。汎用バイパス引数や設定のapproved自動変更は追加しない。
+
+計画検査は送信する実バイトからハッシュを計算する。S3低水準writeも同じ許可リストと計算済みハッシュを照合する。非公開・暗号化・条件付きPUT・全GETハッシュ検証・catalog最後・保持上限は維持する。
+
+今回の資料は独自ローカル制作契約であり、標準presentation-packageを偽装しない。outputs/industry-2040-presentation/build/upload.cjs の限定ローダーが、既存のloadPackage注入経路から既存presentation-s3-1.0最小manifestに接続する。source/依存/完成成果物のハッシュを照合し、許可リスト外を送らない。計画/保存は同スクリプトのplan/upload。上限承認の再作成は人の再承認を前提とする制作時の操作であり通常再実行しない。
+
+閲覧APIも同じ資料限定承認を使う変更をローカル検証済み（[API仕様](viewer-api.md#資料限定の大容量対応2026-10-15本番反映済み)）。通常の20MB/50MB制限は維持し、本人の今回限りの承認後、本番反映済み。S3成功だけを実機での表示成功として扱わない。

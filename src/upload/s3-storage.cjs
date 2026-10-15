@@ -51,7 +51,7 @@ class S3Storage {
     return {key,sha256:sha256(bytes),sizeBytes:bytes.length,versionId:existing.versionId||null};
   }
   async write(key,bytes,contentType) {
-    assertUploadSize([{name:key,sizeBytes:bytes.length}]);
+    assertUploadSize([{name:key,sizeBytes:bytes.length,sha256:sha256(bytes)}],this.config);
     this.assertKey(key);
     if(!this.config.approved) throw new Error('Destination approval is required before writes.');
     const checksum=Buffer.from(sha256(bytes),'hex').toString('base64');

@@ -54,3 +54,5 @@ Phase 10A：src/update/cli.cjs → plan.cjs（diffSource/createUpdatePlan/toMark
 Phase 10B：src/update/regenerate-cli.cjs → regenerate.cjs（prepare/regenerate、既存generatePresentation呼出）→ compose.py（PDFページとPPTX OPC依存グラフの再構成）。schemas/presentation-metadata.schema.jsonの任意update記録。tests/partial-update.test.cjs、tests/export/partial-composition.test.cjs。[仕様](docs/phase10b-partial-update.md)。
 
 ゴミ箱：viewer/src/lib/store.tsのlibraryState/setLibraryState/requireActive、api.tsのstateフィルターとtrash/restore。viewer/tests/trash.test.ts。[仕様・本番反映範囲](docs/library-trash.md)。
+
+資料限定サイズ承認：src/upload/limits.cjs と config/upload-size-approvals.json。計画と低水準writeで保存先/キー/サイズ/SHA256を照合。tests/upload-size-approval.test.cjs。閲覧APIの上限は別契約。

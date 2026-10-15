@@ -3,7 +3,7 @@
   "account": "676643701781",
   "stackName": "diagram-library-api",
   "stackId": "arn:aws:cloudformation:ap-northeast-1:676643701781:stack/diagram-library-api/82b6b430-c3fd-11f1-9fc8-0affe7881947",
-  "codeKey": "deployments/api/9e0d173f3be911101d907452f16429d8ebf7bab6cf535ad75b1dea9b8ce477f7.zip",
+  "codeKey": "deployments/api/a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa.zip",
   "owner": "c7b48a68-1001-70e8-0294-b72dd358c86e",
   "createdAt": "2026-10-09T16:21:41.361Z",
   "status": "UPDATE_COMPLETE",
@@ -24,7 +24,7 @@
     },
     {
       "ParameterKey": "CodeKey",
-      "ParameterValue": "deployments/api/9e0d173f3be911101d907452f16429d8ebf7bab6cf535ad75b1dea9b8ce477f7.zip"
+      "ParameterValue": "deployments/api/a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa.zip"
     },
     {
       "ParameterKey": "CognitoDomainPrefix",
@@ -120,5 +120,6 @@
     "CursorSecret": "Random 96-character value; CloudFormation NoEcho / Lambda environment; value intentionally not recorded",
     "AWScredentials": "Runtime IAM role only; not committed"
   },
-  "updatedAt": "2026-10-10"
+  "updatedAt": "2026-10-15T07:37:31.024555+00:00",
+  "codeSha256Hex": "a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa"
 }

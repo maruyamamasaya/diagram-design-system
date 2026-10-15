@@ -66,8 +66,8 @@ async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,appr
   const save=async()=>{const tmp=path.join(dir,`upload-status.json.${process.pid}.tmp`);await fs.writeFile(tmp,jsonBytes(status));await fs.rename(tmp,path.join(dir,'upload-status.json'));};
   try {
     const {files,manifest}=await loadPackage(dir,config),bytes=jsonBytes(manifest),plan=path.join(dir,'s3-artifacts-manifest.json');
-    const sizeFiles=[...files,{name:'upload-manifest.json',sizeBytes:bytes.length},{name:'catalog/upload-manifest.json',sizeBytes:bytes.length}];
-    try {assertUploadSize(sizeFiles);} catch(e) {
+    const sizeFiles=[...files.map(f=>({name:manifest.files.find(x=>x.name===f.name).key,sizeBytes:f.bytes.length,sha256:sha256(f.bytes)})),...['metadataKey','catalogKey'].map(k=>({name:manifest[k],sizeBytes:bytes.length,sha256:sha256(bytes)}))];
+    try {assertUploadSize(sizeFiles,config);} catch(e) {
       status={diagramId:manifest.diagramId,version:manifest.version,state:'blocked',verified:[],lastStage:'size-check',sizeCheck:e.sizeCheck};await save();throw e;
     }
     try {if(!(await readRegularFile(plan)).equals(bytes)) throw Error('Prepared upload plan changed; use a new version');}
