@@ -46,7 +46,8 @@ import LibraryOrganizationUI
     private var testSync: SyncLabSession?
     private let testSyncEnabled: Bool
     @discardableResult func change(_ edit: (inout LibrarySettings) -> Void) -> Bool {
-        guard writeEnabled, testSync?.busy != true else { return false }
+        guard writeEnabled else { return false }
+        guard testSync?.blocksLibraryEdits != true else { error = "同期の確認・復元処理中です。同期画面で完了または解除してから編集してください。"; return false }
         var next = settings; edit(&next)
         do { try next.save(to: stateURL); settings = next; Task { await testSync?.captureLibraryChanges() }; return true }
         catch { self.error = "保存できませんでした: \(error.localizedDescription)"; return false }
@@ -73,11 +74,19 @@ import LibraryOrganizationUI
                 next.assignments = Dictionary(uniqueKeysWithValues: value.assignments.map { (localID($0.key), $0.value) })
                 next.classifications = Dictionary(uniqueKeysWithValues: value.classifications.map { (localID($0.key), $0.value) })
                 next.collections = value.collections.map { collection in var collection = collection; collection.members = collection.members.map { member in var member = member; member.id = localID(member.id); return member }; return collection }
-                let backup = self.stateURL.appendingPathExtension("before-sync")
-                if !FileManager.default.fileExists(atPath: backup.path), FileManager.default.fileExists(atPath: self.stateURL.path) {
-                    try FileManager.default.copyItem(at: self.stateURL, to: backup)
-                }
                 try next.save(to: self.stateURL); self.settings = next
+            }, backup: { [weak self] in
+                guard let self, self.writeEnabled else { throw SyncError.corruptState }
+                // Settings JSON only; source paths/bookmarks are metadata, never followed.
+                if FileManager.default.fileExists(atPath: self.stateURL.path) { return try Data(contentsOf: self.stateURL) }
+                return try JSONEncoder().encode(self.settings)
+            }, restore: { [weak self] data in
+                guard let self, self.writeEnabled else { throw SyncError.corruptState }
+                let value = try JSONDecoder().decode(LibrarySettings.self, from: data)
+                guard value.schemaVersion == 1 else { throw SyncError.corruptState }
+                try FileManager.default.createDirectory(at: self.stateURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try data.write(to: self.stateURL, options: .atomic)
+                self.settings = value
             })
             let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding)
             testSync = session; return session

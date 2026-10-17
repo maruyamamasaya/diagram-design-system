@@ -80,3 +80,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 同期画面：packages/LibraryOrganization/Sources/LibraryOrganizationUI/{SyncLabSession,SyncLabView}.swift。Mac ShelfStore.makeSyncLab/iOS CloudLibraryStore.makeSyncLabは元設定の読取専用アダプター。SyncLabTests/SyncAdapterTests/iOS CloudLibraryTestsとmock CLI smoke-uiで検証。[境界](docs/organization-sync-ui.md)。
 
 通常本棚のテスト同期：SyncLabSession.TestLibrarySyncBindingとcaptureLibraryChanges、Mac ShelfStore.change/makeSyncLab、iOS CloudLibraryStoreの通常保存とCloudFileStore.applyTestLibrarySync/recoverSyncApply。BoundSyncTests、Mac SyncAdapterTests、iOS CloudLibraryTests。[境界](docs/organization-sync-bound.md)。
+
+同期開始/復元：LibraryOrganizationUI/SyncRecovery.swift（設定項目件数/復元点）、SyncLabSession.makeBackup/restoreBackup（永続停止）、Mac Storeの管理JSONバイト復元、iOS CloudFiles.managementBackup/restoreManagementBackup/recoverManagementRestore。SyncRecoveryTests/SyncAdapterTests/CloudLibraryTests。[仕様](docs/organization-sync-recovery.md)。

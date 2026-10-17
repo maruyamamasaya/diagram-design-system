@@ -70,3 +70,5 @@ Macの変更監視は別ターゲットBookshelfWatchingへ隔離。FSEventsか�
 整理同期エンジンは共通層内の独立した値型クライアント/模擬authorityとtransportプロトコル。テスト用HTTPブリッジだけがloopback待受し、本体アプリや常駐サービスを追加しない。[境界](docs/organization-sync-local.md)。
 
 LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizationUIに検証用SwiftUI/セッションを分離。既定のMac/iOS起動は読取専用アダプターで検証コピーへ投影する。明示的なテスト起動ではTestLibrarySyncBindingが通常Storeの保存差分と受信反映を接続し、端末固有情報の再結合・バックアップ・iOS反映ジャーナルは各アダプターが担当する。[通常本棚のテスト接続](docs/organization-sync-bound.md)。[構成](docs/organization-sync-ui.md)。
+
+同期の復元点は管理JSONだけを端末内に保持する。共通セッションがバックアップ日時/統合件数/復元状態を管理し、Mac/iOSアダプターが元バイトの復元を担う。iOSは受信反映と別の復元ジャーナルを優先回復する。資料本体の保管は既存ローカル/S3経路のまま。[仕様](docs/organization-sync-recovery.md)。

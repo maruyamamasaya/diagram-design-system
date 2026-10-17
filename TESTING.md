@@ -77,3 +77,5 @@ Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・�
 同期画面：共有SyncLabTests、Mac SyncAdapterTests、iOS取込テスト、HTTPハーネスのsmoke-ui。チェックポイント復元/破損保持/原設定不変/解除の後片付けを確認する。Macの画面確認とiOSのビルド/XCTestの検証境界はdocs/organization-sync-ui.md参照。
 
 通常本棚のテスト同期は共通BoundSyncTests、Mac SyncAdapterTests、iOS CloudLibraryTestsで通常保存/受信/復元/反映中断を確認する。専用ツールの両画面操作と実HTTPの範囲は[同期テスト仕様](docs/organization-sync-bound.md#確認した範囲)。
+
+管理バックアップ/復元はSyncRecoveryTests、Mac SyncAdapterTests、iOS CloudLibraryTestsで、資料本体を含まないこと・管理JSONのバイト一致・欠損ファイル・中断/失敗/再起動時の同期停止を検証する。[実画面の範囲](docs/organization-sync-recovery.md#検証)。

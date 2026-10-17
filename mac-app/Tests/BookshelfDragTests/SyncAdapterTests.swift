@@ -69,6 +69,33 @@ extension SyncAdapterTests {
         await session.synchronize(with: server)
         try await peer.synchronize(with: server)
         XCTAssertEqual(OrganizationSyncProjection.state(from: peer.records).classifications[id.lowercased()]?.tags, ["通常編集"])
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.appendingPathExtension("before-sync").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("test-library-sync/recovery.json").path))
+    }
+}
+
+extension SyncAdapterTests {
+    @MainActor func testManagementBackupRestoresExactJSONWithoutCopyingDocument() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appendingPathComponent("library.json")
+        var value = LibrarySettings(); value.folders = [ShelfFolder(name: "元の管理データ")]
+        value.sources = [SourceFolder(path: root.appendingPathComponent("documents").path)]
+        try value.save(to: file)
+        let before = try Data(contentsOf: file)
+        let body = root.appendingPathComponent("document.pdf")
+        let bodyBytes = Data("BODY-MUST-NOT-BE-BACKED-UP".utf8); try bodyBytes.write(to: body)
+        let store = ShelfStore(stateURL: file, autoRefresh: false, enableTestSync: true)
+        let session = store.makeSyncLab()
+        await session.prepare(endpoint: "http://127.0.0.1:1", libraryID: UUID().uuidString)
+        XCTAssertNotNil(session.backupDate)
+        store.change { $0.folders.append(ShelfFolder(name: "後からの変更")) }
+        await session.restoreBackup()
+        XCTAssertFalse(session.connected)
+        XCTAssertEqual(store.settings.folders, value.folders)
+        XCTAssertEqual(try Data(contentsOf: file), before)
+        XCTAssertEqual(try Data(contentsOf: body), bodyBytes)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: root.appendingPathComponent("test-library-sync/recovery.json"))) as? [String: Any])
+        let payload = try XCTUnwrap(Data(base64Encoded: json["payload"] as? String ?? ""))
+        XCTAssertEqual(payload, before)
     }
 }

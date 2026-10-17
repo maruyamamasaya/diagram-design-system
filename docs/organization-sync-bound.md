@@ -12,9 +12,9 @@
 
 ## アダプターと保護
 
-MacはShelfStore.changeを通常編集の入口に使い、受信時はlibrary.jsonへ原子的保存する。元のsources/path/bookmark、同じフォルダUUIDのiconFileを保持する。UUID資料IDは同期側で正規化し、Macの既知ID表記へ戻して資料との対応を維持する。初回反映前にlibrary.json.before-syncを一度だけ保存する。資料本体/画像/保存場所は同期しない。
+MacはShelfStore.changeを通常編集の入口に使い、受信時はlibrary.jsonへ原子的保存する。元のsources/path/bookmark、同じフォルダUUIDのiconFileを保持する。UUID資料IDは同期側で正規化し、Macの既知ID表記へ戻して資料との対応を維持する。接続前の管理JSONバックアップと画面復元は[管理データ保護](organization-sync-recovery.md)を使う。資料本体/画像/保存場所は同期しない。
 
-iOSはCloudLibraryStoreの通常編集を使い、CloudFileStoreがorganization/classifications/collectionsを反映する。反映対象をtest-sync-apply.jsonへ原子的保存し、各JSON読込前に未完了の反映を回復する。旧3ファイルはbefore-test-sync.jsonへ一度だけバイト保存する。元のフォルダ画像参照を再結合し、保存済み資料・キャッシュ・非表示・認証を変更しない。反映後はPublishedの整理情報を更新して通常画面を再描画する。
+iOSはCloudLibraryStoreの通常編集を使い、CloudFileStoreがorganization/classifications/collectionsを反映する。反映対象をtest-sync-apply.jsonへ原子的保存し、各JSON読込前に未完了の反映を回復する。旧3ファイルの接続前バックアップ/復元は[管理データ保護](organization-sync-recovery.md)を使う。元のフォルダ画像参照を再結合し、保存済み資料・キャッシュ・非表示・認証を変更しない。反映後はPublishedの整理情報を更新して通常画面を再描画する。
 
 ## テスト起動
 
@@ -35,4 +35,4 @@ iOSは新規作成した使い捨てSimulatorへテストビルドをインス�
 
 専用画面操作ツールで、Mac通常画面のフォルダ作成→初回送信→サーバー保存後の応答喪失→再送→iOS通常フォルダ一覧への表示を確認。iOS通常画面で別フォルダ作成/資料選択/移動→送信→Mac通常フォルダ内に同じ資料を表示。さらにMac通常画面のタグ編集→送信→iOS通常タグ一覧へ表示。両端末は版5/送信待ち0/競合0で、保存済みフォルダ/所属/分類の一致を照合した。まとめの通常反映は自動テストで確認し、今回の実画面では操作していない。
 
-Applications版/実機iPhoneへの更新、実データの移行・同期、AWS変更はなし。使い捨てSimulator・別IDのMacテストアプリ・合成本棚・模擬サーバーは削除/停止済み。証跡と制約は[作業記録](../sessions/2026-10-17-normal-library-sync.md)。本番接続へ進む前には初回バックアップの復元UI、利用者認証、実データ移行計画、長期オフライン/履歴保持の設計が必要。
+Applications版/実機iPhoneへの更新、実データの移行・同期、AWS変更はなし。使い捨てSimulator・別IDのMacテストアプリ・合成本棚・模擬サーバーは削除/停止済み。証跡と制約は[作業記録](../sessions/2026-10-17-normal-library-sync.md)。本番接続へ進む前には利用者認証、実データ移行計画、長期オフライン/履歴保持の設計が必要。

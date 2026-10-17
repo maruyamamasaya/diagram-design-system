@@ -4,6 +4,7 @@ import LibraryOrganization
 public struct SyncLabView: View {
     @ObservedObject private var session: SyncLabSession
     @Environment(\.dismiss) private var dismiss
+    @State private var confirmRestore = false
     @State private var endpoint: String
     @State private var library: String
     @State private var folderName = ""
@@ -23,12 +24,19 @@ public struct SyncLabView: View {
                     HStack { Text(session.status).bold(); Spacer(); Text("送信待ち \(session.pendingCount)件 · 競合 \(session.conflicts.count)件") }
                     if let date = session.lastSynced { Text("最終同期：" + date.formatted()).font(.caption) }
                     if let message = session.message { Text(message).foregroundStyle(.red) }
+                    if session.isTestLibrary {
+                        Text("バックアップ対象はフォルダ・所属・分類・タグ・まとめなどの管理データだけです。資料本体は含めません。S3の資料は変更しません。").font(.caption)
+                        if let date = session.backupDate {
+                            Text("管理データのバックアップ：" + date.formatted()).font(.caption)
+                            Button("同期を止めてバックアップから復元") { confirmRestore = true }.disabled(!session.canRestoreBackup)
+                        } else { Text("初回接続の前に管理データを自動バックアップします。").font(.caption) }
+                    }
                     if !session.connected {
                         TextField("http://127.0.0.1:ポート", text: $endpoint).textFieldStyle(.roundedBorder)
                         TextField("共通のライブラリUUID", text: $library).textFieldStyle(.roundedBorder)
                         Button("新しい検証ライブラリIDを作成") { library = UUID().uuidString }
                         Text("MacとSimulatorで同じURL・UUIDを入力します。外部サーバーは指定できません。双方の初回取込は順に確認してください。") .font(.caption)
-                        Button("接続して初回統合を確認") { Task { await session.prepare(endpoint: endpoint, libraryID: library) } }
+                        Button("接続して初回統合を確認") { Task { await session.prepare(endpoint: endpoint, libraryID: library) } }.disabled(session.restorationPending)
                         Button("保存済みの検証コピーを解除") { session.clear() }
                     } else {
                         Text("接続先：\(session.endpoint)\nライブラリ：\(session.libraryID)\nサーバー版：\(session.revision)").font(.caption).textSelection(.enabled)
@@ -38,14 +46,20 @@ public struct SyncLabView: View {
                         }
                         if !session.imported { initialReview }
                         else {
-                            Button("今すぐ同期・再試行") { Task { await session.synchronize() } }.buttonStyle(.borderedProminent)
+                            Button("今すぐ同期・再試行") { Task { await session.synchronize() } }.buttonStyle(.borderedProminent).disabled(session.restorationPending)
                             conflictList
                             if !session.isTestLibrary { rehearsalEditor }
                         }
-                        Button(session.isTestLibrary ? "テスト本棚の同期を解除" : "この端末の検証コピーを解除") { session.clear() }
+                        Button(session.isTestLibrary ? "テスト本棚の同期を解除" : "この端末の検証コピーを解除") { session.clear() }.disabled(session.restorationPending)
                         Text("解除しても模擬サーバーのデータは残ります。再接続時は初回統合から確認できます。") .font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(24).disabled(session.busy)
+            }
+            .alert("管理データを復元しますか？", isPresented: $confirmRestore) {
+                Button("キャンセル", role: .cancel) { }
+                Button("同期を止めて復元") { Task { await session.restoreBackup() } }
+            } message: {
+                Text("この端末の管理データを表示されたバックアップ時点へ戻します。その後の整理編集は戻ります。資料本体とサーバーは変更しません。同期は停止し、再接続には初回確認が必要です。")
             }
             .navigationTitle("同期の状態と競合")
             .toolbar { Button("閉じる") { dismiss() }.disabled(session.busy) }
@@ -57,6 +71,9 @@ public struct SyncLabView: View {
     private var initialReview: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("初回統合の確認").font(.headline)
+            Text("本棚への反映予定：" + session.localImportCounts.label)
+            Text("サーバーへの送信予定：" + session.uploadImportCounts.label)
+            Text("未解決の競合：\(session.initialConflicts.count)件（設定項目単位。タグは1つで1件）").font(.caption)
             Text("同名でもIDの異なるフォルダは別々に残します。資料本体・フォルダ画像は送信しません。")
             ForEach(session.initialConflicts, id: \.key) { conflict in
                 VStack(alignment: .leading) {

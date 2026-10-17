@@ -6,7 +6,13 @@ import LibraryOrganization
 @MainActor public struct TestLibrarySyncBinding {
     public var read: () async throws -> OrganizationState<OrganizationDocument>
     public var apply: (OrganizationState<OrganizationDocument>) async throws -> Void
-    public init(read: @escaping () async throws -> OrganizationState<OrganizationDocument>, apply: @escaping (OrganizationState<OrganizationDocument>) async throws -> Void) { self.read = read; self.apply = apply }
+    public var backup: () async throws -> Data
+    public var restore: (Data) async throws -> Void
+    public init(read: @escaping () async throws -> OrganizationState<OrganizationDocument>, apply: @escaping (OrganizationState<OrganizationDocument>) async throws -> Void, backup: (() async throws -> Data)? = nil, restore: ((Data) async throws -> Void)? = nil) {
+        self.read = read; self.apply = apply
+        self.backup = backup ?? { try await JSONEncoder().encode(read()) }
+        self.restore = restore ?? { data in try await apply(JSONDecoder().decode(OrganizationState<OrganizationDocument>.self, from: data)) }
+    }
 }
 
 /// Durable sync session; writeback requires an explicit test-library binding.
@@ -27,6 +33,21 @@ import LibraryOrganization
     @Published public private(set) var busy = false
     @Published public private(set) var message: String?
     @Published private var checkpoint: Checkpoint?
+    @Published private var recovery: SyncRecoveryPoint?
+    private var recoveryCorrupt = false
+    public var backupDate: Date? { recovery?.createdAt }
+    public var canRestoreBackup: Bool { binding != nil && recovery != nil && !busy }
+    public var restorationPending: Bool { recovery?.restoring == true }
+    public var blocksLibraryEdits: Bool { busy || restorationPending || (connected && !imported) }
+    public var localImportCounts: SyncChangeCounts {
+        guard let plan = checkpoint?.initialPlan else { return SyncChangeCounts() }
+        return .compare(checkpoint?.observed ?? [:], plan.values)
+    }
+    public var uploadImportCounts: SyncChangeCounts {
+        guard let next = checkpoint, let plan = next.initialPlan else { return SyncChangeCounts() }
+        return .compare(next.client.baseline.records.mapValues(\.value), plan.values)
+    }
+    private var recoveryFile: URL { directory.appendingPathComponent("recovery.json") }
     private let binding: TestLibrarySyncBinding?
     public var isTestLibrary: Bool { binding != nil }
     private let sourceDocuments: [OrganizationDocument]
@@ -61,6 +82,13 @@ import LibraryOrganization
         self.directory = directory; file = directory.appendingPathComponent("checkpoint.json")
         self.seed = seed
         self.sourceDocuments = documents
+        if binding != nil, FileManager.default.fileExists(atPath: recoveryFile.path) {
+            do {
+                let value = try JSONDecoder().decode(SyncRecoveryPoint.self, from: Data(contentsOf: recoveryFile))
+                guard value.schemaVersion == 1 else { throw SyncError.corruptState }
+                recovery = value
+            } catch { recoveryCorrupt = true; message = "管理データのバックアップを読めません。上書きせず同期を停止しています。" }
+        }
         if FileManager.default.fileExists(atPath: file.path) {
             do {
                 let data = try Data(contentsOf: file)
@@ -73,18 +101,50 @@ import LibraryOrganization
                 checkpoint = value; status = value.imported ? (binding == nil ? "検証コピーを復元" : "テスト本棚の同期を復元") : "初回統合の確認待ち"
             } catch { restoreFailed = true; message = "検証データを復元できません。既存データは変更していません。検証コピーを解除してから再作成してください。" }
         }
+        if restorationPending { status = "復元待ち・同期停止中" }
+        else if recovery?.restored == true && checkpoint == nil { status = "同期を停止して復元済み" }
     }
     private func commit(_ next: Checkpoint) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try JSONEncoder().encode(next).write(to: file, options: .atomic)
         checkpoint = next
     }
+    private func saveRecovery(_ value: SyncRecoveryPoint) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(value).write(to: recoveryFile, options: .atomic)
+        recovery = value
+    }
+    private func makeBackup() async throws {
+        guard let binding else { return }
+        let point = SyncRecoveryPoint(payload: try await binding.backup())
+        // Retain earlier points without adding a history-management UI.
+        let archive = directory.appendingPathComponent("backups")
+        try FileManager.default.createDirectory(at: archive, withIntermediateDirectories: true)
+        try JSONEncoder().encode(point).write(to: archive.appendingPathComponent(UUID().uuidString + ".json"), options: .atomic)
+        try saveRecovery(point)
+    }
+    public func restoreBackup() async {
+        guard !busy, !recoveryCorrupt, let binding, var point = recovery else { return }
+        busy = true; defer { busy = false }
+        do {
+            point.restoring = true
+            try saveRecovery(point) // pause durably before touching the library
+            try await binding.restore(point.payload)
+            if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+            checkpoint = nil; restoreFailed = false
+            point.restoring = false; point.restored = true
+            try saveRecovery(point)
+            status = "同期を停止して復元済み"; message = "管理データをバックアップ時点へ戻しました。サーバーの情報は変更していません。再接続には初回確認が必要です。"
+        } catch { status = "復元待ち・同期停止中"; message = "復元を完了できませんでした。バックアップを保持し、同期は停止しています。復元を再試行してください。" }
+    }
     public func prepare(endpoint: String, libraryID: String) async {
-        guard !busy, !restoreFailed, checkpoint == nil else { return }
+        guard !busy, !restoreFailed, !recoveryCorrupt, !restorationPending, checkpoint == nil else { return }
         busy = true; defer { busy = false }
         do {
             guard let url = URL(string: endpoint), let id = UUID(uuidString: libraryID) else { throw SyncError.invalidValue }
             let transport = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url)
+            do { try await makeBackup() } // management data only, before first import/send
+            catch { status = "バックアップできません"; message = "管理データを保護できないため同期を有効にしていません。空き容量や保存先を確認してください。"; return }
             var client = OrganizationSyncClient<OrganizationDocument>(libraryID: id)
             // Fetch without publishing any local values. Failed connection leaves live data untouched.
             try await client.synchronize(with: transport)
@@ -101,7 +161,7 @@ import LibraryOrganization
         do { try commit(next); message = nil } catch { message = "確認結果を保存できません。" }
     }
     public func confirmImport() {
-        guard !busy, var next = checkpoint, let plan = next.initialPlan else { return }
+        guard !busy, !restorationPending, !recoveryCorrupt, binding == nil || recovery != nil, var next = checkpoint, let plan = next.initialPlan else { return }
         do {
             try plan.enqueue(into: &next.client)
             next.initialPlan = nil; next.imported = true
@@ -135,7 +195,7 @@ import LibraryOrganization
     }
     /// Called after ordinary durable edits; also reconciled on every manual sync/relaunch.
     public func captureLibraryChanges() async {
-        guard !busy, var next = checkpoint, next.imported, binding != nil else { return }
+        guard !busy, !restorationPending, !recoveryCorrupt, var next = checkpoint, next.imported, binding != nil else { return }
         busy = true; defer { busy = false }
         do { try await capture(into: &next); try commit(next); status = next.client.pending.isEmpty ? "確認済み" : "送信待ち"; message = nil }
         catch { message = "本棚の編集を送信待ちへ保存できません。次回同期で再確認します。" }
@@ -145,9 +205,10 @@ import LibraryOrganization
         await synchronize(with: transport)
     }
     public func synchronize<T: OrganizationSyncTransport>(with transport: T) async where T.Member == OrganizationDocument {
-        guard !busy, var next = checkpoint, next.imported else { return }
+        guard !busy, !restorationPending, !recoveryCorrupt, var next = checkpoint, next.imported else { return }
         busy = true; defer { busy = false }
         do {
+            if binding != nil && recovery == nil { try await makeBackup() } // older test checkpoints
             try await capture(into: &next)
             try commit(next) // durable outbox before sending
             try await next.client.synchronize(with: transport)
@@ -178,7 +239,7 @@ import LibraryOrganization
         catch { message = "解決結果を保存できません。" }
     }
     public func clear() {
-        guard !busy else { return }
+        guard !busy, !restorationPending else { return }
         do {
             if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
             if FileManager.default.fileExists(atPath: directory.path), try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty {

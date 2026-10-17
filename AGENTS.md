@@ -83,6 +83,8 @@ MUST同士の矛盾は明示的なユーザー要求と情報の正確性を優�
 ## Phase 3：AWS保存
 保存処理は生成処理から分離し、既存のSVG・PNG生成を壊さない。S3保存前に [保存仕様](docs/s3-storage.md)、[metadataスキーマ](schemas/metadata.schema.json)、[設定スキーマ](schemas/s3-config.schema.json)、[AWS構成・コスト案](docs/aws-plan.md) を読む。Web・iOSとの共通利用は [API仕様](docs/viewer-api.md) を参照する。
 
+AWS変更前には必ず[料金シミュレーションの条件](docs/cost-policy.md#整理同期のaws変更前)を満たす試算を提示し、承認後に適用する（2026-10-17本人指定）。
+
 AWS調査は読み取り専用から始める。バケットの新規作成、既存リソースの削除・変更、Budgets・有料監査設定の追加は、具体的な構成と料金を示して明示承認を得るまで行わない。保存先の利用承認と資料送信の承認を区別し、機密資料を無断送信しない。configのapprovedをエージェントの判断だけでtrueにしない。
 
 非公開S3、全公開アクセスブロック、SSE-S3、TLS、最小権限、短期認証を必須とする。認証情報のGit管理と長期アクセスキーの埋め込みは禁止。Web・iOSは認証と図解単位の認可後に期限付きURLを使う。初期は常時課金リソース、WAF、独自KMSキー、PrivateLink、VPC Endpointを追加しない。将来Lambdaは不要なVPC接続をせず、ログ保持期間を定義する。詳細な料金・保持期間の所有元はAWS構成案。

@@ -59,3 +59,5 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 整理同期の検証サーバーはscripts/organization-sync-http-check.pyの--serveで一時起動し、Ctrl-Cで停止/一時領域削除する。公開待受・常駐設定を追加しない。[検証画面の運用](docs/organization-sync-ui.md)。
 
 通常本棚の同期を試す場合は[専用テスト起動](docs/organization-sync-bound.md#テスト起動)を使用する。合成state/使い捨てSimulatorだけを使い、既存の利用者データへ有効化しない。接続は127.0.0.1の一時模擬サーバー、同期は手動。
+
+同期開始前の管理JSONバックアップと画面復元は[管理データ保護](docs/organization-sync-recovery.md)。資料本体を含めない。今後のAWS変更は、適用前に必ず[料金シミュレーション](docs/cost-policy.md#整理同期のaws変更前)を提示し、承認後に実施する。
