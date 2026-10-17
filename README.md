@@ -249,3 +249,7 @@ Phase 12一括ワークフローの標準納品はPNG/PDF/PPTX・サムネイル
 ## Phase 10B：部分更新
 
 `npm run update:presentation -- --baseline <旧版> --plan <Phase10A計画JSON> --input <新構成JSON> --sources <新sourceId辞書JSON> --output <出力ルート> [--font <TTF>] [--browser <Chrome>]`。更新対象だけ描画、維持対象をハッシュ一致で再利用し、新版PNG/PDF/PPTX/サムネイルを作成。要確認が残れば保留する。[手順・Linux例・制約](docs/phase10b-partial-update.md)。
+
+## Macの資料本棚
+
+既存成果物をサムネイルで探し、仮想フォルダ・検索・プレビューで整理する独立Macアプリを`mac-app/`へ追加。[起動と使い方](mac-app/README.md)。iOS同期は未実装。

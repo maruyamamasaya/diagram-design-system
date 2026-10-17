@@ -56,3 +56,25 @@ Phase 10B：src/update/regenerate-cli.cjs → regenerate.cjs（prepare/regenerat
 ゴミ箱：viewer/src/lib/store.tsのlibraryState/setLibraryState/requireActive、api.tsのstateフィルターとtrash/restore。viewer/tests/trash.test.ts。[仕様・本番反映範囲](docs/library-trash.md)。
 
 資料限定サイズ承認：src/upload/limits.cjs と config/upload-size-approvals.json。計画と低水準writeで保存先/キー/サイズ/SHA256を照合。tests/upload-size-approval.test.cjs。閲覧APIの上限は別契約。
+
+Mac本棚：mac-app/Sources/BookshelfCore/Library.swift（資料/版、フォルダ、設定、metadataスキャン）→ Sources/Bookshelf/Store.swift（Macアクセス/更新/保存）→ BookshelfApp.swift（一覧・分類・検索・プレビュー）。mac-app/Tests/BookshelfCoreTests、scripts/build-app.sh。[手順](mac-app/README.md)。
+
+Mac自動更新：mac-app/Sources/BookshelfWatching/FolderWatcher.swift（FSEvents・デバウンス・解除・代替タイマー）→ Bookshelf/Store.swift（スキャン中の再実行・再アクティブ化）。mac-app/Tests/BookshelfWatchingTestsは実OSイベントを検証。
+
+Mac複数選択：mac-app/Sources/BookshelfCore/BookSelection.swift（ID集合/範囲/選択対象/移動/ドラッグ解析）とTests/BookshelfCoreTests/BookSelectionTests.swift。Mac画面の選択ジェスチャー・下部メニューはBookshelfApp.swift。
+
+Macドラッグ：Sources/Bookshelf/CardDragSurface.swift（AppKitのクリック/移動判定、選択集合のドラッグ開始）→ FolderDropSurface.swift（アプリ内由来検査、強調、ドロップ受理）→ LibrarySettings.moveBooks。Tests/BookshelfDragTestsは実Pasteboardを使い受け取り・一括保存・拒否・キャンセルを確認。
+
+Macフォルダ画像：Sources/Bookshelf/FolderIcons.swift（ImageIO縮小/端末コピー/設定更新/解除）、BookshelfCore/Library.swiftのShelfFolder.iconFile（任意）。Tests/BookshelfDragTests/FolderIconTests.swiftで独立コピー/寸法/旧設定互換を確認。
+
+Macフォルダ順：BookshelfCore/FolderOrder.swift（初期順/手動順/並べ替え）、LibrarySettings.folderOrder（任意UUID列）。FolderDropSurface.swiftは同一ウインドウのマウス押下/移動/解放でフォルダ順を変更し、弱参照の行集合から挿入先を判定。資料ドラッグのOS受取は別処理。FolderOrderTests＋DragTestsで検証。
+
+Mac資料の一括ドラッグ：CardDragSurface.swiftのmouseDown/mouseDragged/mouseUpが選択IDを開始時固定し、FolderDropView.documentTargetで解放先を確定。highlightDocumentsで強調、既存receive→moveBooksで一括保存。DragTestsで複数ID/キャンセル/対象外を検証。
+
+整理共通層：packages/LibraryOrganization（OrganizationFolder、LibraryClassification、ReadingCollection、OrganizationState）。Mac BookshelfCoreは互換アダプター、iOS zukanは型alias＋閲覧検証extension。旧JSON移行/ラウンドトリップはOrganizationTests。[仕様](docs/library-organization.md)。
+
+Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/まとめ保存/最新版解決）、LibrarySettingsの互換decode、Bookshelf/OrganizationEditors.swift（編集シート）、ShelfView（絞込/まとめカード/読む順プレビュー）。OrganizationTestsで旧設定互換/保存復元/制限/元分類保持。
+
+整理同期のローカル版：packages/LibraryOrganization/Sources/LibraryOrganization/{Sync,SyncImport,LoopbackSyncTransport}.swift、Sources/OrganizationSyncMock/main.swift。SyncTests.swift（オフライン/再送/競合/削除/統合）、scripts/organization-sync-http-check.py（実loopback HTTP・応答喪失）。既存アプリStore未接続。[仕様](docs/organization-sync-local.md)。
+
+同期画面：packages/LibraryOrganization/Sources/LibraryOrganizationUI/{SyncLabSession,SyncLabView}.swift。Mac ShelfStore.makeSyncLab/iOS CloudLibraryStore.makeSyncLabは元設定の読取専用アダプター。SyncLabTests/SyncAdapterTests/iOS CloudLibraryTestsとmock CLI smoke-uiで検証。[境界](docs/organization-sync-ui.md)。

@@ -56,3 +56,17 @@ Phase 10Aのsrc/updateは既存構成JSON＋新旧原資料から更新計画JSO
 Phase 10B：src/updateは計画を原資料から照合し、既存登録描画へ更新対象だけを渡す。旧成果物のコピー・ネイティブPDF/PPTX再構成は独立のローカル保存工程。旧版とS3/viewer境界を変更しない。[責務・版管理](docs/phase10b-partial-update.md)。
 
 ゴミ箱の状態は成果物から分離し、viewerのowner認可後にlibrary/state/{id}.jsonへ保存するローカル実装。資料全版の可視性だけ変更。承認後の本番反映案と未検証境界は[仕様](docs/library-trash.md)。
+
+## Mac本棚（独立ローカルアプリ）
+
+`mac-app/`は明示依頼によるSwift Package。BookshelfCoreはFoundationの資料/版・フォルダ・設定保存・既存metadata取込、BookshelfはSwiftUI/AppKitのMac画面・アクセス権・PDFKit/Quick Look。生成outputsは参照のみ、分類はApplication Supportへ分離保存。iOSの変更と同期は対象外。[操作・境界](mac-app/README.md)。
+
+Macの変更監視は別ターゲットBookshelfWatchingへ隔離。FSEventsからStoreの既存スキャナを呼び出し、Foundationの共通資料モデルはOS監視APIへ依存しない。
+
+## Mac/iOSの整理共通層
+
+`packages/LibraryOrganization`はFoundationだけのローカルSwiftパッケージ。MacのBookshelfCoreと隣接zukanのXcodeアプリが参照する。フォルダ・タグ・まとめを別概念として保持し、端末固有の取込/認証/保存はアダプターに残す。[データ仕様](docs/library-organization.md)。
+
+整理同期エンジンは共通層内の独立した値型クライアント/模擬authorityとtransportプロトコル。テスト用HTTPブリッジだけがloopback待受し、本体アプリや常駐サービスを追加しない。[境界](docs/organization-sync-local.md)。
+
+LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizationUIに検証用SwiftUI/セッションを分離。Mac/iOSは読取専用アダプターで検証コピーへ投影する。元のStoreへの受信書戻しは未接続。[構成](docs/organization-sync-ui.md)。

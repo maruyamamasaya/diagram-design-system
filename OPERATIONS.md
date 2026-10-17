@@ -51,3 +51,9 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 一枚図はcreate:illustrationでローカル生成し、uploadのdry-run後に資料送信承認の範囲内で保存する。[手順](prompts/illustration.md)。
 
 ゴミ箱の本番有効化はVIEWER_TRASH_ENABLED=true、既存ロールへのstate専用権限とLambdaコード更新が必要。本機能は2026-10-10本人承認後に適用済み。追加変更は対象を確認する。[構成・費用・操作](docs/library-trash.md)。
+
+## Mac本棚
+
+ローカル用アプリは`mac-app/scripts/build-app.sh`で生成し、`mac-app/dist/Zukan Bookshelf.app`を開く。既存outputsを保存場所として登録する。同期・外部送信は行わない。設定保存先、解除/復元の境界と制約は[Mac本棚](mac-app/README.md)を参照。
+
+整理同期の検証サーバーはscripts/organization-sync-http-check.pyの--serveで一時起動し、Ctrl-Cで停止/一時領域削除する。公開待受・常駐設定を追加しない。[検証画面の運用](docs/organization-sync-ui.md)。

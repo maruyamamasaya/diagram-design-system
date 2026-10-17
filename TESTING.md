@@ -63,3 +63,15 @@ Phase 10B：`node --test tests/partial-update.test.cjs`（対象限定、再利�
 資料限定サイズ承認：tests/upload-size-approval.test.cjsで承認済み44オブジェクト、別保存先・別版・改ざん・追加対象・重複・低水準writeのAWS通信前拒否を確認する。通常保存モック・描画回帰も維持する。
 
 大容量閲覧：viewer/tests/large-presentation.test.ts。読取実証はviewer内で `VIEWER_STORAGE=s3 node --env-file=.env.local --import tsx scripts/check-large-presentation.ts`。ローカル共通APIを経由する実S3検証であり、本番認証/実機の成功とは区別する。
+
+Mac本棚の変更は`mac-app/README.md`のSwiftテストと`mac-app/scripts/build-app.sh`。実outputs読込と、ネイティブ画面で一覧/検索/フォルダ/プレビュー/再起動を確認する。生成・AWS・Web viewerから独立した変更ではNode/実AWS回帰を一律に実行しない。
+
+Mac監視の回帰にはBookshelfWatchingTestsの実FSEvents接続が必要。サンドボックスでFSEventStreamStartが拒否される場合は、通常のMac実行環境で再検証する。作成/新版/削除の画面反映も更新ボタン操作なしで確認する。
+
+整理共通層の変更：packages/LibraryOrganizationのswift test（旧Mac設定/iOS分類・まとめの変換と再保存・旧任意項目・未知版/破損拒否・一括移動・タグ正規化・まとめ構造）、Mac既存Swiftテスト、隣接zukanのiOS Simulator XCTestを実行する。iOSはKeychainテストのため通常のSimulator署名が必要。ローカルパッケージ参照が解決できる並列配置はdocs/library-organization.md参照。
+
+Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・追加フィールド復元・原本タグ/端末上書き・まとめの順序/最新版/未取得保持・入力制限・分類保持を検証。編集シート/タグ検索/まとめ並べ替え/前後プレビュー/再起動/解除は実画面で確認する。
+
+整理同期：共有パッケージのswift testに加え、scripts/organization-sync-http-check.pyへビルド済みOrganizationSyncMockを渡す。127.0.0.1と合成一時データだけを利用し、書込後の応答喪失を注入する。環境がloopback待受を拒否する場合は通常のMac実行環境で検証する。実AWS/公開認証検証とは区別する。[手順](docs/organization-sync-local.md)。
+
+同期画面：共有SyncLabTests、Mac SyncAdapterTests、iOS取込テスト、HTTPハーネスのsmoke-ui。チェックポイント復元/破損保持/原設定不変/解除の後片付けを確認する。Macの画面確認とiOSのビルド/XCTestの検証境界はdocs/organization-sync-ui.md参照。

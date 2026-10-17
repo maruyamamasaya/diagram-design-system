@@ -1,0 +1,3 @@
+// swift-tools-version: 5.10
+import PackageDescription
+let package = Package(name: "LibraryOrganization", platforms: [.macOS(.v14), .iOS(.v17)], products: [.library(name: "LibraryOrganization", targets: ["LibraryOrganization"]), .library(name: "LibraryOrganizationUI", targets: ["LibraryOrganizationUI"]), .executable(name: "OrganizationSyncMock", targets: ["OrganizationSyncMock"])], targets: [.target(name: "LibraryOrganization"), .target(name: "LibraryOrganizationUI", dependencies: ["LibraryOrganization"]), .executableTarget(name: "OrganizationSyncMock", dependencies: ["LibraryOrganization", "LibraryOrganizationUI"]), .testTarget(name: "LibraryOrganizationTests", dependencies: ["LibraryOrganization", "LibraryOrganizationUI"])])
