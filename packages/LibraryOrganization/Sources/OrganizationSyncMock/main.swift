@@ -25,6 +25,12 @@ import LibraryOrganizationUI
                     try disk.ledger.use(permit: request.attemptID, request: request.requestID, now: Date())
                     try JSONEncoder().encode(disk).write(to: url, options: .atomic)
                     let server = try LocalOrganizationSyncServer<OrganizationDocument>(data: disk.authority, memberID: { $0.id })
+                    let snapshot = try await server.fetch(libraryID: request.libraryID)
+                    if request.operations?.isEmpty == true, request.knownRevision == snapshot.revision {
+                        result.unchangedRevision = snapshot.revision
+                        // Budget already persisted. No authority/receipt write for a version check.
+                        FileHandle.standardOutput.write(try JSONEncoder().encode(result)); return
+                    }
                     result.reply = try await server.submit(libraryID: request.libraryID, operations: request.operations ?? [])
                     disk.authority = try await server.encoded()
                 default: throw SyncError.invalidValue
@@ -79,22 +85,67 @@ import LibraryOrganizationUI
             guard accepted.count == 5 else { throw SyncError.corruptState }
             let transport = try LimitedLoopbackTransport<OrganizationDocument>(baseURL: URL(string: args[2])!, attemptID: accepted[0].0)
             let operation = SyncOperation<OrganizationDocument>(key: OrganizationSyncKey.tag("test", "並行"), expectedRevision: 0, value: .tag("並行"))
-            let reply = try await transport.submit(libraryID: library, operations: [operation])
+            let reply: SyncReply<OrganizationDocument>
+            do { reply = try await transport.submit(libraryID: library, operations: [operation]) }
+            catch is SyncRetryFailure {
+                try await Task.sleep(for: .seconds(30))
+                reply = try await transport.submit(libraryID: library, operations: [operation])
+            }
             guard reply.snapshot.revision == 1 else { throw SyncError.corruptState }
             print("Concurrent quota HTTP passed: exactly five of ten admissions; durable ACK replay succeeds")
+        } else if args[1] == "smoke-efficiency" {
+            try await smokeEfficiency(endpoint: args[2])
         } else if args[1] == "smoke-limit" {
             try await smokeLimit(endpoint: args[2])
         } else if args[1] == "smoke-ui" {
             try await smokeUI(endpoint: args[2])
         } else { throw SyncError.invalidValue }
     }
+    @MainActor static func smokeEfficiency(endpoint: String) async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("sync-efficiency-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let clock = SmokeClock(), library = UUID()
+        var seed = OrganizationState<OrganizationDocument>()
+        seed.folders = (0..<300).map { OrganizationFolder(name: "テストフォルダ\($0)") }
+        func reopen() -> SyncLabSession { SyncLabSession(directory: root, seed: seed, documents: [], rateLimited: true, retryClock: { clock.now }) }
+        var session = reopen()
+        await session.prepare(endpoint: endpoint, libraryID: library.uuidString)
+        session.confirmImport(); await session.synchronize() // injected 503 Retry-After: 90
+        guard session.pendingCount == 300, let next = session.retryAt, next.timeIntervalSince(clock.now) >= 89 else { throw SyncError.corruptState }
+        await session.synchronize(); await session.synchronize(allowExtra: true)
+        session = reopen(); await session.synchronize() // zero HTTP while waiting, including after restart
+        session.edit(key: OrganizationSyncKey.tag("test", "待機中"), value: .tag("待機中"))
+        guard session.pendingCount == 301 else { throw SyncError.corruptState }
+        clock.now.addTimeInterval(120); await session.synchronize() // commit, then lose ACK
+        guard session.pendingCount == 301, session.retryAt != nil else { throw SyncError.corruptState }
+        session = reopen(); await session.synchronize() // still zero HTTP
+        clock.now.addTimeInterval(120); await session.synchronize()
+        guard session.pendingCount == 0, session.revision == 301, session.retryAt == nil, session.syncQuota?.used == 1 else { throw SyncError.corruptState }
+        // A separate client must receive a full snapshot, then cheap version checks.
+        let peer = try LimitedLoopbackTransport<OrganizationDocument>(baseURL: URL(string: endpoint)!, attemptID: UUID())
+        _ = try await peer.reserve(libraryID: library)
+        var client = OrganizationSyncClient<OrganizationDocument>(libraryID: library)
+        try await client.synchronize(with: peer)
+        guard client.baseline.records.count == 301 else { throw SyncError.corruptState }
+        try await client.synchronize(with: peer)
+        let victim = seed.folders[0]
+        session.edit(key: OrganizationSyncKey.folder(victim.id), value: .deleted)
+        await session.synchronize()
+        try await client.synchronize(with: peer)
+        guard client.baseline.records[OrganizationSyncKey.folder(victim.id)]?.value == .deleted else { throw SyncError.corruptState }
+        try await client.synchronize(with: peer)
+        try await peer.finish(libraryID: library)
+        print("Efficiency HTTP passed: 503/Retry-After; restart/extra cannot bypass cooldown; offline edits; lost ACK replay once; full initial/change/deletion and small unchanged responses")
+    }
     @MainActor static func smokeLimit(endpoint: String) async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("sync-quota-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         let library = UUID(), folder = OrganizationFolder(name: "回数制限の検証")
         var seed = OrganizationState<OrganizationDocument>(); seed.folders = [folder]
-        let mac = SyncLabSession(directory: root.appendingPathComponent("mac"), seed: seed, documents: [], rateLimited: true)
+        let clock = SmokeClock()
+        let mac = SyncLabSession(directory: root.appendingPathComponent("mac"), seed: seed, documents: [], rateLimited: true, retryClock: { clock.now })
         await mac.prepare(endpoint: endpoint, libraryID: library.uuidString); mac.confirmImport(); await mac.synchronize()
+        if mac.pendingCount > 0 { clock.now.addTimeInterval(120); await mac.synchronize() }
         guard mac.revision == 1, mac.pendingCount == 0 else { throw SyncError.corruptState }
         var phone = SyncLabSession(directory: root.appendingPathComponent("phone"), seed: OrganizationState(), documents: [], rateLimited: true)
         await phone.prepare(endpoint: endpoint, libraryID: library.uuidString); phone.confirmImport(); await phone.synchronize()
@@ -171,3 +222,5 @@ private struct LimitedDisk: Codable {
     var authority: Data
     var ledger = SyncRateLedger()
 }
+
+private final class SmokeClock: @unchecked Sendable { var now = Date() }

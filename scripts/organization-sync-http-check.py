@@ -21,7 +21,9 @@ with tempfile.TemporaryDirectory(prefix="organization-http-") as directory:
     state = pathlib.Path(directory) / "mock-state.json"
     lock = threading.Lock()
     dropped = [False]
-    limited = mode in ("--limited-serve", "smoke-limit", "smoke-limit-concurrent")
+    unavailable = [False]
+    wire_sizes = {"unchanged": [], "full": []}
+    limited = mode in ("--limited-serve", "smoke-limit", "smoke-limit-concurrent", "smoke-efficiency")
     counts = {"begin": 0, "sync": 0, "finish": 0}
     class Handler(http.server.BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -37,6 +39,10 @@ with tempfile.TemporaryDirectory(prefix="organization-http-") as directory:
                 parsed = json.loads(payload)
                 with lock:
                     if limited and parsed.get("action") in counts: counts[parsed["action"]] += 1
+                    if mode == "smoke-efficiency" and parsed.get("operations") and not unavailable[0]:
+                        unavailable[0] = True
+                        self.send_response(503); self.send_header("Retry-After", "90")
+                        self.send_header("Content-Length", "0"); self.end_headers(); return
                     result = subprocess.run([str(binary), "limited" if limited else "request", str(state)], input=payload, capture_output=True, timeout=15)
                     if result.returncode:
                         self.send_error(400); return
@@ -45,6 +51,10 @@ with tempfile.TemporaryDirectory(prefix="organization-http-") as directory:
                         self.connection.shutdown(socket.SHUT_RDWR)
                         self.connection.close(); return
                 decoded = json.loads(result.stdout)
+                if mode == "smoke-efficiency":
+                    with lock:
+                        if decoded.get("unchangedRevision") is not None: wire_sizes["unchanged"].append(len(result.stdout))
+                        elif decoded.get("reply", {}).get("snapshot", {}).get("records"): wire_sizes["full"].append(len(result.stdout))
                 failure = decoded.get("failure")
                 admission = decoded.get("admission")
                 denied = limited and admission is not None and admission.get("permit") is None
@@ -64,6 +74,13 @@ with tempfile.TemporaryDirectory(prefix="organization-http-") as directory:
         else:
             subprocess.run([str(binary), mode, endpoint], check=True)
             assert dropped[0], "fault injection was not exercised"
+            if mode == "smoke-efficiency":
+                assert unavailable[0]
+                assert counts == {"begin": 3, "sync": 9, "finish": 3}, counts
+                assert len(wire_sizes["unchanged"]) >= 3 and len(wire_sizes["full"]) >= 2, wire_sizes
+                small, full = max(wire_sizes["unchanged"]), min(wire_sizes["full"])
+                assert small < full * .01, wire_sizes
+                print(f"Measured unchanged body <= {small} bytes vs full snapshot >= {full} bytes; counts={counts}; no hidden retries or cooldown HTTP.")
             if mode == "smoke-limit":
                 assert counts == {"begin": 9, "sync": 9, "finish": 6}, counts
                 print("HTTP request counts verified: local blocked retry and reopen issue no extra requests.")

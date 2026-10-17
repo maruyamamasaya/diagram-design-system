@@ -86,3 +86,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 実端末同期の未適用設計：docs/organization-sync-aws-plan.md、単価/SKUはorganization-sync-aws-rates.json、結果はorganization-sync-aws-estimate.json。scripts/estimate-organization-sync.pyはネットワーク/認証なしのDecimal再計算だけを行う。
 
 同期回数：LibraryOrganization/{SyncRateLimit,LimitedLoopbackTransport}.swift、UI/SyncThrottleStateとSyncLabSession.limitedTransport、SyncLabViewの確認UI。Mock limited/smoke-limit/smoke-limit-concurrentとHTTP--limited-serve、SyncRateLimitTests/SyncThrottleTests。[仕様](docs/organization-sync-quota.md)。
+
+整理同期の通信削減：SyncRetry.swift、LimitedLoopbackTransport、SyncLabSessionのretryAt/knownSnapshot、模擬serverのunchangedRevision。正本は[無変更応答と失敗待機](docs/organization-sync-efficiency.md)。

@@ -40,6 +40,12 @@ public protocol OrganizationSyncTransport: Sendable {
     associatedtype Member: Codable & Equatable & Sendable
     func fetch(libraryID: UUID) async throws -> SyncSnapshot<Member>
     func submit(libraryID: UUID, operations: [SyncOperation<Member>]) async throws -> SyncReply<Member>
+    func submit(libraryID: UUID, operations: [SyncOperation<Member>], knownSnapshot: SyncSnapshot<Member>) async throws -> SyncReply<Member>
+}
+public extension OrganizationSyncTransport {
+    func submit(libraryID: UUID, operations: [SyncOperation<Member>], knownSnapshot: SyncSnapshot<Member>) async throws -> SyncReply<Member> {
+        try await submit(libraryID: libraryID, operations: operations)
+    }
 }
 
 /// Keys encode opaque document IDs rather than guessing equality by filename or title.
@@ -215,7 +221,7 @@ public struct OrganizationSyncClient<Member: Codable & Equatable & Sendable>: Co
         pending = ordered
         repeat {
             let batch = Array(pending.prefix(500))
-            let reply = try await transport.submit(libraryID: libraryID, operations: batch)
+            let reply = try await transport.submit(libraryID: libraryID, operations: batch, knownSnapshot: baseline)
             guard reply.snapshot.libraryID == libraryID else { throw SyncError.wrongLibrary }
             guard reply.snapshot.revision >= baseline.revision,
                   reply.receipts.count == batch.count,

@@ -7,4 +7,5 @@ struct SyncThrottleState: Codable {
     var quota: SyncQuota?
     var endpoint: String?
     var libraryID: UUID?
+    var retry: SyncRetryState?
 }

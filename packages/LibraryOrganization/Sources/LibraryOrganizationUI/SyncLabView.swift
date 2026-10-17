@@ -29,6 +29,10 @@ public struct SyncLabView: View {
                         TimelineView(.periodic(from: .now, by: 30)) { context in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("通常同期はMac・iPhone合計で直近1時間に5回まで").font(.callout.bold())
+                                if let retry = session.retryAt, retry > context.date {
+                                    Text("通信を再試行できる時刻：" + retry.formatted()).font(.callout)
+                                    Text("待機中はボタンを押しても通信しません。自動再送は行いません。").font(.caption)
+                                }
                                 if let quota = session.syncQuota {
                                     Text("前回確認時：直近1時間\(quota.used)回（今回だけの追加を含む）・通常残り\(quota.remaining)回").font(.caption)
                                     if let next = session.nextSyncAt, next > context.date {

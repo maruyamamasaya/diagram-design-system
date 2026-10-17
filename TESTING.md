@@ -81,3 +81,5 @@ Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・�
 管理バックアップ/復元はSyncRecoveryTests、Mac SyncAdapterTests、iOS CloudLibraryTestsで、資料本体を含まないこと・管理JSONのバイト一致・欠損ファイル・中断/失敗/再起動時の同期停止を検証する。[実画面の範囲](docs/organization-sync-recovery.md#検証)。
 
 同期回数制限はSyncRateLimitTests/SyncThrottleTests、実HTTPのsmoke-limit（2端末/再起動/追加/要求数）とsmoke-limit-concurrent（10並行のうち5許可）で検証する。[条件とコマンド](docs/organization-sync-quota.md)。
+
+通信削減はSyncEfficiencyTestsとHTTP smoke-efficiency（503/Retry-After/応答喪失/再起動/待機中追加と編集/別端末削除/応答バイト/要求数）。[手順](docs/organization-sync-efficiency.md#検証と再現)。

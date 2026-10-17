@@ -86,16 +86,18 @@ public struct LimitedSyncRequest<Member: Codable & Equatable & Sendable>: Codabl
     public var attemptID: UUID
     public var requestID: UUID
     public var consent: UUID?
+    public var knownRevision: Int?
     public var operations: [SyncOperation<Member>]?
-    public init(action: String, libraryID: UUID, attemptID: UUID, consent: UUID? = nil, operations: [SyncOperation<Member>]? = nil) {
-        self.action = action; self.libraryID = libraryID; self.attemptID = attemptID; self.requestID = UUID(); self.consent = consent; self.operations = operations
+    public init(action: String, libraryID: UUID, attemptID: UUID, consent: UUID? = nil, operations: [SyncOperation<Member>]? = nil, knownRevision: Int? = nil) {
+        self.action = action; self.libraryID = libraryID; self.attemptID = attemptID; self.requestID = UUID(); self.consent = consent; self.operations = operations; self.knownRevision = knownRevision
     }
 }
 public struct LimitedSyncResponse<Member: Codable & Equatable & Sendable>: Codable, Sendable {
     public var admission: SyncAdmission?
     public var reply: SyncReply<Member>?
     public var failure: SyncQuotaFailure?
-    public init(admission: SyncAdmission? = nil, reply: SyncReply<Member>? = nil, failure: SyncQuotaFailure? = nil) {
-        self.admission = admission; self.reply = reply; self.failure = failure
+    public var unchangedRevision: Int?
+    public init(admission: SyncAdmission? = nil, reply: SyncReply<Member>? = nil, failure: SyncQuotaFailure? = nil, unchangedRevision: Int? = nil) {
+        self.admission = admission; self.reply = reply; self.failure = failure; self.unchangedRevision = unchangedRevision
     }
 }
