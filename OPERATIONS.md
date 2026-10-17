@@ -63,3 +63,5 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 同期開始前の管理JSONバックアップと画面復元は[管理データ保護](docs/organization-sync-recovery.md)。資料本体を含めない。今後のAWS変更は、適用前に必ず[料金シミュレーション](docs/cost-policy.md#整理同期のaws変更前)を提示し、承認後に実施する。
 
 Mac/iPhone整理同期のAWS案と適用前条件は[未適用設計・試算](docs/organization-sync-aws-plan.md)。再計算は`python3 scripts/estimate-organization-sync.py`（ローカルのみ）。AWS変更時には公式単価/実測/既存設定を再確認し、変更セットと料金を提示して別承認後に適用する。
+
+通常本棚のテスト同期サーバーは`--limited-serve`を使い、[利用者合計5回/追加同意](docs/organization-sync-quota.md)を確認する。旧コピー検証の`--serve`へ自動で切り替えない。回数台帳は管理バックアップ復元/同期解除で初期化しない。

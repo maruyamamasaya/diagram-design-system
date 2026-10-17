@@ -84,3 +84,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 同期開始/復元：LibraryOrganizationUI/SyncRecovery.swift（設定項目件数/復元点）、SyncLabSession.makeBackup/restoreBackup（永続停止）、Mac Storeの管理JSONバイト復元、iOS CloudFiles.managementBackup/restoreManagementBackup/recoverManagementRestore。SyncRecoveryTests/SyncAdapterTests/CloudLibraryTests。[仕様](docs/organization-sync-recovery.md)。
 
 実端末同期の未適用設計：docs/organization-sync-aws-plan.md、単価/SKUはorganization-sync-aws-rates.json、結果はorganization-sync-aws-estimate.json。scripts/estimate-organization-sync.pyはネットワーク/認証なしのDecimal再計算だけを行う。
+
+同期回数：LibraryOrganization/{SyncRateLimit,LimitedLoopbackTransport}.swift、UI/SyncThrottleStateとSyncLabSession.limitedTransport、SyncLabViewの確認UI。Mock limited/smoke-limit/smoke-limit-concurrentとHTTP--limited-serve、SyncRateLimitTests/SyncThrottleTests。[仕様](docs/organization-sync-quota.md)。

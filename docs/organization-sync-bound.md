@@ -27,7 +27,7 @@ open -n '/path/to/Test Bookshelf.app' --args \
 
 iOSは新規作成した使い捨てSimulatorへテストビルドをインストールし、`simctl launch <使い捨てUDID> com.example.PresentationViewer --test-library-sync`で起動する。Simulatorかつサンプルモードの場合だけ有効。実機/本番API画面では引数があっても無効。
 
-模擬サーバーは既存のscripts/organization-sync-http-check.pyの`--serve`を使い、画面へ表示された127.0.0.1のURLと同じライブラリUUIDを両方へ入力する。今回も外部ホスト/リダイレクトは拒否する。
+模擬サーバーは既存のscripts/organization-sync-http-check.pyの`--limited-serve`を使い、画面へ表示された127.0.0.1のURLと同じライブラリUUIDを両方へ入力する。今回も外部ホスト/リダイレクトは拒否する。
 
 ## 確認した範囲
 
@@ -36,3 +36,5 @@ iOSは新規作成した使い捨てSimulatorへテストビルドをインス�
 専用画面操作ツールで、Mac通常画面のフォルダ作成→初回送信→サーバー保存後の応答喪失→再送→iOS通常フォルダ一覧への表示を確認。iOS通常画面で別フォルダ作成/資料選択/移動→送信→Mac通常フォルダ内に同じ資料を表示。さらにMac通常画面のタグ編集→送信→iOS通常タグ一覧へ表示。両端末は版5/送信待ち0/競合0で、保存済みフォルダ/所属/分類の一致を照合した。まとめの通常反映は自動テストで確認し、今回の実画面では操作していない。
 
 Applications版/実機iPhoneへの更新、実データの移行・同期、AWS変更はなし。使い捨てSimulator・別IDのMacテストアプリ・合成本棚・模擬サーバーは削除/停止済み。証跡と制約は[作業記録](../sessions/2026-10-17-normal-library-sync.md)。本番接続へ進む前には利用者認証、実データ移行計画、長期オフライン/履歴保持の設計が必要。
+
+テスト本棚には[直近1時間5回・今回だけの追加](organization-sync-quota.md)を適用する。従来のコピー検証は上限なし経路を維持する。

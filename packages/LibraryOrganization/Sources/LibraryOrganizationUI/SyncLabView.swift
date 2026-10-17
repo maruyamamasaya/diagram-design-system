@@ -5,6 +5,7 @@ public struct SyncLabView: View {
     @ObservedObject private var session: SyncLabSession
     @Environment(\.dismiss) private var dismiss
     @State private var confirmRestore = false
+    @State private var confirmExtraSync = false
     @State private var endpoint: String
     @State private var library: String
     @State private var folderName = ""
@@ -24,6 +25,22 @@ public struct SyncLabView: View {
                     HStack { Text(session.status).bold(); Spacer(); Text("送信待ち \(session.pendingCount)件 · 競合 \(session.conflicts.count)件") }
                     if let date = session.lastSynced { Text("最終同期：" + date.formatted()).font(.caption) }
                     if let message = session.message { Text(message).foregroundStyle(.red) }
+                    if session.rateLimited {
+                        TimelineView(.periodic(from: .now, by: 30)) { context in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("通常同期はMac・iPhone合計で直近1時間に5回まで").font(.callout.bold())
+                                if let quota = session.syncQuota {
+                                    Text("前回確認時：直近1時間\(quota.used)回（今回だけの追加を含む）・通常残り\(quota.remaining)回").font(.caption)
+                                    if let next = session.nextSyncAt, next > context.date {
+                                        Text("通常同期を再確認できる時刻：" + next.formatted()).font(.callout)
+                                        Text("編集と送信待ちは保存できます。自動では上限を解除しません。").font(.caption)
+                                        Button("今回の1回だけ追加で同期…") { confirmExtraSync = true }
+                                            .disabled(session.restorationPending || (session.connected && !session.imported))
+                                    }
+                                } else { Text("他の端末の利用状況は接続時に確認します。").font(.caption) }
+                            }
+                        }
+                    }
                     if session.isTestLibrary {
                         Text("バックアップ対象はフォルダ・所属・分類・タグ・まとめなどの管理データだけです。資料本体は含めません。S3の資料は変更しません。").font(.caption)
                         if let date = session.backupDate {
@@ -60,6 +77,17 @@ public struct SyncLabView: View {
                 Button("同期を止めて復元") { Task { await session.restoreBackup() } }
             } message: {
                 Text("この端末の管理データを表示されたバックアップ時点へ戻します。その後の整理編集は戻ります。資料本体とサーバーは変更しません。同期は停止し、再接続には初回確認が必要です。")
+            }
+            .alert("今回の1回だけ追加で同期しますか？", isPresented: $confirmExtraSync) {
+                Button("キャンセル", role: .cancel) { }
+                Button("今回だけ同期") {
+                    Task {
+                        if session.connected { await session.synchronize(allowExtra: true) }
+                        else { await session.prepare(endpoint: endpoint, libraryID: library, allowExtra: true) }
+                    }
+                }
+            } message: {
+                Text("この同期1回だけを追加で許可します。通常の1時間5回の上限は残ります。分割通信や再試行にも別の上限があります。")
             }
             .navigationTitle("同期の状態と競合")
             .toolbar { Button("閉じる") { dismiss() }.disabled(session.busy) }
