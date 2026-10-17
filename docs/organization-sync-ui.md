@@ -42,6 +42,10 @@ python3 scripts/organization-sync-http-check.py \
 
 Mac実画面では初回確認、3件送信待ち、応答喪失による通信待ち、再試行→版3で同期済み、別端末を模したフォルダ編集との競合表示、サーバー採用で競合0件を確認。検証コピー解除後、元のlibrary.jsonは検証前とバイト単位で一致。元の65冊/フォルダ保持。検証ビルドを終了し、Applicationsの既存アプリへ戻した。
 
-iOSはSimulatorのbuild/XCTestまで。専用UIツールは一度画面取得できたが、その後timeoutReachedとなり新画面のタップ確認は未実施。実機配布はなし。
+iOSも専用ツールで実操作を確認。隔離した新規Simulatorのサンプルモードで、同一IDフォルダの初回競合→端末案選択→送信待ち1件、接続拒否→通信待ちで1件保持→URL復旧→再送0件、別端末編集との競合→サーバー採用、再競合→端末案採用して再送→版5/送信待ち0/競合0まで成功。元organization.jsonは検証前後でバイト一致し、検証コピー解除後にcheckpointがないことも確認。実機配布・本番データ・AWS変更なし。
+
+専用ツールのtimeoutReachedは、Simulatorアプリのプロセスだけを終了して同ツールから起動し直すことで復旧した。デバイスの起動やツール側セッション初期化だけでは復旧しなかった。CoreSimulatorの再起動・データ消去・権限変更は不要だった。原因の内部詳細までは断定できないが、アプリ側の接続状態に局在した可能性がある。再発時は検証デバイスの停止を確認し、Simulatorアプリの再起動後に専用ツールで画面取得を確認してから再開する。[成功した再検証](../sessions/2026-10-17-ios-sync-ui-validation.md)、[先行失敗の記録](../sessions/2026-10-17-ios-sync-ui-attempt.md)。
+
+iOS証跡はmac-app/.build/validation/ios-sync-ui/のconflict.png、final-state.txt、data-check.txt。今回作成したSimulatorと模擬サーバーの一時データは削除済み。
 
 スクリーンショット：mac-app/.build/validation/sync-ui/conflict.png。ログと後片付けは[sessions](../sessions/2026-10-17-organization-sync-ui.md)。
