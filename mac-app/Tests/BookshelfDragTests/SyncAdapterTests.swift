@@ -4,6 +4,17 @@ import LibraryOrganization
 @testable import Bookshelf
 
 final class SyncAdapterTests: XCTestCase {
+    @MainActor func testHTTPSConnectionOnlyAttachesToExplicitTestLibrary() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let connection = try AuthenticatedSyncConnection(baseURL: URL(string: "https://api.example")!, issuer: "https://issuer.example", subject: "test-owner") { _ in throw OrganizationConnectionError.authentication }
+        let file = root.appendingPathComponent("library.json"); try LibrarySettings().save(to: file)
+        let before = try Data(contentsOf: file)
+        XCTAssertNil(ShelfStore(stateURL: file, autoRefresh: false, syncConnection: connection).makeSyncLab().httpsConnection)
+        let session = ShelfStore(stateURL: file, autoRefresh: false, enableTestSync: true, syncConnection: connection).makeSyncLab()
+        XCTAssertEqual(session.httpsConnection?.identityKey, connection.identityKey)
+        XCTAssertEqual(try Data(contentsOf: file), before)
+    }
     @MainActor func testSyncFactoryCopiesOrganizationWithoutChangingLiveLibrary() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

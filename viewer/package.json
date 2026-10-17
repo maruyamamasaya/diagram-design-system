@@ -10,7 +10,8 @@
     "test": "node scripts/mock-init.cjs && tsx --test --test-concurrency=1 tests/*.test.ts",
     "init": "node scripts/init.cjs",
     "mock:init": "node scripts/mock-init.cjs",
-    "test:organization": "node scripts/check-organization-conformance.cjs"
+    "test:organization": "node scripts/check-organization-conformance.cjs",
+    "test:organization:https": "node scripts/check-organization-conformance.cjs --https"
   },
   "dependencies": {
     "next": "16.4.0",

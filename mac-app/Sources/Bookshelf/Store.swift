@@ -18,8 +18,10 @@ import LibraryOrganizationUI
     private lazy var watcher = FolderWatcher { [weak self] in
         Task { await self?.refresh() }
     }
+    private let syncConnection: AuthenticatedSyncConnection?
     private var activationObserver: NSObjectProtocol?
-    init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true, enableTestSync: Bool = false) {
+    init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true, enableTestSync: Bool = false, syncConnection: AuthenticatedSyncConnection? = nil) {
+        self.syncConnection = syncConnection
         let arguments = ProcessInfo.processInfo.arguments
         testSyncEnabled = enableTestSync || (arguments.contains("--test-library-sync") && arguments.contains("--state"))
         if let overrideURL { stateURL = overrideURL }
@@ -88,7 +90,7 @@ import LibraryOrganizationUI
                 try data.write(to: self.stateURL, options: .atomic)
                 self.settings = value
             })
-            let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding, rateLimited: true)
+            let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding, rateLimited: true, connection: syncConnection)
             testSync = session; return session
         }
         func document(_ member: BookReference) -> OrganizationDocument {

@@ -38,11 +38,15 @@ public struct SyncReply<Member: Codable & Equatable & Sendable>: Codable, Sendab
 public enum SyncError: Error { case wrongLibrary, corruptState, invalidKey, invalidValue, nonLoopback, transport }
 public protocol OrganizationSyncTransport: Sendable {
     associatedtype Member: Codable & Equatable & Sendable
+    var maximumBatchesPerSync: Int { get }
+    func batch(libraryID: UUID, operations: [SyncOperation<Member>]) throws -> [SyncOperation<Member>]
     func fetch(libraryID: UUID) async throws -> SyncSnapshot<Member>
     func submit(libraryID: UUID, operations: [SyncOperation<Member>]) async throws -> SyncReply<Member>
     func submit(libraryID: UUID, operations: [SyncOperation<Member>], knownSnapshot: SyncSnapshot<Member>) async throws -> SyncReply<Member>
 }
 public extension OrganizationSyncTransport {
+    var maximumBatchesPerSync: Int { Int.max }
+    func batch(libraryID: UUID, operations: [SyncOperation<Member>]) throws -> [SyncOperation<Member>] { Array(operations.prefix(500)) }
     func submit(libraryID: UUID, operations: [SyncOperation<Member>], knownSnapshot: SyncSnapshot<Member>) async throws -> SyncReply<Member> {
         try await submit(libraryID: libraryID, operations: operations)
     }
@@ -219,8 +223,10 @@ public struct OrganizationSyncClient<Member: Codable & Equatable & Sendable>: Co
         }
         ordered += pending.filter { op in if case .folder = op.value { return false }; return true }
         pending = ordered
+        var sentBatches = 0
         repeat {
-            let batch = Array(pending.prefix(500))
+            let batch = try transport.batch(libraryID: libraryID, operations: pending)
+            guard pending.isEmpty || !batch.isEmpty, batch == Array(pending.prefix(batch.count)) else { throw SyncError.invalidValue }
             let reply = try await transport.submit(libraryID: libraryID, operations: batch, knownSnapshot: baseline)
             guard reply.snapshot.libraryID == libraryID else { throw SyncError.wrongLibrary }
             guard reply.snapshot.revision >= baseline.revision,
@@ -229,8 +235,8 @@ public struct OrganizationSyncClient<Member: Codable & Equatable & Sendable>: Co
                   reply.receipts.allSatisfy({ receipt in batch.contains(receipt.operation) }) else { throw SyncError.corruptState }
             baseline = reply.snapshot
             conflicts += reply.receipts.filter { $0.disposition != .accepted }
-            pending.removeFirst(batch.count)
-        } while !pending.isEmpty
+            pending.removeFirst(batch.count); sentBatches += 1
+        } while !pending.isEmpty && sentBatches < transport.maximumBatchesPerSync
     }
 
     /// Keeping remote drops only the conflicted local proposal; retaining local needs a fresh operation.

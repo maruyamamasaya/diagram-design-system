@@ -85,3 +85,5 @@ Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・�
 通信削減はSyncEfficiencyTestsとHTTP smoke-efficiency（503/Retry-After/応答喪失/再起動/待機中追加と編集/別端末削除/応答バイト/要求数）。[手順](docs/organization-sync-efficiency.md#検証と再現)。
 
 TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビルド→5共通fixture（75ステップ）→認可/CAS/並行/欠損/容量/S3コマンド差替→使い捨てloopbackのSwift実HTTPを実行する。Node.js 22以上。AWS実接続はしない。[境界](docs/organization-sync-api-local.md#検証と再現)。
+
+認証付きHTTPS/分割はHTTPSConnectionTestsとviewerのtest:organization:https。通常TLS拒否→テストleaf限定信頼、JWT/401更新/125フォルダ/2バッチ目ACK喪失/待機/再起動/双方向を実TLSで検証。iOSはURLProtocolで既存認証→bootstrap/バイト分割も実行。[範囲](docs/organization-sync-https.md)。

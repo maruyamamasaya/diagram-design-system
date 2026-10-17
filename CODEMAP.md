@@ -90,3 +90,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 整理同期の通信削減：SyncRetry.swift、LimitedLoopbackTransport、SyncLabSessionのretryAt/knownSnapshot、模擬serverのunchangedRevision。正本は[無変更応答と失敗待機](docs/organization-sync-efficiency.md)。
 
 AWS向け同期APIのローカル入口：viewer/src/lib/organization/{model,service,s3-store}.ts、api.tsの注入ルート、lambda.tsのcreateHandler。viewer/tests/fixtures/organizationとOrganizationSyncMock conformanceでSwift照合。再現はviewerのtest:organization。[仕様](docs/organization-sync-api-local.md)。
+
+HTTPS同期：LibraryOrganization/AuthenticatedSyncTransport.swift、UI/OrganizationOIDC.swiftとSyncLabSession。Mac Store/iOS CloudOIDC・CloudLibraryStoreの明示注入。HTTPSConnectionTests、viewer/scripts/check-organization-https.ts。[手順](docs/organization-sync-https.md)。

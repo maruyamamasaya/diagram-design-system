@@ -19,7 +19,7 @@ api.tsのorganizationルートは依存サービスを明示注入し、かつOI
 - 保存キーはlibrary/organization/v1/SHA256(issuer + 改行 + sub)/state.json。S3 ETagは排他用の不透明な値、整理revisionは同期版として分離する。資料/catalog/旧ゴミ箱キーへ書き込めない。
 - 本文はストリーム読取でも256 KiB以下、50操作、状態16 MiB、snapshot1 MiB、応答2 MiBを超えれば停止する。メンバーは許可したURLなし管理メタデータだけ。フォルダのローカル画像パスやURL等の余分なフィールドを送らない。HTTP入力のサイズ/型検査はSwiftの汎用500操作authorityより厳しい入口制約。
 
-Swift既存アプリの本番HTTPS transportは未接続。実接続時はbootstrapの50操作/バイト上限に合わせた分割と信頼済みHTTPSホスト/Keychain/PKCEを追加する必要がある。今回の実HTTP検証は一時loopback bridgeがローカルの署名tokenを付けて、本物のhandle/createHandlerと同じ認証経路を呼ぶ。署名鍵/JWKS/owner/保存データはテスト内だけで生成する。
+Swiftの[HTTPS/PKCE/分割送信](organization-sync-https.md)をローカル実装・検証した。本番の設定組立と有効化は未実施。今回の実HTTP検証は一時loopback bridgeがローカルの署名tokenを付けて、本物のhandle/createHandlerと同じ認証経路を呼ぶ。署名鍵/JWKS/owner/保存データはテスト内だけで生成する。
 
 ## 同期の意味論と原子性
 

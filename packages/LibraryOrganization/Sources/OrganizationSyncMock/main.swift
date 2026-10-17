@@ -1,6 +1,7 @@
 import Foundation
 import LibraryOrganization
 import LibraryOrganizationUI
+import Security
 
 @main struct SyncMock {
     @MainActor static func main() async throws {
@@ -98,6 +99,8 @@ import LibraryOrganizationUI
             print("Concurrent quota HTTP passed: exactly five of ten admissions; durable ACK replay succeeds")
         } else if args[1] == "smoke-efficiency" {
             try await smokeEfficiency(endpoint: args[2])
+        } else if args[1] == "smoke-https" {
+            try await smokeHTTPS(endpoint: args[2])
         } else if args[1] == "smoke-typescript" {
             try await smokeLimit(endpoint: args[2], library: UUID(uuidString: "51515151-1234-4567-89AB-0123456789AB")!)
         } else if args[1] == "smoke-limit" {
@@ -105,6 +108,39 @@ import LibraryOrganizationUI
         } else if args[1] == "smoke-ui" {
             try await smokeUI(endpoint: args[2])
         } else { throw SyncError.invalidValue }
+    }
+    @MainActor static func smokeHTTPS(endpoint: String) async throws {
+        guard let url = URL(string: endpoint), url.scheme == "https", url.host == "127.0.0.1",
+              let certPath = ProcessInfo.processInfo.environment["ORGANIZATION_TEST_CERT"], let tokensPath = ProcessInfo.processInfo.environment["ORGANIZATION_TEST_TOKENS"] else { throw SyncError.invalidValue }
+        let tokens = try JSONDecoder().decode(TestHTTPSCredentials.self, from: Data(contentsOf: URL(fileURLWithPath: tokensPath)))
+        let provider = TestHTTPSProvider(tokens: tokens)
+        let untrusted = try AuthenticatedSyncConnection(baseURL: url, issuer: tokens.issuer, subject: tokens.subject) { _ in OrganizationAccess(token: tokens.good, issuer: tokens.issuer, subject: tokens.subject) }
+        do { _ = try await untrusted.bootstrap(); throw SyncError.corruptState } catch is SyncRetryFailure { } // default TLS must reject an untrusted leaf
+        let config = URLSessionConfiguration.ephemeral
+        let tls = TestHTTPSPin(leaf: try Data(contentsOf: URL(fileURLWithPath: certPath)))
+        let session = URLSession(configuration: config, delegate: tls, delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+        let connection = try AuthenticatedSyncConnection(baseURL: url, issuer: tokens.issuer, subject: tokens.subject, session: session) { refresh in await provider.access(refresh) }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("https-sync-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let clock = SmokeClock()
+        var seed = OrganizationState<OrganizationDocument>(); seed.folders = (0..<125).map { OrganizationFolder(name: "Mac folder \($0)") }
+        func macSession() -> SyncLabSession { SyncLabSession(directory: directory.appendingPathComponent("mac"), seed: seed, documents: [], retryClock: { clock.now }, connection: connection) }
+        var mac = macSession(); await mac.prepareAuthenticated(); mac.confirmImport(); await mac.synchronize()
+        guard mac.pendingCount > 0, mac.pendingCount < 125, mac.revision > 0, mac.retryAt != nil else { throw SyncError.corruptState }
+        let remaining = mac.pendingCount; await mac.synchronize(); guard mac.pendingCount == remaining else { throw SyncError.corruptState }
+        mac = macSession(); await mac.synchronize(); guard mac.pendingCount == remaining else { throw SyncError.corruptState }
+        clock.now.addTimeInterval(120); await mac.synchronize()
+        guard mac.pendingCount == 0, mac.revision == 125, mac.retryAt == nil else { throw SyncError.corruptState }
+        var peerSeed = OrganizationState<OrganizationDocument>(); let peerFolder = OrganizationFolder(name: "iPhone folder"); peerSeed.folders = [peerFolder]
+        let phone = SyncLabSession(directory: directory.appendingPathComponent("phone"), seed: peerSeed, documents: [], connection: connection)
+        await phone.prepareAuthenticated(); phone.confirmImport(); await phone.synchronize()
+        guard phone.pendingCount == 0, phone.state.folders.count == 126 else { throw SyncError.corruptState }
+        await mac.synchronize(); guard mac.state.folders.contains(where: { $0.id == peerFolder.id }) else { throw SyncError.corruptState }
+        mac.edit(key: OrganizationSyncKey.tag("test", "Mac to iOS"), value: .tag("Mac to iOS")); await mac.synchronize(); await phone.synchronize()
+        guard phone.state.classifications["test"]?.tags == ["Mac to iOS"], mac.pendingCount == 0, phone.revision == 127, phone.syncQuota?.used == 5 else { throw SyncError.corruptState }
+        guard await provider.refreshes == 1 else { throw SyncError.corruptState }
+        print("HTTPS Swift passed: default TLS rejects test cert; exact test anchor; expired token refreshed once; 125-folder initial merge; byte/count split; partial ACK loss + cooldown/restart replay; bidirectional folders/tags; owner quota=5")
     }
     @MainActor static func smokeEfficiency(endpoint: String) async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("sync-efficiency-" + UUID().uuidString)
@@ -265,4 +301,26 @@ struct Conformance {
         }
         FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject: outputs, options: [.sortedKeys]))
     }
+}
+
+private struct TestHTTPSCredentials: Decodable { var bad: String; var good: String; var issuer: String; var subject: String }
+private actor TestHTTPSProvider {
+    var tokens: TestHTTPSCredentials; var refreshes = 0
+    init(tokens: TestHTTPSCredentials) { self.tokens = tokens }
+    func access(_ refresh: Bool) -> OrganizationAccess { if refresh { refreshes += 1 }; return OrganizationAccess(token: refreshes == 0 ? tokens.bad : tokens.good, issuer: tokens.issuer, subject: tokens.subject) }
+}
+/// Test executable only: exact ephemeral leaf + normal SSL hostname evaluation. No global trust changes.
+private final class TestHTTPSPin: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
+    let leaf: Data
+    init(leaf: Data) { self.leaf = leaf }
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        guard challenge.protectionSpace.host == "127.0.0.1", challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              let trust = challenge.protectionSpace.serverTrust, let cert = SecCertificateCreateWithData(nil, leaf as CFData), let chain = SecTrustCopyCertificateChain(trust) as? [SecCertificate], let first = chain.first,
+              SecCertificateCopyData(first) as Data == leaf else { completionHandler(.cancelAuthenticationChallenge,nil); return }
+        SecTrustSetAnchorCertificates(trust, [cert] as CFArray); SecTrustSetAnchorCertificatesOnly(trust,true)
+        SecTrustSetPolicies(trust,SecPolicyCreateSSL(true,"127.0.0.1" as CFString))
+        guard SecTrustEvaluateWithError(trust,nil) else { completionHandler(.cancelAuthenticationChallenge,nil); return }
+        completionHandler(.useCredential,URLCredential(trust:trust))
+    }
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
 }

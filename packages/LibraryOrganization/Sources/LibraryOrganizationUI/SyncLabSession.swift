@@ -28,6 +28,7 @@ import LibraryOrganization
         var observed: [String: SyncValue<OrganizationDocument>]?
         var bound: Bool?
         var applying: [String: SyncValue<OrganizationDocument>]?
+        var identityKey: String?
     }
     @Published public private(set) var status = "未接続"
     @Published public private(set) var busy = false
@@ -53,6 +54,8 @@ import LibraryOrganization
     private let retryClock: @Sendable () -> Date
     public var retryAt: Date? { throttle.retry?.nextAttemptAt }
     public let rateLimited: Bool
+    public let httpsConnection: AuthenticatedSyncConnection?
+    private var httpsBootstrap: OrganizationBootstrap?
     public var syncQuota: SyncQuota? { throttle.quota }
     public var nextSyncAt: Date? {
         if let permit = throttle.permit, permit.expiresAt > Date() { return nil }
@@ -88,14 +91,15 @@ import LibraryOrganization
     public var imported: Bool { checkpoint?.imported ?? false }
     public var lastSynced: Date? { checkpoint?.lastSynced }
     public var revision: Int { checkpoint?.client.baseline.revision ?? 0 }
-    public init(directory: URL, seed: OrganizationState<OrganizationDocument>, documents: [OrganizationDocument], binding: TestLibrarySyncBinding? = nil, rateLimited: Bool = false, retryClock: @escaping @Sendable () -> Date = { Date() }) {
+    public init(directory: URL, seed: OrganizationState<OrganizationDocument>, documents: [OrganizationDocument], binding: TestLibrarySyncBinding? = nil, rateLimited: Bool = false, retryClock: @escaping @Sendable () -> Date = { Date() }, connection: AuthenticatedSyncConnection? = nil) {
+        self.httpsConnection = connection
         self.retryClock = retryClock
-        self.rateLimited = rateLimited
+        self.rateLimited = rateLimited || connection != nil
         self.binding = binding
         self.directory = directory; file = directory.appendingPathComponent("checkpoint.json")
         self.seed = seed
         self.sourceDocuments = documents
-        if rateLimited, FileManager.default.fileExists(atPath: throttleFile.path) {
+        if self.rateLimited, FileManager.default.fileExists(atPath: throttleFile.path) {
             do { throttle = try JSONDecoder().decode(SyncThrottleState.self, from: Data(contentsOf: throttleFile)) }
             catch { throttleCorrupt = true; message = "同期回数の記録を読めません。上書きせず同期を停止しています。" }
         }
@@ -114,7 +118,9 @@ import LibraryOrganization
                 guard (value.bound ?? false) == (binding != nil), binding == nil || value.observed != nil else { throw SyncError.corruptState }
                 guard value.schemaVersion == 1, value.imported == (value.initialPlan == nil) else { throw SyncError.corruptState }
                 guard let url = URL(string: value.endpoint) else { throw SyncError.corruptState }
-                _ = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url)
+                guard value.identityKey == connection?.identityKey else { throw OrganizationConnectionError.accountChanged }
+                if let connection { guard url == connection.baseURL else { throw SyncError.corruptState } }
+                else { _ = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url) }
                 checkpoint = value; status = value.imported ? (binding == nil ? "検証コピーを復元" : "テスト本棚の同期を復元") : "初回統合の確認待ち"
             } catch { restoreFailed = true; message = "検証データを復元できません。既存データは変更していません。検証コピーを解除してから再作成してください。" }
         }
@@ -135,14 +141,14 @@ import LibraryOrganization
         throttle.attemptID = nil; throttle.permit = nil
         if rateLimited { do { try saveThrottle() } catch { throttleCorrupt = true } }
     }
-    private func limitedTransport(endpoint: String, libraryID: UUID, allowExtra: Bool) async throws -> LimitedLoopbackTransport<OrganizationDocument> {
+    private func limitedTransport(endpoint: String, libraryID: UUID, allowExtra: Bool) async throws -> AnyReservedOrganizationTransport<OrganizationDocument> {
         guard !throttleCorrupt else { throw SyncError.corruptState }
         if throttle.endpoint != endpoint || throttle.libraryID != libraryID {
             throttle = SyncThrottleState(endpoint: endpoint, libraryID: libraryID)
         }
         if let next = retryAt, next > retryClock() { throw RetryWaiting() }
         if !allowExtra, let permit = throttle.permit, permit.expiresAt > Date() {
-            return try LimitedLoopbackTransport(baseURL: URL(string: endpoint)!, attemptID: permit.id)
+            return try await reservedTransport(endpoint: endpoint, libraryID: libraryID, attemptID: permit.id)
         }
         if !allowExtra, let quota = throttle.quota, let next = quota.nextAllowedAt, next > Date() {
             throw SyncQuotaFailure(reason: "hourly_limit", quota: quota)
@@ -151,12 +157,12 @@ import LibraryOrganization
         let attempt = throttle.attemptID ?? UUID()
         throttle.attemptID = attempt
         try saveThrottle() // repeat admission with the same ID after a lost acknowledgement
-        var transport = try LimitedLoopbackTransport<OrganizationDocument>(baseURL: URL(string: endpoint)!, attemptID: attempt)
+        var transport = try await reservedTransport(endpoint: endpoint, libraryID: libraryID, attemptID: attempt)
         var admission = try await transport.reserve(libraryID: libraryID)
         if admission.permit == nil && admission.quota.challenge == nil {
             // An acknowledged reservation may have expired while the app was offline.
             let fresh = UUID(); throttle.attemptID = fresh; try saveThrottle()
-            transport = try LimitedLoopbackTransport(baseURL: URL(string: endpoint)!, attemptID: fresh)
+            transport = try await reservedTransport(endpoint: endpoint, libraryID: libraryID, attemptID: fresh)
             admission = try await transport.reserve(libraryID: libraryID)
         }
         if admission.permit == nil && allowExtra, let challenge = admission.quota.challenge {
@@ -167,8 +173,39 @@ import LibraryOrganization
         guard admission.permit != nil else { throw SyncQuotaFailure(reason: "hourly_limit", quota: admission.quota) }
         return transport
     }
+    private func reservedTransport(endpoint: String, libraryID: UUID, attemptID: UUID) async throws -> AnyReservedOrganizationTransport<OrganizationDocument> {
+        if let connection = httpsConnection {
+            guard endpoint == connection.baseURL.absoluteString else { throw OrganizationConnectionError.invalidEndpoint }
+            if httpsBootstrap == nil { httpsBootstrap = try await connection.bootstrap() }
+            guard let bootstrap = httpsBootstrap, bootstrap.libraryID == libraryID else { throw SyncError.wrongLibrary }
+            return AnyReservedOrganizationTransport(try AuthenticatedOrganizationTransport(connection: connection, bootstrap: bootstrap, attemptID: attemptID))
+        }
+        return AnyReservedOrganizationTransport(try LimitedLoopbackTransport(baseURL: URL(string: endpoint)!, attemptID: attemptID))
+    }
+    public func prepareAuthenticated(allowExtra: Bool = false) async {
+        guard let connection = httpsConnection, !busy, !connected, !restoreFailed, !recoveryCorrupt, !throttleCorrupt, !restorationPending else { return }
+        busy = true; defer { busy = false }
+        do {
+            if let next = retryAt, next > retryClock() { throw RetryWaiting() }
+            if !allowExtra, let quota = syncQuota, let next = quota.nextAllowedAt, next > Date() { showQuotaFailure(SyncQuotaFailure(reason: "hourly_limit", quota: quota)); return }
+            if httpsBootstrap == nil { httpsBootstrap = try await connection.bootstrap() }
+            guard let bootstrap = httpsBootstrap else { throw OrganizationConnectionError.invalidBootstrap }
+            busy = false // prepare takes ownership before its first suspension
+            await prepare(endpoint: connection.baseURL.absoluteString, libraryID: bootstrap.libraryID.uuidString, allowExtra: allowExtra)
+        } catch { if !showRetry(error) { status = "認証・接続の確認が必要"; message = "ログインと同期の許可を確認してください。既存データは保持しています。" } }
+    }
     private struct RetryWaiting: Error { }
     private func showRetry(_ error: Error) -> Bool {
+        if let connectionError = error as? OrganizationConnectionError {
+            switch connectionError {
+            case .authentication, .accountChanged:
+                status = "ログインの確認が必要"; message = "同じアカウントでログインし、整理同期の許可を確認してください。送信待ちは保持しています。"
+            case .oversizedOperation:
+                status = "送信できない項目があります"; message = "1項目がAPIの容量上限を超えています。編集と送信待ちは保持しています。"
+            default: status = "接続設定の確認が必要"; message = "接続先とサーバーの応答を確認してください。送信待ちは保持しています。"
+            }
+            return true
+        }
         guard rateLimited, error is SyncRetryFailure || error is RetryWaiting else { return false }
         if let failure = error as? SyncRetryFailure {
             var state = throttle.retry ?? SyncRetryState()
@@ -224,7 +261,8 @@ import LibraryOrganization
         busy = true; defer { busy = false }
         do {
             guard let url = URL(string: endpoint), let id = UUID(uuidString: libraryID) else { throw SyncError.invalidValue }
-            let transport = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url)
+            let transport: LoopbackOrganizationTransport<OrganizationDocument>?
+            if httpsConnection == nil { transport = try LoopbackOrganizationTransport(baseURL: url) } else { transport = nil }
             do { try await makeBackup() } // management data only, before first import/send
             catch { status = "バックアップできません"; message = "管理データを保護できないため同期を有効にしていません。空き容量や保存先を確認してください。"; return }
             var client = OrganizationSyncClient<OrganizationDocument>(libraryID: id)
@@ -232,11 +270,12 @@ import LibraryOrganization
             if rateLimited {
                 let limited = try await limitedTransport(endpoint: endpoint, libraryID: id, allowExtra: allowExtra)
                 try await client.synchronize(with: limited)
-            } else { try await client.synchronize(with: transport) }
+            } else if let transport { try await client.synchronize(with: transport) }
             let source = try await binding?.read() ?? seed
             let incoming = try OrganizationSyncProjection.records(from: source, documentID: { UUID(uuidString: $0)?.uuidString.lowercased() ?? $0 })
             let plan = OrganizationImportPlan(existing: client.baseline.records.mapValues(\.value), incoming: incoming)
-            let next = Checkpoint(endpoint: endpoint, client: client, initialPlan: plan, imported: false, observed: incoming, bound: binding != nil)
+            var next = Checkpoint(endpoint: endpoint, client: client, initialPlan: plan, imported: false, observed: incoming, bound: binding != nil)
+            next.identityKey = httpsConnection?.identityKey
             try commit(next); if rateLimited { retrySucceeded() }; status = "初回統合の確認待ち"; message = nil
         } catch let failure as SyncQuotaFailure { showQuotaFailure(failure) }
         catch { if showRetry(error) { return }; status = "接続できません"; message = "模擬サーバーの起動・URL・ライブラリIDを確認してください。" }
@@ -288,10 +327,13 @@ import LibraryOrganization
     }
     public func synchronize(allowExtra: Bool = false) async {
         guard !busy, imported, !restorationPending, !recoveryCorrupt else { return }
-        guard let url = URL(string: endpoint), let id = UUID(uuidString: libraryID), let transport = try? LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url) else { return }
-        if !rateLimited { await synchronize(with: transport); return }
+        guard let url = URL(string: endpoint), let id = UUID(uuidString: libraryID) else { return }
+        if !rateLimited {
+            guard let transport = try? LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url) else { return }
+            await synchronize(with: transport); return
+        }
         busy = true; defer { busy = false }
-        let limited: LimitedLoopbackTransport<OrganizationDocument>
+        let limited: AnyReservedOrganizationTransport<OrganizationDocument>
         do { limited = try await limitedTransport(endpoint: endpoint, libraryID: id, allowExtra: allowExtra) }
         catch let failure as SyncQuotaFailure { showQuotaFailure(failure); return }
         catch { if showRetry(error) { return }; status = "通信待ち"; message = "同期の受付を確認できません。送信待ちは保持しています。"; return }

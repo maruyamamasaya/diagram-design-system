@@ -13,7 +13,7 @@ export class OrganizationService {
  constructor(readonly store:OrganizationStore, readonly owner:{issuer:string;sub:string;libraryID:string}, readonly clock:()=>number=()=>Date.now()/1000-978307200, readonly pause:(attempt:number)=>Promise<void>=async attempt=>{await new Promise(r=>setTimeout(r,50*2**attempt+Math.random()*50));}) { if(!uuid(owner.libraryID)||!owner.issuer||!owner.sub)throw Error('Invalid organization owner');this.owner=Object.freeze({...owner,libraryID:owner.libraryID.toUpperCase()});this.key=organizationKey(owner.issuer,owner.sub); }
  async handle(req:Request, principal:{issuer:string;sub:string}, route:string):Promise<Response> {
   if(principal.issuer!==this.owner.issuer||principal.sub!==this.owner.sub)throw new ApiError(404,'NOT_FOUND');
-  if(route==='organization/bootstrap'&&req.method==='GET')return this.response({libraryID:this.owner.libraryID,protocolVersion:1,limit:5,windowSeconds:3600,maxOperations:50});
+  if(route==='organization/bootstrap'&&req.method==='GET')return this.response({libraryID:this.owner.libraryID,protocolVersion:1,limit:5,windowSeconds:3600,maxOperations:50,maxBodyBytes:262144});
   if(route!=='organization/sync'||req.method!=='POST')throw new ApiError(404,'NOT_FOUND');
   if(new URL(req.url).search)throw new ApiError(400,'INVALID_REQUEST');
   const declared=req.headers.get('content-length');if(declared&&(!/^\d+$/.test(declared)||Number(declared)>262144))throw new ApiError(413,'REQUEST_TOO_LARGE');

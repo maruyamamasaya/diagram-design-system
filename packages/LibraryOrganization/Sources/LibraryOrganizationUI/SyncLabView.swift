@@ -53,17 +53,20 @@ public struct SyncLabView: View {
                         } else { Text("初回接続の前に管理データを自動バックアップします。").font(.caption) }
                     }
                     if !session.connected {
+                        if let connection = session.httpsConnection { Text("認証済み接続先：" + connection.baseURL.absoluteString).font(.caption) } else {
                         TextField("http://127.0.0.1:ポート", text: $endpoint).textFieldStyle(.roundedBorder)
                         TextField("共通のライブラリUUID", text: $library).textFieldStyle(.roundedBorder)
                         Button("新しい検証ライブラリIDを作成") { library = UUID().uuidString }
                         Text("MacとSimulatorで同じURL・UUIDを入力します。外部サーバーは指定できません。双方の初回取込は順に確認してください。") .font(.caption)
-                        Button("接続して初回統合を確認") { Task { await session.prepare(endpoint: endpoint, libraryID: library) } }.disabled(session.restorationPending)
+                        }
+                        Button("接続して初回統合を確認") { Task { if session.httpsConnection != nil { await session.prepareAuthenticated() } else { await session.prepare(endpoint: endpoint, libraryID: library) } } }.disabled(session.restorationPending)
                         Button("保存済みの検証コピーを解除") { session.clear() }
                     } else {
                         Text("接続先：\(session.endpoint)\nライブラリ：\(session.libraryID)\nサーバー版：\(session.revision)").font(.caption).textSelection(.enabled)
-                        HStack {
+                        if session.httpsConnection == nil { HStack {
                             TextField("模擬サーバーURL", text: $endpoint).textFieldStyle(.roundedBorder)
                             Button("接続先を変更") { session.setEndpoint(endpoint) }
+                        }
                         }
                         if !session.imported { initialReview }
                         else {
@@ -87,6 +90,7 @@ public struct SyncLabView: View {
                 Button("今回だけ同期") {
                     Task {
                         if session.connected { await session.synchronize(allowExtra: true) }
+                        else if session.httpsConnection != nil { await session.prepareAuthenticated(allowExtra: true) }
                         else { await session.prepare(endpoint: endpoint, libraryID: library, allowExtra: true) }
                     }
                 }

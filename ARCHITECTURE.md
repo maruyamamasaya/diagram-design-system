@@ -76,3 +76,5 @@ LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizatio
 同期回数は利用者単位の永続SyncRateLedger、端末内のSyncThrottleState、期限付き予約を持つtransportで分離する。mockのHTTPロックは検証用。AWS向け認証/CAS保存は[TypeScriptローカルAPI](docs/organization-sync-api-local.md)で検証するが、本番は有効化していない。[境界](docs/organization-sync-quota.md)。
 
 AWS向け同期APIはviewerのorganization/model（状態遷移）・service（認可済みowner/固定library/CAS）・S3保存ポートへ分離。既存OIDCとAPI/Lambdaの明示的な依存注入で接続し、既定の同期ルートは無効。資料保存・読取と生成は独立したまま。[実装境界](docs/organization-sync-api-local.md)。
+
+認証付き同期transportはFoundationコア、PKCE/Keychain/ASWebAuthenticationSessionは共有UI側に隔離する。iOSは既存CloudOIDCを再利用し、Mac/iOSのStoreは同じ明示的なテスト接続を受け取る。bootstrapと実JSONサイズで分割し、確認済み分だけcheckpointへ確定する。[境界](docs/organization-sync-https.md)。
