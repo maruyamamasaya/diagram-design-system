@@ -29,7 +29,7 @@ Macの現在のローカル資料読込は残す。ただし実用接続にはMa
 - iOS public clientはID/callbackを維持して許可スコープだけ追加。Macにはsecretなし・Authorization Code+PKCE S256のpublic clientと完全一致の専用callback（案`zukanbookshelf://oauth/callback`）を追加。同じ利用者なので端末が2台でも新しい利用者数にはしない。ユーザーパスワードをMacへ埋め込まない。[Cognitoの認可エンドポイント](https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html)。
 - 現行JWT検証はclient_idを1件だけ許可するため、明示的なiOS/Mac client IDの許可リストへ変更する。署名/JWKS/issuer/access token種別/期限/必要scope/owner subを毎回検査し、任意の同一Pool clientを受け入れない。トークンは各端末Keychain、管理領域はissuer+subで分離。ログアウトや別アカウントへの切替で送信しない。
 - 同期ライブラリUUIDはサーバー側の固定設定として1利用者に1件だけ割り当てる。端末が作った任意UUID/subject/S3キーでアクセス先を選べない。認証済みbootstrapでUUIDを返し、requestのlibraryIDと照合する。今のテスト画面の任意URL/任意UUID入力を実用画面へ持ち込まない。現行loopback transportを緩めず、実用版は設定済みHTTPS APIホストだけを許可する別transportとチェックポイント検証を用意し、リダイレクト先へBearerを送らない。
-- S3キー案は`library/organization/v1/<SHA256(issuer + sub)>/state.json`。既存`library/state/`のゴミ箱領域やcatalog/成果物と分離。Lambdaにこの新しい管理キーのGetObject/PutObjectだけを追加する。List/Delete/資料Putは増やさない。BPA/SSE-S3/TLS/短期URL、既存権限を維持する。
+- S3キー案は`library/organization/v1/<SHA256(issuer + 改行 + sub)>/state.json`。既存`library/state/`のゴミ箱領域やcatalog/成果物と分離。Lambdaにこの新しい管理キーのGetObject/PutObjectだけを追加する。List/Delete/資料Putは増やさない。BPA/SSE-S3/TLS/短期URL、既存権限を維持する。
 
 ## API・同時更新・再送
 
@@ -45,7 +45,7 @@ Macの現在のローカル資料読込は残す。ただし実用接続にはMa
 
 親削除時の子/所属解除も一つのJSON更新内で確定する。receiptとtombstoneは初期は削除しない。保存JSONは16 MiBを上限案とし、80%で管理通知、上限で新規書込を停止して送信待ちを維持する。履歴を黙って捨てて古い端末から復活させない。保存容量/CPU/応答サイズの実測が上限へ近づく場合はDynamoDB等への移行と料金を別に設計する。寿命を短くしたreceipt清掃は今回の初期案に含めない。
 
-既存APIはTypeScript、同期authorityの検証実装はSwiftなので、**Swift実装をそのまま既存Lambdaへ配置できるわけではない**。初期はTypeScriptへ同じ意味論を実装し、共通JSON契約/ゴールデンfixtureでSwiftとの同等性を検証する。API認証/S3アクセス/配備を再利用し、合流・重複排除・削除処理の検証を省かない。
+既存APIはTypeScript、同期authorityの検証実装はSwiftなので、**Swift実装をそのまま既存Lambdaへ配置できるわけではない**。TypeScriptへ同じ意味論を[ローカル実装](organization-sync-api-local.md)し、共通JSON fixture75ステップでSwiftの応答との一致を検証した。既定Lambdaには接続しておらず実AWS上の同等性を保証しない。API認証/S3アクセス/配備を再利用し、合流・重複排除・削除処理の検証を省かない。
 
 ## 起動・利用・復元
 
@@ -118,7 +118,7 @@ Cognitoは既にactiveな同一ownerを両端末で使うので同期の追加MA
 
 S3の1オブジェクト方式は、個人2台・小さな整理状態・現モデルの全状態応答に合わせた初期案。DynamoDB on-demandは大規模/複数利用者や履歴分離に向くが、状態とreceiptのtransaction、採番、親削除の分割整合性を別設計する必要がある。今回は低頻度のためDBを増やさず始め、サイズ/競合/処理時間を理由に移行を判断する。専用の別Lambdaは既存閲覧との障害分離が必要になったときの代替で、初期は既存関数を再利用する。
 
-1. **AWS変更なし**：TypeScript authority/CASストアのローカル実装、認証付きHTTPS transportとbootstrap、Swift相互fixture。認可漏れ/操作ID再利用/ACK喪失/同時更新/削除/上限/入力サイズ/restore再参加/未取得資料をテスト。MacのOIDC/クラウド一覧・取得もローカル/モックで接続する。
+1. **AWS変更なし**：TypeScript authority/CASストア/認可付きルート/Swift相互fixtureはローカル検証済み。次は本番構成への明示組立とMac/iOSの認証付きHTTPS transport/50操作・バイト制限の分割、bootstrap接続。認可漏れ/操作ID再利用/ACK喪失/同時更新/削除/上限/入力サイズ/restore再参加/未取得資料をテスト。MacのOIDC/クラウド一覧・取得もローカル/モックで接続する。
 2. **配備前の確認・承認**：既存実構成をread-onlyで再確認し、この料金を最新条件/実測で更新。CloudFormationの変更セットと新キーへの初期管理JSON、IAM差分、Mac client/callback、scope、feature flag、ロールバック案を提示する。資料の送信承認とは分ける。まだ実行しない。
 3. **別途承認後**：既存Poolを置換せずclient/scope追加、既存API/Lambdaへ同期ルートと新管理キー限定権限、管理キーの初期空状態を追加。既存データは初回バックアップ/プレビュー前に送信しない。機能flagで同期だけ無効化して閲覧を維持できるようにする。
 4. **少量の実端末確認**：同じ本人でMac/iPhoneへログインし、初回レビュー→1フォルダ/1タグ→双方向→offline再送→競合→ローカル復元を確認してから普段の本棚へ広げる。

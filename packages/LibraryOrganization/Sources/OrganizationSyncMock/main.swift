@@ -6,6 +6,9 @@ import LibraryOrganizationUI
     @MainActor static func main() async throws {
         let args = CommandLine.arguments
         guard args.count == 3 else { fatalError("usage: OrganizationSyncMock request STATE | smoke http://127.0.0.1:PORT") }
+        if args[1] == "conformance" {
+            try await Conformance.run(args[2]); return
+        }
         if args[1] == "limited" {
             let request = try JSONDecoder().decode(LimitedSyncRequest<OrganizationDocument>.self, from: FileHandle.standardInput.readDataToEndOfFile())
             let url = URL(fileURLWithPath: args[2])
@@ -95,6 +98,8 @@ import LibraryOrganizationUI
             print("Concurrent quota HTTP passed: exactly five of ten admissions; durable ACK replay succeeds")
         } else if args[1] == "smoke-efficiency" {
             try await smokeEfficiency(endpoint: args[2])
+        } else if args[1] == "smoke-typescript" {
+            try await smokeLimit(endpoint: args[2], library: UUID(uuidString: "51515151-1234-4567-89AB-0123456789AB")!)
         } else if args[1] == "smoke-limit" {
             try await smokeLimit(endpoint: args[2])
         } else if args[1] == "smoke-ui" {
@@ -137,10 +142,10 @@ import LibraryOrganizationUI
         try await peer.finish(libraryID: library)
         print("Efficiency HTTP passed: 503/Retry-After; restart/extra cannot bypass cooldown; offline edits; lost ACK replay once; full initial/change/deletion and small unchanged responses")
     }
-    @MainActor static func smokeLimit(endpoint: String) async throws {
+    @MainActor static func smokeLimit(endpoint: String, library: UUID = UUID()) async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("sync-quota-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
-        let library = UUID(), folder = OrganizationFolder(name: "回数制限の検証")
+        let folder = OrganizationFolder(name: "回数制限の検証")
         var seed = OrganizationState<OrganizationDocument>(); seed.folders = [folder]
         let clock = SmokeClock()
         let mac = SyncLabSession(directory: root.appendingPathComponent("mac"), seed: seed, documents: [], rateLimited: true, retryClock: { clock.now })
@@ -224,3 +229,40 @@ private struct LimitedDisk: Codable {
 }
 
 private final class SmokeClock: @unchecked Sendable { var now = Date() }
+
+private struct Fixture: Decodable { var libraryID: UUID; var steps: [Step] }
+private struct Step: Decodable { var now: Double; var request: LimitedSyncRequest<OrganizationDocument>; var consentFromStep: Int? }
+struct Conformance {
+    static func run(_ path: String) async throws {
+        let fixture = try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        var authority = try await LocalOrganizationSyncServer<OrganizationDocument>(libraryID: fixture.libraryID, memberID: { $0.id }).encoded()
+        var ledger = SyncRateLedger(), responses: [LimitedSyncResponse<OrganizationDocument>] = [], outputs: [[String: Any]] = []
+        for step in fixture.steps {
+            ledger = try JSONDecoder().decode(SyncRateLedger.self, from: JSONEncoder().encode(ledger))
+            let server = try LocalOrganizationSyncServer<OrganizationDocument>(data: authority, memberID: { $0.id })
+            var request = step.request, response = LimitedSyncResponse<OrganizationDocument>()
+            if let index = step.consentFromStep { request.consent = responses[index].admission?.quota.challenge }
+            var status = 200, failure: String?
+            do {
+                guard request.libraryID == fixture.libraryID else { throw SyncError.wrongLibrary }
+                switch request.action {
+                case "begin": response.admission = ledger.reserve(id: request.attemptID, consent: request.consent, now: Date(timeIntervalSinceReferenceDate: step.now)); if response.admission?.permit == nil { status = 429 }
+                case "finish": ledger.finish(permit: request.attemptID)
+                case "sync":
+                    try ledger.use(permit: request.attemptID, request: request.requestID, now: Date(timeIntervalSinceReferenceDate: step.now))
+                    let snapshot = try await server.fetch(libraryID: request.libraryID)
+                    if request.operations?.isEmpty == true, request.knownRevision == snapshot.revision { response.unchangedRevision = snapshot.revision }
+                    else { response.reply = try await server.submit(libraryID: request.libraryID, operations: request.operations ?? []) }
+                default: throw SyncError.invalidValue
+                }
+            } catch let error as SyncQuotaFailure { response.failure = error; status = 429 }
+            catch { status = 400; failure = "invalidValue" }
+            authority = try await server.encoded()
+            responses.append(response)
+            var output: [String: Any] = ["status": status, "body": try JSONSerialization.jsonObject(with: JSONEncoder().encode(response))]
+            if let failure { output["error"] = failure }
+            outputs.append(output)
+        }
+        FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject: outputs, options: [.sortedKeys]))
+    }
+}

@@ -88,3 +88,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 同期回数：LibraryOrganization/{SyncRateLimit,LimitedLoopbackTransport}.swift、UI/SyncThrottleStateとSyncLabSession.limitedTransport、SyncLabViewの確認UI。Mock limited/smoke-limit/smoke-limit-concurrentとHTTP--limited-serve、SyncRateLimitTests/SyncThrottleTests。[仕様](docs/organization-sync-quota.md)。
 
 整理同期の通信削減：SyncRetry.swift、LimitedLoopbackTransport、SyncLabSessionのretryAt/knownSnapshot、模擬serverのunchangedRevision。正本は[無変更応答と失敗待機](docs/organization-sync-efficiency.md)。
+
+AWS向け同期APIのローカル入口：viewer/src/lib/organization/{model,service,s3-store}.ts、api.tsの注入ルート、lambda.tsのcreateHandler。viewer/tests/fixtures/organizationとOrganizationSyncMock conformanceでSwift照合。再現はviewerのtest:organization。[仕様](docs/organization-sync-api-local.md)。

@@ -1,3 +1,4 @@
+import type { OrganizationService } from "./organization/service";
 import { oidcPrincipal } from "./oidc";
 import { ApiError, config, error } from "./config";
 import {
@@ -29,7 +30,7 @@ export async function handle(
   req: Request,
   mode: "web" | "api" | "artifact",
   segments: string[] = [],
-  dependencies: {oidcKeys?: JWTVerifyGetKey; catalog?: typeof catalog} = {},
+  dependencies: {oidcKeys?: JWTVerifyGetKey; catalog?: typeof catalog; organization?: OrganizationService} = {},
 ): Promise<Response> {
   try {
     const c = config();
@@ -73,8 +74,11 @@ export async function handle(
         expiresIn: 900,
       });
     }
+    const organizationRoute = segments[0] === "organization";
+    // New routes remain unavailable unless a reviewed service is explicitly injected.
+    if (organizationRoute && (!c.publicAPI || !dependencies.organization)) error(404, "NOT_FOUND");
     const principal =
-      c.publicAPI ? await oidcPrincipal(req, dependencies.oidcKeys) : mode === "web" ? web(req, req.method !== "GET") : await bearer(req);
+      c.publicAPI ? await oidcPrincipal(req, dependencies.oidcKeys, organizationRoute ? "diagram-library/organization.sync" : "diagram-library/read") : mode === "web" ? web(req, req.method !== "GET") : await bearer(req);
     const sid = String("id" in principal ? principal.id : principal.sid);
     const sub = String(principal.sub);
     if (mode === "web" && route === "session" && req.method === "GET")
@@ -91,6 +95,7 @@ export async function handle(
       return response({ revoked: true });
     }
     if (c.publicAPI && route === "me" && req.method === "GET") return response({issuer: (principal as {issuer: string}).issuer, subject: sub});
+    if (organizationRoute) return await dependencies.organization!.handle(req, principal as {issuer: string; sub: string}, route);
     if (segments[0] !== "diagrams") error(404, "NOT_FOUND");
     if (segments.length === 1 && req.method === "GET") {
       const q = url.searchParams.get("q") || "";

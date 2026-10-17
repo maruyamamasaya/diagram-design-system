@@ -73,4 +73,6 @@ LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizatio
 
 同期の復元点は管理JSONだけを端末内に保持する。共通セッションがバックアップ日時/統合件数/復元状態を管理し、Mac/iOSアダプターが元バイトの復元を担う。iOSは受信反映と別の復元ジャーナルを優先回復する。資料本体の保管は既存ローカル/S3経路のまま。[仕様](docs/organization-sync-recovery.md)。
 
-同期回数は利用者単位の永続SyncRateLedger、端末内のSyncThrottleState、期限付き予約を持つtransportで分離する。mockのHTTPロックは検証用であり、本番のCAS/認証は未実装。[境界](docs/organization-sync-quota.md)。
+同期回数は利用者単位の永続SyncRateLedger、端末内のSyncThrottleState、期限付き予約を持つtransportで分離する。mockのHTTPロックは検証用。AWS向け認証/CAS保存は[TypeScriptローカルAPI](docs/organization-sync-api-local.md)で検証するが、本番は有効化していない。[境界](docs/organization-sync-quota.md)。
+
+AWS向け同期APIはviewerのorganization/model（状態遷移）・service（認可済みowner/固定library/CAS）・S3保存ポートへ分離。既存OIDCとAPI/Lambdaの明示的な依存注入で接続し、既定の同期ルートは無効。資料保存・読取と生成は独立したまま。[実装境界](docs/organization-sync-api-local.md)。

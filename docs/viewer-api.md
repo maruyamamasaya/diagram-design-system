@@ -72,3 +72,7 @@ manifest検査後にsrc/upload/limits.cjsの共有サイズ判定を使い、[�
 viewer/tests/large-presentation.test.tsを追加。check-large-presentation.tsはローカル共通APIの一覧・詳細・全40PNG/PDF/PPTXを実S3から署名取得しSHA256照合する読取専用検証。URLやトークンを出力しない。公開APIと実機の確認とは区別する。
 
 本人が今回限りの本番反映を承認。既存スタックのCodeKeyのみ更新しUPDATE_COMPLETE。コードSHA256一致・認証環境/IAM Role/256MB/20秒/API接続不変を確認。本番の未認証401・公開禁止auth交換404を確認。ログイン後のiPhone実機閲覧は未確認。[記録](../sessions/2026-10-15-industry-2040-large-viewer-deploy.md)。
+
+## 整理同期APIのローカル実装（本番未接続）
+
+`GET /v1/organization/bootstrap`と`POST /v1/organization/sync`（begin/sync/finish）をTypeScriptで追加。既存Cognito検証＋専用同期scope/owner認可を使う。サービスを明示注入したローカル検証だけで有効になり、既定のLambda handlerでは404のまま。資料の読取ルート/実AWS設定は変更しない。状態遷移・Swiftとの共通fixture・CAS/S3保存ポート・容量境界・本番接続前の残作業は[ローカル同期API仕様](organization-sync-api-local.md)を正とする。

@@ -83,3 +83,5 @@ Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・�
 同期回数制限はSyncRateLimitTests/SyncThrottleTests、実HTTPのsmoke-limit（2端末/再起動/追加/要求数）とsmoke-limit-concurrent（10並行のうち5許可）で検証する。[条件とコマンド](docs/organization-sync-quota.md)。
 
 通信削減はSyncEfficiencyTestsとHTTP smoke-efficiency（503/Retry-After/応答喪失/再起動/待機中追加と編集/別端末削除/応答バイト/要求数）。[手順](docs/organization-sync-efficiency.md#検証と再現)。
+
+TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビルド→5共通fixture（75ステップ）→認可/CAS/並行/欠損/容量/S3コマンド差替→使い捨てloopbackのSwift実HTTPを実行する。Node.js 22以上。AWS実接続はしない。[境界](docs/organization-sync-api-local.md#検証と再現)。
