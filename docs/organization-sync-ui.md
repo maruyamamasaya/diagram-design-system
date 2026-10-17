@@ -1,6 +1,6 @@
 # Mac/iOSのローカル同期検証画面
 
-2026-10-17。[同期エンジン](organization-sync-local.md)を両アプリから利用する共通SwiftUIターゲットLibraryOrganizationUIを追加。今回は検証コピーだけを同期し、元の本棚へ受信結果を反映しない。通常の本棚画面での編集を自動送信する機能は未接続。AWS/API/認証/実機配布は変更しない。
+2026-10-17。[同期エンジン](organization-sync-local.md)を両アプリから利用する共通SwiftUIターゲットLibraryOrganizationUIを追加。既定は検証コピーだけを同期し、元の本棚へ受信結果を反映しない。明示したテスト起動時だけ、[通常本棚のテスト接続](organization-sync-bound.md)で通常保存と受信反映を有効化できる。常時自動送受信は未実装。AWS/API/認証/実機配布は変更しない。
 
 ## 入口と流れ
 

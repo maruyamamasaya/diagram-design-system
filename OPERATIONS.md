@@ -57,3 +57,5 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 ローカル用アプリは`mac-app/scripts/build-app.sh`で生成し、`mac-app/dist/Zukan Bookshelf.app`を開く。既存outputsを保存場所として登録する。同期・外部送信は行わない。設定保存先、解除/復元の境界と制約は[Mac本棚](mac-app/README.md)を参照。
 
 整理同期の検証サーバーはscripts/organization-sync-http-check.pyの--serveで一時起動し、Ctrl-Cで停止/一時領域削除する。公開待受・常駐設定を追加しない。[検証画面の運用](docs/organization-sync-ui.md)。
+
+通常本棚の同期を試す場合は[専用テスト起動](docs/organization-sync-bound.md#テスト起動)を使用する。合成state/使い捨てSimulatorだけを使い、既存の利用者データへ有効化しない。接続は127.0.0.1の一時模擬サーバー、同期は手動。

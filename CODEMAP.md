@@ -78,3 +78,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 整理同期のローカル版：packages/LibraryOrganization/Sources/LibraryOrganization/{Sync,SyncImport,LoopbackSyncTransport}.swift、Sources/OrganizationSyncMock/main.swift。SyncTests.swift（オフライン/再送/競合/削除/統合）、scripts/organization-sync-http-check.py（実loopback HTTP・応答喪失）。既存アプリStore未接続。[仕様](docs/organization-sync-local.md)。
 
 同期画面：packages/LibraryOrganization/Sources/LibraryOrganizationUI/{SyncLabSession,SyncLabView}.swift。Mac ShelfStore.makeSyncLab/iOS CloudLibraryStore.makeSyncLabは元設定の読取専用アダプター。SyncLabTests/SyncAdapterTests/iOS CloudLibraryTestsとmock CLI smoke-uiで検証。[境界](docs/organization-sync-ui.md)。
+
+通常本棚のテスト同期：SyncLabSession.TestLibrarySyncBindingとcaptureLibraryChanges、Mac ShelfStore.change/makeSyncLab、iOS CloudLibraryStoreの通常保存とCloudFileStore.applyTestLibrarySync/recoverSyncApply。BoundSyncTests、Mac SyncAdapterTests、iOS CloudLibraryTests。[境界](docs/organization-sync-bound.md)。

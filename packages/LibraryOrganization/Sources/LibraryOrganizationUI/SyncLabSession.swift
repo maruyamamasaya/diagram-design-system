@@ -2,7 +2,14 @@ import Foundation
 import SwiftUI
 import LibraryOrganization
 
-/// A separate, durable rehearsal copy. Never writes to the application's live settings.
+/// Opt-in binding for isolated test libraries. Production callers keep the default rehearsal mode.
+@MainActor public struct TestLibrarySyncBinding {
+    public var read: () async throws -> OrganizationState<OrganizationDocument>
+    public var apply: (OrganizationState<OrganizationDocument>) async throws -> Void
+    public init(read: @escaping () async throws -> OrganizationState<OrganizationDocument>, apply: @escaping (OrganizationState<OrganizationDocument>) async throws -> Void) { self.read = read; self.apply = apply }
+}
+
+/// Durable sync session; writeback requires an explicit test-library binding.
 @MainActor public final class SyncLabSession: ObservableObject, Identifiable {
     public let id = UUID()
     struct Checkpoint: Codable {
@@ -12,11 +19,16 @@ import LibraryOrganization
         var initialPlan: OrganizationImportPlan<OrganizationDocument>?
         var imported: Bool
         var lastSynced: Date?
+        var observed: [String: SyncValue<OrganizationDocument>]?
+        var bound: Bool?
+        var applying: [String: SyncValue<OrganizationDocument>]?
     }
     @Published public private(set) var status = "未接続"
     @Published public private(set) var busy = false
     @Published public private(set) var message: String?
     @Published private var checkpoint: Checkpoint?
+    private let binding: TestLibrarySyncBinding?
+    public var isTestLibrary: Bool { binding != nil }
     private let sourceDocuments: [OrganizationDocument]
     public var documents: [OrganizationDocument] {
         var seen = Set<String>()
@@ -44,7 +56,8 @@ import LibraryOrganization
     public var imported: Bool { checkpoint?.imported ?? false }
     public var lastSynced: Date? { checkpoint?.lastSynced }
     public var revision: Int { checkpoint?.client.baseline.revision ?? 0 }
-    public init(directory: URL, seed: OrganizationState<OrganizationDocument>, documents: [OrganizationDocument]) {
+    public init(directory: URL, seed: OrganizationState<OrganizationDocument>, documents: [OrganizationDocument], binding: TestLibrarySyncBinding? = nil) {
+        self.binding = binding
         self.directory = directory; file = directory.appendingPathComponent("checkpoint.json")
         self.seed = seed
         self.sourceDocuments = documents
@@ -53,10 +66,11 @@ import LibraryOrganization
                 let data = try Data(contentsOf: file)
                 let value = try JSONDecoder().decode(Checkpoint.self, from: data)
                 try value.client.validate()
+                guard (value.bound ?? false) == (binding != nil), binding == nil || value.observed != nil else { throw SyncError.corruptState }
                 guard value.schemaVersion == 1, value.imported == (value.initialPlan == nil) else { throw SyncError.corruptState }
                 guard let url = URL(string: value.endpoint) else { throw SyncError.corruptState }
                 _ = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url)
-                checkpoint = value; status = value.imported ? "検証コピーを復元" : "初回統合の確認待ち"
+                checkpoint = value; status = value.imported ? (binding == nil ? "検証コピーを復元" : "テスト本棚の同期を復元") : "初回統合の確認待ち"
             } catch { restoreFailed = true; message = "検証データを復元できません。既存データは変更していません。検証コピーを解除してから再作成してください。" }
         }
     }
@@ -74,9 +88,10 @@ import LibraryOrganization
             var client = OrganizationSyncClient<OrganizationDocument>(libraryID: id)
             // Fetch without publishing any local values. Failed connection leaves live data untouched.
             try await client.synchronize(with: transport)
-            let incoming = try OrganizationSyncProjection.records(from: seed, documentID: { UUID(uuidString: $0)?.uuidString.lowercased() ?? $0 })
+            let source = try await binding?.read() ?? seed
+            let incoming = try OrganizationSyncProjection.records(from: source, documentID: { UUID(uuidString: $0)?.uuidString.lowercased() ?? $0 })
             let plan = OrganizationImportPlan(existing: client.baseline.records.mapValues(\.value), incoming: incoming)
-            let next = Checkpoint(endpoint: endpoint, client: client, initialPlan: plan, imported: false)
+            let next = Checkpoint(endpoint: endpoint, client: client, initialPlan: plan, imported: false, observed: incoming, bound: binding != nil)
             try commit(next); status = "初回統合の確認待ち"; message = nil
         } catch { status = "接続できません"; message = "模擬サーバーの起動・URL・ライブラリIDを確認してください。" }
     }
@@ -106,19 +121,55 @@ import LibraryOrganization
             next.endpoint = endpoint; try commit(next); message = nil
         } catch { message = "接続先は http://127.0.0.1:ポート を指定してください。" }
     }
+    private func capture(into next: inout Checkpoint) async throws {
+        guard let binding else { return }
+        let source = try await OrganizationSyncProjection.records(from: binding.read(), documentID: { UUID(uuidString: $0)?.uuidString.lowercased() ?? $0 })
+        let previous = next.observed ?? [:]
+        for key in Set(source.keys).union(previous.keys).sorted() where source[key] != previous[key] {
+            // A crash after writeback must not turn received state into a new local edit,
+            // which would otherwise discard an unresolved conflict on the same key.
+            if let applying = next.applying, source[key] == applying[key] { continue }
+            next.client.edit(key: key, value: source[key] ?? .deleted)
+        }
+        next.observed = source
+    }
+    /// Called after ordinary durable edits; also reconciled on every manual sync/relaunch.
+    public func captureLibraryChanges() async {
+        guard !busy, var next = checkpoint, next.imported, binding != nil else { return }
+        busy = true; defer { busy = false }
+        do { try await capture(into: &next); try commit(next); status = next.client.pending.isEmpty ? "確認済み" : "送信待ち"; message = nil }
+        catch { message = "本棚の編集を送信待ちへ保存できません。次回同期で再確認します。" }
+    }
     public func synchronize() async {
+        guard let url = URL(string: endpoint), let transport = try? LoopbackOrganizationTransport<OrganizationDocument>(baseURL: url) else { return }
+        await synchronize(with: transport)
+    }
+    public func synchronize<T: OrganizationSyncTransport>(with transport: T) async where T.Member == OrganizationDocument {
         guard !busy, var next = checkpoint, next.imported else { return }
         busy = true; defer { busy = false }
         do {
-            let transport = try LoopbackOrganizationTransport<OrganizationDocument>(baseURL: URL(string: next.endpoint)!)
+            try await capture(into: &next)
+            try commit(next) // durable outbox before sending
             try await next.client.synchronize(with: transport)
-            next.lastSynced = Date()
-            try commit(next); status = next.client.conflicts.isEmpty ? "同期済み" : "競合の確認待ち"; message = nil
+            // Ordinary edits may have completed while the request was in flight.
+            try await capture(into: &next)
+            if binding != nil {
+                next.applying = try OrganizationSyncProjection.records(from: OrganizationSyncProjection.state(from: next.client.records), documentID: { $0 })
+            }
+            try commit(next) // received state remains replayable if writeback fails
         } catch {
-            // Keep partial acknowledgements and unsent operations after a network failure.
-            do { try commit(next) } catch { /* previous atomic checkpoint remains replayable */ }
+            do { try commit(next) } catch { }
             status = "通信待ち"; message = "送信待ちは保持しています。サーバー復帰後に再試行できます。"
+            return
         }
+        do {
+            if let binding {
+                try await binding.apply(OrganizationSyncProjection.state(from: next.client.records))
+                next.observed = try await OrganizationSyncProjection.records(from: binding.read(), documentID: { UUID(uuidString: $0)?.uuidString.lowercased() ?? $0 })
+            }
+            next.applying = nil; next.lastSynced = Date()
+            try commit(next); status = next.client.conflicts.isEmpty ? (next.client.pending.isEmpty ? "同期済み" : "送信待ち") : "競合の確認待ち"; message = nil
+        } catch { status = "本棚への反映待ち"; message = "受信結果は保存済みです。同期を再試行してください。" }
     }
     public func resolve(key: String, keepingLocal: Bool) {
         guard !busy, var next = checkpoint else { return }

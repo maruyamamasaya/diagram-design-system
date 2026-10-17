@@ -19,8 +19,9 @@ import LibraryOrganizationUI
         Task { await self?.refresh() }
     }
     private var activationObserver: NSObjectProtocol?
-    init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true) {
+    init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true, enableTestSync: Bool = false) {
         let arguments = ProcessInfo.processInfo.arguments
+        testSyncEnabled = enableTestSync || (arguments.contains("--test-library-sync") && arguments.contains("--state"))
         if let overrideURL { stateURL = overrideURL }
         else if let i = arguments.firstIndex(of: "--state"), arguments.count > i + 1 {
             stateURL = URL(fileURLWithPath: arguments[i + 1])
@@ -42,13 +43,45 @@ import LibraryOrganizationUI
         }
     }
     private var writeEnabled = true
+    private var testSync: SyncLabSession?
+    private let testSyncEnabled: Bool
     @discardableResult func change(_ edit: (inout LibrarySettings) -> Void) -> Bool {
-        guard writeEnabled else { return false }
+        guard writeEnabled, testSync?.busy != true else { return false }
         var next = settings; edit(&next)
-        do { try next.save(to: stateURL); settings = next; return true }
+        do { try next.save(to: stateURL); settings = next; Task { await testSync?.captureLibraryChanges() }; return true }
         catch { self.error = "保存できませんでした: \(error.localizedDescription)"; return false }
     }
+    private func syncState() -> OrganizationState<OrganizationDocument> {
+        var state = OrganizationState<OrganizationDocument>()
+        state.folders = settings.folders; state.folderOrder = settings.folderOrder; state.assignments = settings.assignments; state.classifications = settings.classifications
+        state.collections = settings.collections.map { value in ReadingCollection(id: value.id, title: value.title, members: value.members.map { OrganizationDocument(id: $0.id, title: $0.title, type: $0.type, version: $0.version, formats: $0.formats, pageCount: $0.pageCount, tags: $0.tags) }) }
+        return state
+    }
     func makeSyncLab() -> SyncLabSession {
+        if testSyncEnabled {
+            if let testSync { return testSync }
+            let binding = TestLibrarySyncBinding(read: { [weak self] in guard let self else { throw CancellationError() }; return self.syncState() }, apply: { [weak self] state in
+                guard let self else { throw CancellationError() }
+                guard self.writeEnabled else { throw SyncError.corruptState }
+                var next = self.settings
+                let icons = Dictionary(uniqueKeysWithValues: next.folders.map { ($0.id, $0.iconFile) })
+                let value = try JSONDecoder().decode(OrganizationState<BookReference>.self, from: JSONEncoder().encode(state))
+                next.folders = value.folders.map { folder in var folder = folder; folder.iconFile = icons[folder.id] ?? nil; return folder }
+                let knownIDs = self.books.map(\.id) + Array(next.assignments.keys) + Array(next.classifications.keys) + next.collections.flatMap { $0.members.map(\.id) }
+                func localID(_ id: String) -> String { knownIDs.first { (UUID(uuidString: $0)?.uuidString.lowercased() ?? $0) == id } ?? id }
+                next.folderOrder = value.folderOrder
+                next.assignments = Dictionary(uniqueKeysWithValues: value.assignments.map { (localID($0.key), $0.value) })
+                next.classifications = Dictionary(uniqueKeysWithValues: value.classifications.map { (localID($0.key), $0.value) })
+                next.collections = value.collections.map { collection in var collection = collection; collection.members = collection.members.map { member in var member = member; member.id = localID(member.id); return member }; return collection }
+                let backup = self.stateURL.appendingPathExtension("before-sync")
+                if !FileManager.default.fileExists(atPath: backup.path), FileManager.default.fileExists(atPath: self.stateURL.path) {
+                    try FileManager.default.copyItem(at: self.stateURL, to: backup)
+                }
+                try next.save(to: self.stateURL); self.settings = next
+            })
+            let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding)
+            testSync = session; return session
+        }
         func document(_ member: BookReference) -> OrganizationDocument {
             OrganizationDocument(id: member.id, title: member.title, type: member.type, version: member.version, formats: member.formats, pageCount: member.pageCount, tags: member.tags)
         }

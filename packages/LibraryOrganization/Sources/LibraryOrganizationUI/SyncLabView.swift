@@ -17,8 +17,8 @@ public struct SyncLabView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text("ローカル同期の検証").font(.title2.bold())
-                    Text("本棚から取り込んだ検証コピーだけを編集・同期します。元の資料・フォルダ・タグ・まとめには書き込みません。iPhoneはSimulatorで検証してください。")
+                    Text(session.isTestLibrary ? "テスト本棚の同期" : "ローカル同期の検証").font(.title2.bold())
+                    Text(session.isTestLibrary ? "通常画面での編集と受信結果を、このテスト本棚へ保存します。競合の選択後は同期して反映してください。既存の本棚・AWSには接続しません。" : "本棚から取り込んだ検証コピーだけを編集・同期します。元の資料・フォルダ・タグ・まとめには書き込みません。iPhoneはSimulatorで検証してください。")
                         .font(.callout).foregroundStyle(.secondary)
                     HStack { Text(session.status).bold(); Spacer(); Text("送信待ち \(session.pendingCount)件 · 競合 \(session.conflicts.count)件") }
                     if let date = session.lastSynced { Text("最終同期：" + date.formatted()).font(.caption) }
@@ -40,9 +40,9 @@ public struct SyncLabView: View {
                         else {
                             Button("今すぐ同期・再試行") { Task { await session.synchronize() } }.buttonStyle(.borderedProminent)
                             conflictList
-                            rehearsalEditor
+                            if !session.isTestLibrary { rehearsalEditor }
                         }
-                        Button("この端末の検証コピーを解除") { session.clear() }
+                        Button(session.isTestLibrary ? "テスト本棚の同期を解除" : "この端末の検証コピーを解除") { session.clear() }
                         Text("解除しても模擬サーバーのデータは残ります。再接続時は初回統合から確認できます。") .font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(24).disabled(session.busy)
@@ -69,7 +69,7 @@ public struct SyncLabView: View {
                     }
                 }.padding(10).background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
             }
-            Button("確認した検証コピーを送信待ちにする") { session.confirmImport() }.disabled(!session.initialConflicts.isEmpty)
+            Button(session.isTestLibrary ? "確認した本棚の整理情報を送信待ちにする" : "確認した検証コピーを送信待ちにする") { session.confirmImport() }.disabled(!session.initialConflicts.isEmpty)
         }
     }
     private var conflictList: some View {

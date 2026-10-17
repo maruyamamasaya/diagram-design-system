@@ -30,3 +30,45 @@ final class SyncAdapterTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("sync-lab/checkpoint.json").path))
     }
 }
+
+extension SyncAdapterTests {
+    @MainActor func testBoundReceiveKeepsSourceAndIconsAndCapturesOrdinaryEdits() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appendingPathComponent("library.json")
+        var settings = LibrarySettings()
+        var folder = ShelfFolder(name: "ローカル"); folder.iconFile = "keep.png"
+        settings.folders = [folder]; settings.sources = [SourceFolder(path: "/synthetic-only")]
+        let id = UUID().uuidString
+        settings.assignments[id] = folder.id
+        settings.setClassification(for: id, group: .work, tags: ["元タグ"])
+        try settings.save(to: file)
+        let store = ShelfStore(stateURL: file, autoRefresh: false, enableTestSync: true)
+        let library = UUID()
+        let directory = root.appendingPathComponent("test-library-sync")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        // An imported empty session discovers normal source changes on the next sync.
+        let payload: [String: Any] = ["schemaVersion": 1, "endpoint": "http://127.0.0.1:1", "client": try JSONSerialization.jsonObject(with: JSONEncoder().encode(OrganizationSyncClient<OrganizationDocument>(libraryID: library))), "imported": true, "observed": [:], "bound": true]
+        try JSONSerialization.data(withJSONObject: payload).write(to: directory.appendingPathComponent("checkpoint.json"))
+        let session = store.makeSyncLab()
+        let server = LocalOrganizationSyncServer<OrganizationDocument>(libraryID: library, memberID: { $0.id })
+        await session.synchronize(with: server)
+        var peer = OrganizationSyncClient<OrganizationDocument>(libraryID: library)
+        try await peer.synchronize(with: server)
+        var renamed = folder; renamed.name = "受信した名前"; renamed.iconFile = nil
+        peer.edit(key: OrganizationSyncKey.folder(folder.id), value: .folder(renamed))
+        peer.edit(key: OrganizationSyncKey.tag(id.lowercased(), "受信タグ"), value: .tag("受信タグ"))
+        try await peer.synchronize(with: server)
+        await session.synchronize(with: server)
+        XCTAssertEqual(store.settings.folders.first?.name, "受信した名前")
+        XCTAssertEqual(store.settings.folders.first?.iconFile, "keep.png")
+        XCTAssertEqual(store.settings.sources.first?.path, "/synthetic-only")
+        XCTAssertEqual(store.settings.assignments[id], folder.id)
+        XCTAssertTrue(store.settings.classifications[id]?.tags.contains("受信タグ") == true)
+        store.change { $0.setClassification(for: id, group: .personal, tags: ["通常編集"]) }
+        await session.synchronize(with: server)
+        try await peer.synchronize(with: server)
+        XCTAssertEqual(OrganizationSyncProjection.state(from: peer.records).classifications[id.lowercased()]?.tags, ["通常編集"])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: file.appendingPathExtension("before-sync").path))
+    }
+}

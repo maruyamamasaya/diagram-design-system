@@ -75,3 +75,5 @@ Macタグ/まとめ：BookshelfCoreTests/OrganizationTestsで旧library.json・�
 整理同期：共有パッケージのswift testに加え、scripts/organization-sync-http-check.pyへビルド済みOrganizationSyncMockを渡す。127.0.0.1と合成一時データだけを利用し、書込後の応答喪失を注入する。環境がloopback待受を拒否する場合は通常のMac実行環境で検証する。実AWS/公開認証検証とは区別する。[手順](docs/organization-sync-local.md)。
 
 同期画面：共有SyncLabTests、Mac SyncAdapterTests、iOS取込テスト、HTTPハーネスのsmoke-ui。チェックポイント復元/破損保持/原設定不変/解除の後片付けを確認する。Macの画面確認とiOSのビルド/XCTestの検証境界はdocs/organization-sync-ui.md参照。
+
+通常本棚のテスト同期は共通BoundSyncTests、Mac SyncAdapterTests、iOS CloudLibraryTestsで通常保存/受信/復元/反映中断を確認する。専用ツールの両画面操作と実HTTPの範囲は[同期テスト仕様](docs/organization-sync-bound.md#確認した範囲)。
