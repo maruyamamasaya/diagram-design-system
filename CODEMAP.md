@@ -82,3 +82,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 通常本棚のテスト同期：SyncLabSession.TestLibrarySyncBindingとcaptureLibraryChanges、Mac ShelfStore.change/makeSyncLab、iOS CloudLibraryStoreの通常保存とCloudFileStore.applyTestLibrarySync/recoverSyncApply。BoundSyncTests、Mac SyncAdapterTests、iOS CloudLibraryTests。[境界](docs/organization-sync-bound.md)。
 
 同期開始/復元：LibraryOrganizationUI/SyncRecovery.swift（設定項目件数/復元点）、SyncLabSession.makeBackup/restoreBackup（永続停止）、Mac Storeの管理JSONバイト復元、iOS CloudFiles.managementBackup/restoreManagementBackup/recoverManagementRestore。SyncRecoveryTests/SyncAdapterTests/CloudLibraryTests。[仕様](docs/organization-sync-recovery.md)。
+
+実端末同期の未適用設計：docs/organization-sync-aws-plan.md、単価/SKUはorganization-sync-aws-rates.json、結果はorganization-sync-aws-estimate.json。scripts/estimate-organization-sync.pyはネットワーク/認証なしのDecimal再計算だけを行う。

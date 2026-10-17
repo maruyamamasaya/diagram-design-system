@@ -61,3 +61,5 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 通常本棚の同期を試す場合は[専用テスト起動](docs/organization-sync-bound.md#テスト起動)を使用する。合成state/使い捨てSimulatorだけを使い、既存の利用者データへ有効化しない。接続は127.0.0.1の一時模擬サーバー、同期は手動。
 
 同期開始前の管理JSONバックアップと画面復元は[管理データ保護](docs/organization-sync-recovery.md)。資料本体を含めない。今後のAWS変更は、適用前に必ず[料金シミュレーション](docs/cost-policy.md#整理同期のaws変更前)を提示し、承認後に実施する。
+
+Mac/iPhone整理同期のAWS案と適用前条件は[未適用設計・試算](docs/organization-sync-aws-plan.md)。再計算は`python3 scripts/estimate-organization-sync.py`（ローカルのみ）。AWS変更時には公式単価/実測/既存設定を再確認し、変更セットと料金を提示して別承認後に適用する。

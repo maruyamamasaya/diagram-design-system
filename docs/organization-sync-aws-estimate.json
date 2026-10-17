@@ -1,0 +1,89 @@
+{
+  "checkedDate": "2026-10-17",
+  "region": "ap-northeast-1",
+  "fxJPYPerUSD": "160",
+  "taxMultiplier": "1.10",
+  "note": "Incremental sync only; existing document reads excluded; no API/Lambda/log credits deducted.",
+  "scenarios": [
+    {
+      "name": "normal",
+      "devices": 2,
+      "callsPerDeviceDay": 20,
+      "requests": 1200,
+      "changedBatches": 300,
+      "extraCASAttempts": 30,
+      "meanSeconds": "0.3",
+      "responseKiB": 100,
+      "stateMiB": 5,
+      "responseGiB": "0.114441",
+      "monthlyUSDNoFreeTransfer": "0.019374",
+      "monthlyJPYWithFreeTransfer": "1.113721",
+      "monthlyJPYNoFreeTransfer": "3.409864",
+      "incrementalCognitoMAUJPY": "0",
+      "allocatedOneMAUJPYIfNoFreeTier": "2.640000",
+      "monthlyJPYNoFreeTierWithAllocatedMAU": "6.049864",
+      "costsUSD": {
+        "httpAPI": "0.001548",
+        "lambdaRequests": "0.000240",
+        "lambdaCompute": "0.001500",
+        "s3Get": "0.000455",
+        "s3Put": "0.001551",
+        "s3Storage": "0.000146",
+        "logsIngest": "0.000870",
+        "logsStorage": "0.000018",
+        "internetTransfer": "0.013046"
+      },
+      "costsJPY": {
+        "httpAPI": "0.272448",
+        "lambdaRequests": "0.042240",
+        "lambdaCompute": "0.264001",
+        "s3Get": "0.080098",
+        "s3Put": "0.272976",
+        "s3Storage": "0.025781",
+        "logsIngest": "0.153076",
+        "logsStorage": "0.003102",
+        "internetTransfer": "2.296143"
+      }
+    },
+    {
+      "name": "heavy",
+      "devices": 2,
+      "callsPerDeviceDay": 200,
+      "requests": 12000,
+      "changedBatches": 6000,
+      "extraCASAttempts": 1200,
+      "meanSeconds": "1.0",
+      "responseKiB": 500,
+      "stateMiB": 16,
+      "responseGiB": "5.722046",
+      "monthlyUSDNoFreeTransfer": "0.768206",
+      "monthlyJPYWithFreeTransfer": "20.397148",
+      "monthlyJPYNoFreeTransfer": "135.204277",
+      "incrementalCognitoMAUJPY": "0",
+      "allocatedOneMAUJPYIfNoFreeTier": "2.640000",
+      "monthlyJPYNoFreeTierWithAllocatedMAU": "137.844277",
+      "costsUSD": {
+        "httpAPI": "0.015480",
+        "lambdaRequests": "0.002400",
+        "lambdaCompute": "0.050000",
+        "s3Get": "0.004884",
+        "s3Put": "0.033840",
+        "s3Storage": "0.000415",
+        "logsIngest": "0.008698",
+        "logsStorage": "0.000176",
+        "internetTransfer": "0.652313"
+      },
+      "costsJPY": {
+        "httpAPI": "2.724480",
+        "lambdaRequests": "0.422400",
+        "lambdaCompute": "8.800018",
+        "s3Get": "0.859584",
+        "s3Put": "5.955840",
+        "s3Storage": "0.073047",
+        "logsIngest": "1.530762",
+        "logsStorage": "0.031018",
+        "internetTransfer": "114.807129"
+      }
+    }
+  ]
+}
