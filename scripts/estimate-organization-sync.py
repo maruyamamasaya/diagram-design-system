@@ -1,52 +1,38 @@
 #!/usr/bin/env python3
-"""Offline incremental-cost model. No AWS SDK, credentials, or network calls."""
+"""Offline quota-aware estimate; no credentials, AWS SDK or network calls."""
 import json
 from decimal import Decimal as D
 from pathlib import Path
-
 root = Path(__file__).resolve().parent.parent
-source = root / 'docs/organization-sync-aws-rates.json'
-config = json.loads(source.read_text())
-rates = {key: D(value['usd']) for key, value in config['rates'].items()}
-convert = D(config['fxJPYPerUSD']) * D(config['taxMultiplier'])
-gib = D(1024) ** 3
-scenarios = [
-    dict(name='normal', devices=2, callsPerDeviceDay=20, requests=1200, changedBatches=300,
-         extraCASAttempts=30, meanSeconds='0.3', responseKiB=100, stateMiB=5),
-    dict(name='heavy', devices=2, callsPerDeviceDay=200, requests=12000, changedBatches=6000,
-         extraCASAttempts=1200, meanSeconds='1.0', responseKiB=500, stateMiB=16),
+config = json.loads((root/'docs/organization-sync-aws-rates.json').read_text())
+r = {k:D(v['usd']) for k,v in config['rates'].items()}
+fx = D(config['fxJPYPerUSD'])*D(config['taxMultiplier'])
+gib = D(1024)**3
+# Sessions are OWNER totals across both devices. Extra sessions require consent each time.
+cases = [
+ dict(name='normal', retryData=120, retryControl=240, sessions=1200, extraSessions=0, dataPerSession=1, sends=1, denied=30, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=100, stateMiB=5),
+ dict(name='five_per_hour', sessions=3600, extraSessions=0, dataPerSession=1, sends=1, denied=60, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=500, stateMiB=16),
+ dict(name='five_per_hour_all_retried', sessions=3600, extraSessions=0, dataPerSession=1, sends=3, denied=60, bootstrap=60, casAttempts=3, seconds='1', responseKiB=500, stateMiB=16),
+ dict(name='normal_plus_consent', retryData=150, retryControl=330, sessions=1200, extraSessions=300, dataPerSession=1, sends=1, denied=30, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=100, stateMiB=5),
+ dict(name='protocol_stress', sessions=3600, extraSessions=0, dataPerSession=12, sends=3, denied=60, bootstrap=60, casAttempts=3, seconds='1', responseKiB=2048, stateMiB=16),
 ]
-result = {'checkedDate': config['checkedDate'], 'region': config['region'],
-          'fxJPYPerUSD': config['fxJPYPerUSD'], 'taxMultiplier': config['taxMultiplier'],
-          'note': 'Incremental sync only; existing document reads excluded; no API/Lambda/log credits deducted.', 'scenarios': []}
-for case in scenarios:
-    n, w, retry = map(D, [case['requests'], case['changedBatches'], case['extraCASAttempts']])
-    outgoing = n * D(case['responseKiB']) * 1024 / gib
-    log_gb = n * 1024 / gib  # 1 KiB/request; no tokens, titles or operation payload logs
-    costs = {
-        'httpAPI': n * rates['http_request'],
-        'lambdaRequests': n * rates['lambda_request'],
-        'lambdaCompute': n * D('0.25') * D(case['meanSeconds']) * rates['lambda_gb_second'],
-        's3Get': (n + retry) * rates['s3_get'],
-        # Count even failed CAS PUT attempts conservatively.
-        's3Put': (w + retry) * rates['s3_put'],
-        's3Storage': D(case['stateMiB'] + 1) / 1024 * rates['s3_gb_month'], # +1 MiB new code zip
-        'logsIngest': log_gb * rates['logs_ingest_gb'],
-        'logsStorage': log_gb * D(14) / 30 * rates['logs_store_gb_month'],
-    }
-    paid = dict(costs, internetTransfer=outgoing * rates['egress_gb'])
-    base, worst = sum(costs.values()), sum(paid.values())
-    def money(x): return str(x.quantize(D('0.000001')))
-    item = dict(case, responseGiB=money(outgoing),
-                monthlyUSDNoFreeTransfer=money(worst),
-                monthlyJPYWithFreeTransfer=money(base*convert),
-                monthlyJPYNoFreeTransfer=money(worst*convert),
-                # The same already-active owner incurs no new MAU from a second device.
-                incrementalCognitoMAUJPY='0',
-                allocatedOneMAUJPYIfNoFreeTier=money(D(config['cognitoEssentialsUSDPerMAU'])*convert),
-                monthlyJPYNoFreeTierWithAllocatedMAU=money((worst+D(config['cognitoEssentialsUSDPerMAU']))*convert),
-                costsUSD={k:money(v) for k,v in paid.items()},
-                costsJPY={k:money(v*convert) for k,v in paid.items()})
-    assert item['devices'] * item['callsPerDeviceDay'] * 30 == item['requests']
-    result['scenarios'].append(item)
-print(json.dumps(result, ensure_ascii=False, indent=2))
+result = dict(checkedDate=config['checkedDate'],region=config['region'],fxJPYPerUSD=config['fxJPYPerUSD'],taxMultiplier=config['taxMultiplier'], note='30 days; no API/Lambda/log/storage free tier or credits; owner totals; parameterized estimate, not a billing ceiling',scenarios=[])
+for c in cases:
+ s=c['sessions']+c['extraSessions']; a=c['sends']; data=s*c['dataPerSession']*a+c.get('retryData',0)
+ # Extra consent adds one denied begin/challenge before the confirmed begin.
+ control=(2*s+c['extraSessions']+c['denied'])*a+c.get('retryControl',0)
+ bootstrap=c['bootstrap']*a
+ n=data+control+bootstrap
+ # Upper accounting: control attempts each write ledger, data each writes twice
+ # (request budget before work, authority+receipt after); GET once per PUT/CAS attempt.
+ puts=(control+2*data)*c['casAttempts']; gets=puts+bootstrap
+ outgoing=(D(data)*c['responseKiB']+D(control+bootstrap)*2)*1024/gib
+ logs=D(n)*2048/gib # API + Lambda combined 2 KiB per invocation; no payload/token
+ costs=dict(httpAPI=D(n)*r['http_request'],lambdaRequests=D(n)*r['lambda_request'],lambdaCompute=D(n)*D('.25')*D(c['seconds'])*r['lambda_gb_second'],s3Get=D(gets)*r['s3_get'],s3Put=D(puts)*r['s3_put'],s3Storage=D(c['stateMiB']+1)/1024*r['s3_gb_month'],logsIngest=logs*r['logs_ingest_gb'],logsStorage=logs*D(14)/30*r['logs_store_gb_month'])
+ base=sum(costs.values()); transfer=outgoing*r['egress_gb']; costs['internetTransfer']=transfer
+ money=lambda x:str(x.quantize(D('.000001')))
+ item=dict(c,httpRequests=n,dataRequests=data,controlRequests=control,bootstrapRequests=bootstrap,s3GetAttempts=gets,s3PutAttempts=puts,outgoingGiB=money(outgoing),monthlyJPYWithFreeTransfer=money((base+max(D(0),outgoing-D(100))*r['egress_gb'])*fx),monthlyJPYNoFreeTransfer=money((base+transfer)*fx),allocatedOneMAUJPY=money(D(config['cognitoEssentialsUSDPerMAU'])*fx),costsJPY={k:money(v*fx) for k,v in costs.items()})
+ assert n==data+control+bootstrap
+ assert c['sessions']<=5*24*30
+ result['scenarios'].append(item)
+print(json.dumps(result,ensure_ascii=False,indent=2))
