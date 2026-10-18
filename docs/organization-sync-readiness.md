@@ -69,3 +69,5 @@ node --import tsx scripts/prepare-organization-deployment.ts ../outputs/organiza
 新しい画面はビルド確認まで。専用CUAからSimulatorへ2回接続したがtimeoutReachedとなり、実操作確認はできていない。AppleScript等へ切り替えていない。元の本棚・Applications版・実機は変更せず、テストログはmac-app/.build/validation/sync-readinessへ保存する。
 
 Macの既存ローカル資料表示は維持。Macへ未取得の資料をS3一覧/署名URLから取得して開く機能は別の未実装部分であり、整理同期APIだけで追加されたとは扱わない。iPhoneにしかない参照がMacへ届いても本体取得機能が揃うまではMacで開けない。実機配布/本棚有効化の前にこの閲覧導線を含む確認が必要。
+
+2026-10-18追記：AWSへ再ログインしライブ構成を読取照合した。前述のセッション期限切れは解消。[承認対象の差分・最終試算](organization-sync-aws-review.md)。AWS変更/変更セット作成は引き続き未実施。

@@ -96,3 +96,5 @@ AWS向け同期APIのローカル実装（2026-10-18）：既存viewerへTypeScr
 認証付き同期HTTPS/分割送信（2026-10-18、テストのみ）：共通のBearer/bootstrap/1回silent refresh/アカウント固定、最大50操作＋実JSONバイト上限、部分ACK後の永続再送を実装。Mac/iOSのテスト本棚へ明示注入し、既定は無効。125フォルダの実ローカルTLS/応答喪失/再起動/双方向を確認。AWS/既存データ/実機未変更。[仕様](docs/organization-sync-https.md)。
 
 同期の本番接続準備（2026-10-18、未適用）：Mac/iOSへログイン前説明・統合確認への導線、無効が既定のLambda組立、未適用CloudFormationと固定UUID/初期管理JSONのオフライン準備を追加。初回分割込み通常追加約7.71円/月、多分割常用では100円超。AWS読取はセッション期限切れ、新画面CUAはtimeoutで未操作。AWS/既存データ/実機未変更。[適用・復旧と残り](docs/organization-sync-readiness.md)。
+
+整理同期のAWS事前確認（2026-10-18）：再ログイン後ライブ構成/IAM/S3安全設定を読取照合。新規MacClient1件、既存4リソースの更新案と固定管理キー未作成を確認。通常+初回追加約7.71円/月。適用・変更セット作成なし。[差分と最終見積もり](docs/organization-sync-aws-review.md)。
