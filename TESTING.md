@@ -89,3 +89,5 @@ TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビル�
 認証付きHTTPS/分割はHTTPSConnectionTestsとviewerのtest:organization:https。通常TLS拒否→テストleaf限定信頼、JWT/401更新/125フォルダ/2バッチ目ACK喪失/待機/再起動/双方向を実TLSで検証。iOSはURLProtocolで既存認証→bootstrap/バイト分割も実行。[範囲](docs/organization-sync-https.md)。
 
 同期の接続準備：SyncSetupTestsはBundleの明示true/欠落/固定HTTPS設定を検査。organization-runtime.test.tsは無効時の未接続・設定不備停止・bootstrapでS3通信ゼロを確認。準備CLIは初期JSON/hash/固定UUID・元構成維持・既存出力上書き拒否を確認。[実画面の未検証事項](docs/organization-sync-readiness.md#検証と残り)。
+
+整理同期の実AWS検証は本人承認後の限定実行。viewer/scripts/check-organization-aws.tsは固定origin/UUID・空snapshot前提・本人の一時tokenを必要とし、合成フォルダ1件だけを操作してtombstone/receiptsを保持する。通常の自動テストから呼ばない。現在は初回空状態前提を満たさないため、再実行前に別の検証計画が必要。[実検証結果](docs/organization-sync-deployment.md)。

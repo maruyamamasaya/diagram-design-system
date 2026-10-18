@@ -71,3 +71,5 @@ node --import tsx scripts/prepare-organization-deployment.ts ../outputs/organiza
 Macの既存ローカル資料表示は維持。Macへ未取得の資料をS3一覧/署名URLから取得して開く機能は別の未実装部分であり、整理同期APIだけで追加されたとは扱わない。iPhoneにしかない参照がMacへ届いても本体取得機能が揃うまではMacで開けない。実機配布/本棚有効化の前にこの閲覧導線を含む確認が必要。
 
 2026-10-18追記：AWSへ再ログインしライブ構成を読取照合した。前述のセッション期限切れは解消。[承認対象の差分・最終試算](organization-sync-aws-review.md)。AWS変更/変更セット作成は引き続き未実施。
+
+2026-10-18更新：承認後の段階的配備・実Cognito/実HTTPSの合成データ検証を完了し、AWS側は有効化済み。[実施記録と通常本棚の未接続境界](organization-sync-deployment.md)。

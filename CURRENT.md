@@ -100,3 +100,5 @@ AWS向け同期APIのローカル実装（2026-10-18）：既存viewerへTypeScr
 整理同期のAWS事前確認（2026-10-18）：再ログイン後ライブ構成/IAM/S3安全設定を読取照合。新規MacClient1件、既存4リソースの更新案と固定管理キー未作成を確認。通常+初回追加約7.71円/月。適用・変更セット作成なし。[差分と最終見積もり](docs/organization-sync-aws-review.md)。
 
 整理同期AWSの準備適用（2026-10-18）：本人承認後、置換・削除なしの変更セットを実行してUPDATE_COMPLETE、flag=false・空管理JSONを条件付き作成。既存S3上書き禁止との衝突を検出し、追加承認後に固定キー/Lambda/If-Match限定の例外を適用。Cognito本人ログイン待ちで実API少量検証・最終有効化は未完了。既存資料/端末整理情報未変更。[段階的適用](docs/organization-sync-deployment.md)。
+
+整理同期AWSの実検証・有効化（2026-10-18）：本人の再設定/実Cognitoログイン完了。検証時の一時有効化順序も追加承認後、flag-only変更セットを置換削除なしで適用。実HTTPS10通信で合成1フォルダの作成/再送/競合/変更/削除/無変更/終了合格、server trueを維持。既存757オブジェクト/544869659 bytes一致・端末整理情報未変更。通常本棚は未接続。[配備証跡・境界](docs/organization-sync-deployment.md#最終有効化と実aws検証2026-10-18完了)。

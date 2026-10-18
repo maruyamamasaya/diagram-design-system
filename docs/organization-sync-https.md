@@ -1,4 +1,6 @@
-# Mac/iOSの認証付きHTTPSと分割送信（ローカル検証）
+# Mac/iOSの認証付きHTTPSと分割送信
+
+最新状態：2026-10-18にAWS側の実Cognito/実HTTPS少量検証と有効化を完了。[配備の現在値](organization-sync-deployment.md)。以下のローカル検証時点の記録とは区別する。
 
 2026-10-18。AWS/本番API/既存の本棚/実機iPhone/Applications版は未変更。実接続先を保存したり既存ログインを再実行したりしない。[API仕様](organization-sync-api-local.md)、[回数制限](organization-sync-quota.md)、[失敗待機](organization-sync-efficiency.md)。
 

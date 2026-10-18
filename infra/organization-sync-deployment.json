@@ -2,7 +2,7 @@
   "region": "ap-northeast-1",
   "stackName": "diagram-library-api",
   "status": "UPDATE_COMPLETE",
-  "organizationEnabled": false,
+  "organizationEnabled": true,
   "codeSHA256": "9c4128306e48176e26e08eaaf04785669f4456c46119b482a8deddb0129fc0f2",
   "outputs": {
     "MacClientID": "10aj8nsbco929pgv4pbkhbuq2d",
@@ -11,7 +11,15 @@
     "ClientID": "56ai6vn12eq9j6bof1hpvrv5g9",
     "LoginDomain": "https://diagram-library-676643701781.auth.ap-northeast-1.amazoncognito.com"
   },
-  "smallAuthenticatedTest": "pending-owner-login",
+  "smallAuthenticatedTest": "passed",
   "bucketPolicy": "approved fixed-key Lambda If-Match exception applied",
-  "existingDocumentsUnchanged": true
+  "existingDocumentsUnchanged": true,
+  "revision": 3,
+  "receipts": 4,
+  "activeTestRecords": 0,
+  "existingLibraryObjects": 757,
+  "existingLibraryBytes": 544869659,
+  "ordinaryBookshelfConnected": false,
+  "ownerRecovery": "CONFIRMED; email verified",
+  "temporaryCredentialsRemoved": true
 }

@@ -73,6 +73,8 @@ viewer/tests/large-presentation.test.tsを追加。check-large-presentation.ts�
 
 本人が今回限りの本番反映を承認。既存スタックのCodeKeyのみ更新しUPDATE_COMPLETE。コードSHA256一致・認証環境/IAM Role/256MB/20秒/API接続不変を確認。本番の未認証401・公開禁止auth交換404を確認。ログイン後のiPhone実機閲覧は未確認。[記録](../sessions/2026-10-15-industry-2040-large-viewer-deploy.md)。
 
-## 整理同期APIのローカル実装（本番未接続）
+## 整理同期API（本番有効化済み）
 
-`GET /v1/organization/bootstrap`と`POST /v1/organization/sync`（begin/sync/finish）をTypeScriptで追加。既存Cognito検証＋専用同期scope/owner認可を使う。サービスを明示注入したローカル検証だけで有効になり、既定のLambda handlerでは404のまま。資料の読取ルート/実AWS設定は変更しない。状態遷移・Swiftとの共通fixture・CAS/S3保存ポート・容量境界・本番接続前の残作業は[ローカル同期API仕様](organization-sync-api-local.md)を正とする。
+`GET /v1/organization/bootstrap`と`POST /v1/organization/sync`（begin/sync/finish）をTypeScriptで追加。既存Cognito検証＋専用同期scope/owner認可を使う。未設定/flag=falseのhandlerでは404。2026-10-18に承認後の段階的配備と実Cognito/少量合成データ検証を終え、既存公開Lambdaではflag=trueで有効化済み。資料の読取契約は保持。状態遷移・Swiftとの共通fixture・CAS/S3保存ポート・容量境界は[同期API仕様](organization-sync-api-local.md)、配備の現在値と通常本棚の未接続境界は[実AWS記録](organization-sync-deployment.md)を正とする。
+
+整理同期ルート（2026-10-18）：承認後、GET /v1/organization/bootstrapとPOST /v1/organization/syncを既存公開APIへ有効化した。追加organization.sync scope・同owner・固定UUIDの検査、5開始/時、操作50件/256KiB、既存API全体1要求/秒を維持。資料本体の取得契約を変更しない。詳細は[同期契約](organization-sync-https.md)と[実AWS配備証跡](organization-sync-deployment.md)。

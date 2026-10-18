@@ -3,11 +3,12 @@
   "account": "676643701781",
   "stackName": "diagram-library-api",
   "stackId": "arn:aws:cloudformation:ap-northeast-1:676643701781:stack/diagram-library-api/82b6b430-c3fd-11f1-9fc8-0affe7881947",
-  "codeKey": "deployments/api/a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa.zip",
+  "codeKey": "deployments/api/9c4128306e48176e26e08eaaf04785669f4456c46119b482a8deddb0129fc0f2.zip",
   "owner": "c7b48a68-1001-70e8-0294-b72dd358c86e",
   "createdAt": "2026-10-09T16:21:41.361Z",
   "status": "UPDATE_COMPLETE",
   "outputs": {
+    "MacClientID": "10aj8nsbco929pgv4pbkhbuq2d",
     "ApiURL": "https://2zpp6z8zvc.execute-api.ap-northeast-1.amazonaws.com",
     "Issuer": "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_qKFdR57RY",
     "ClientID": "56ai6vn12eq9j6bof1hpvrv5g9",
@@ -15,8 +16,16 @@
   },
   "parameters": [
     {
+      "ParameterKey": "OrganizationEnabled",
+      "ParameterValue": "true"
+    },
+    {
       "ParameterKey": "OwnerSubject",
       "ParameterValue": "c7b48a68-1001-70e8-0294-b72dd358c86e"
+    },
+    {
+      "ParameterKey": "OrganizationKeyHash",
+      "ParameterValue": "18c9449f68b0d69b37aff414afea31faeb1ae3c97c63b41dbea449128a920a39"
     },
     {
       "ParameterKey": "CodeBucket",
@@ -24,11 +33,15 @@
     },
     {
       "ParameterKey": "CodeKey",
-      "ParameterValue": "deployments/api/a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa.zip"
+      "ParameterValue": "deployments/api/9c4128306e48176e26e08eaaf04785669f4456c46119b482a8deddb0129fc0f2.zip"
     },
     {
       "ParameterKey": "CognitoDomainPrefix",
       "ParameterValue": "diagram-library-676643701781"
+    },
+    {
+      "ParameterKey": "OrganizationLibraryID",
+      "ParameterValue": "18FD4762-A6B2-4EBE-AD02-B1C6C65787FA"
     }
   ],
   "resources": [
@@ -42,7 +55,7 @@
       "logicalId": "Client",
       "physicalId": "56ai6vn12eq9j6bof1hpvrv5g9",
       "type": "AWS::Cognito::UserPoolClient",
-      "status": "CREATE_COMPLETE"
+      "status": "UPDATE_COMPLETE"
     },
     {
       "logicalId": "Domain",
@@ -54,7 +67,7 @@
       "logicalId": "Function",
       "physicalId": "diagram-library-api",
       "type": "AWS::Lambda::Function",
-      "status": "CREATE_COMPLETE"
+      "status": "UPDATE_COMPLETE"
     },
     {
       "logicalId": "Integration",
@@ -66,6 +79,12 @@
       "logicalId": "Logs",
       "physicalId": "/aws/lambda/diagram-library-api",
       "type": "AWS::Logs::LogGroup",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "logicalId": "MacClient",
+      "physicalId": "10aj8nsbco929pgv4pbkhbuq2d",
+      "type": "AWS::Cognito::UserPoolClient",
       "status": "CREATE_COMPLETE"
     },
     {
@@ -84,7 +103,7 @@
       "logicalId": "Role",
       "physicalId": "diagram-library-api-Role-kKDOVnaoMyam",
       "type": "AWS::IAM::Role",
-      "status": "CREATE_COMPLETE"
+      "status": "UPDATE_COMPLETE"
     },
     {
       "logicalId": "Route",
@@ -96,7 +115,7 @@
       "logicalId": "Scope",
       "physicalId": "diagram-library",
       "type": "AWS::Cognito::UserPoolResourceServer",
-      "status": "CREATE_COMPLETE"
+      "status": "UPDATE_COMPLETE"
     },
     {
       "logicalId": "Stage",
@@ -106,20 +125,23 @@
     }
   ],
   "lambda": {
-    "CodeSha256": "ng0XPzvpERAdkHRS8WQp2Ov3urbPU1rXWx3qm4zkd/c=",
+    "CodeSha256": "nEEoMG5IF24m4I6q8EeFZp9EVsRhGbSCqN7dsBKfwPI=",
     "Role": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam",
     "Runtime": "nodejs22.x",
     "MemorySize": 256,
     "Timeout": 20,
     "State": "Active",
     "LastUpdateStatus": "Successful",
-    "trashEnabled": true
+    "trashEnabled": true,
+    "organizationEnabled": true
   },
-  "templateSHA256": "e7f2a9e5ca0136a7be582e8b3155f18afa1e98b9a34b57a2bba405b6b954c4bd",
+  "templateSHA256": "2cd85b9e3e5005c2b8645f215e9d94b8e56c629846f8aebe1c4e6c24d03b06d7",
   "secretHandling": {
     "CursorSecret": "Random 96-character value; CloudFormation NoEcho / Lambda environment; value intentionally not recorded",
     "AWScredentials": "Runtime IAM role only; not committed"
   },
-  "updatedAt": "2026-10-15T07:37:31.024555+00:00",
-  "codeSha256Hex": "a29c7698b73a5f92a92c1625d702563fa930aa30cb337c50a2b4388131edcffa"
+  "updatedAt": "2026-10-18T14:22:08.484315+00:00",
+  "codeSha256Hex": "9c4128306e48176e26e08eaaf04785669f4456c46119b482a8deddb0129fc0f2",
+  "templateSHA256Note": "SHA256 of approved live-derived template.from-live.proposed.json; same template retained during flag-only enablement",
+  "organizationDeployment": "infra/organization-sync-deployment.json"
 }

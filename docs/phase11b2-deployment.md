@@ -36,3 +36,5 @@ Node22で`node viewer/scripts/package-lambda.cjs`を実行し、zipを構成。�
 2026-10-10ゴミ箱：本人がデプロイを承認。実スタックのtemplateを基にstate専用List/Get/Put権限、trash flag、CodeKeyだけを更新。Role/FunctionとIntegrationの間接更新、置換なし。UPDATE_COMPLETE・コードSHA256一致・既存owner/Role/Memory/Timeout維持。既存Vesperaへ署名更新・起動成功。[仕様と検証境界](library-trash.md)。
 
 2026-10-15大容量資料：今回限りの明示承認後、CodeKeyだけを更新。Function.Codeと同じFunction.Arnを参照するIntegrationUriの間接更新（どちらも置換なし）を変更セットで確認し実行。UPDATE_COMPLETE・コードSHA256一致、環境変数/owner/Role/Runtime/Memory/Timeout/API接続維持。対象は2040年産業資料のID/版/ハッシュ固定承認のみ。[記録](../sessions/2026-10-15-industry-2040-large-viewer-deploy.md)。
+
+2026-10-18整理同期：承認済みのMac public client/scope/固定管理キー権限/同期コードを段階的に追加し、実Cognito/実HTTPSの合成フォルダ検証後にserver enabled。既存リソース置換なし。最新値はdeployment JSON、実施順序/限定bucket policy/保持確認は[同期配備](organization-sync-deployment.md)。

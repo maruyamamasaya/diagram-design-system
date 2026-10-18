@@ -108,3 +108,5 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 今回の資料は独自ローカル制作契約であり、標準presentation-packageを偽装しない。outputs/industry-2040-presentation/build/upload.cjs の限定ローダーが、既存のloadPackage注入経路から既存presentation-s3-1.0最小manifestに接続する。source/依存/完成成果物のハッシュを照合し、許可リスト外を送らない。計画/保存は同スクリプトのplan/upload。上限承認の再作成は人の再承認を前提とする制作時の操作であり通常再実行しない。
 
 閲覧APIも同じ資料限定承認を使う変更をローカル検証済み（[API仕様](viewer-api.md#資料限定の大容量対応2026-10-15本番反映済み)）。通常の20MB/50MB制限は維持し、本人の今回限りの承認後、本番反映済み。S3成功だけを実機での表示成功として扱わない。
+
+整理同期の管理JSON（2026-10-18）：資料パッケージとは別の固定キー1個だけ、既存Lambda roleのIf-Match更新を追加承認後に許可した。資料本体の不変キー/If-None-Match、TLS/AES256/BPAを維持する。bucket policyを以前の一律上書き禁止へ戻すと同期CASが拒否されるため、[適用した限定例外](organization-sync-deployment.md#既存バケットポリシーの修正追加承認後に完了)を保持する。
