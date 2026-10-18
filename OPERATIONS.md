@@ -71,3 +71,5 @@ TypeScript同期APIの`test:organization`は一時loopbackだけを起動し、�
 ローカルHTTPS検証は`npm --prefix viewer run test:organization:https`。一時証明書/秘密鍵/JWTは終了時削除し、OSへCAを追加しない。製品用TLSの例外なし。通常起動/本番同期は無効。[境界](docs/organization-sync-https.md)。
 
 整理同期の本番接続はまだ無効。ログインUI/未適用template/オフライン初期状態準備と停止・復元順序は[接続準備](docs/organization-sync-readiness.md)。AWSの短期セッション再認証とライブ差分・料金提示・明示承認を済ませてから適用する。
+
+整理同期のAWS準備は承認後に適用済み、現時点はserver無効。固定管理キーCAS用のバケットポリシー例外も追加承認後に適用。以後のS3設定変更でこの限定例外を消さない。[最新の適用状態と検証](docs/organization-sync-deployment.md)。

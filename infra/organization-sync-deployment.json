@@ -1,0 +1,17 @@
+{
+  "region": "ap-northeast-1",
+  "stackName": "diagram-library-api",
+  "status": "UPDATE_COMPLETE",
+  "organizationEnabled": false,
+  "codeSHA256": "9c4128306e48176e26e08eaaf04785669f4456c46119b482a8deddb0129fc0f2",
+  "outputs": {
+    "MacClientID": "10aj8nsbco929pgv4pbkhbuq2d",
+    "ApiURL": "https://2zpp6z8zvc.execute-api.ap-northeast-1.amazonaws.com",
+    "Issuer": "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_qKFdR57RY",
+    "ClientID": "56ai6vn12eq9j6bof1hpvrv5g9",
+    "LoginDomain": "https://diagram-library-676643701781.auth.ap-northeast-1.amazoncognito.com"
+  },
+  "smallAuthenticatedTest": "pending-owner-login",
+  "bucketPolicy": "approved fixed-key Lambda If-Match exception applied",
+  "existingDocumentsUnchanged": true
+}
