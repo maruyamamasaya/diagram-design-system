@@ -1,0 +1,8 @@
+{
+  "OrganizationSyncEnabled": true,
+  "OrganizationIssuer": "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_qKFdR57RY",
+  "OrganizationDomain": "https://diagram-library-676643701781.auth.ap-northeast-1.amazoncognito.com",
+  "OrganizationAPI": "https://2zpp6z8zvc.execute-api.ap-northeast-1.amazonaws.com",
+  "OrganizationClientID": "10aj8nsbco929pgv4pbkhbuq2d",
+  "OrganizationCallback": "zukanbookshelf://oauth/callback"
+}

@@ -31,6 +31,25 @@ private actor FailSecondBatch: OrganizationSyncTransport {
     }
 }
 final class HTTPSConnectionTests: XCTestCase {
+    func testConcurrentRequestsRespectExistingAPIStartRate() async throws {
+        let lock = NSLock()
+        var starts: [Date] = []
+        let data = try JSONEncoder().encode(bootstrap())
+        HTTPSStub.handler = { _ in
+            lock.lock(); starts.append(Date()); lock.unlock()
+            return (200, data, [:])
+        }
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [HTTPSStub.self]
+        let connection = try AuthenticatedSyncConnection(baseURL: URL(string:"https://api.example")!, issuer:"https://issuer.example", subject:"owner", session:URLSession(configuration:config)) { _ in
+            OrganizationAccess(token:"token",issuer:"https://issuer.example",subject:"owner")
+        }
+        async let a = connection.bootstrap()
+        async let b = connection.bootstrap()
+        _ = try await (a, b)
+        XCTAssertEqual(starts.count, 2)
+        XCTAssertGreaterThanOrEqual(starts[1].timeIntervalSince(starts[0]), 1.0)
+    }
     let id = UUID()
     func bootstrap(bytes: Int = 262144) -> OrganizationBootstrap { OrganizationBootstrap(libraryID: id, protocolVersion: 1, limit: 5, windowSeconds: 3600, maxOperations: 50, maxBodyBytes: bytes) }
     func connection(_ access: @escaping @Sendable (Bool) async throws -> OrganizationAccess = { _ in OrganizationAccess(token: "test", issuer: "https://issuer.example", subject: "owner") }) throws -> AuthenticatedSyncConnection {

@@ -25,5 +25,13 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>jp.local.zukan.bookshelf.oauth</string><key>CFBundleURLSchemes</key><array><string>zukanbookshelf</string></array></dict></array>
 </dict></plist>
 PLIST
+python3 - "$APP/Contents/Info.plist" "$PWD/config/organization-sync.json" <<'PYCONFIG'
+import json, plistlib, sys
+with open(sys.argv[1], 'rb') as source: info = plistlib.load(source)
+with open(sys.argv[2]) as source: config = json.load(source)
+assert set(config) == {"OrganizationSyncEnabled", "OrganizationIssuer", "OrganizationDomain", "OrganizationAPI", "OrganizationClientID", "OrganizationCallback"}
+info.update(config)
+with open(sys.argv[1], 'wb') as target: plistlib.dump(info, target)
+PYCONFIG
 codesign --force --sign - "$APP"
 printf '%s\n' "$APP"

@@ -46,6 +46,7 @@ import LibraryOrganizationUI
     }
     private var writeEnabled = true
     private var testSync: SyncLabSession?
+    private var productionSync = false
     private var testSyncEnabled: Bool
     @discardableResult func change(_ edit: (inout LibrarySettings) -> Void) -> Bool {
         guard writeEnabled else { return false }
@@ -69,7 +70,7 @@ import LibraryOrganizationUI
         // Do not replace a pending session/account. The checkpoint enforces the identity.
         try await auth.login()
         if let testSync { return testSync }
-        syncConnection = try auth.connection(); testSyncEnabled = true
+        syncConnection = try auth.connection(); testSyncEnabled = true; productionSync = true
         return makeSyncLab()
     }
     func makeSyncLab() -> SyncLabSession {
@@ -102,7 +103,7 @@ import LibraryOrganizationUI
                 try data.write(to: self.stateURL, options: .atomic)
                 self.settings = value
             })
-            let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding, rateLimited: true, connection: syncConnection)
+            let session = SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent(productionSync ? "organization-sync" : "test-library-sync"), seed: syncState(), documents: books.map { OrganizationDocument(id: $0.id, title: $0.latest.title, type: $0.latest.kind, version: $0.latest.version, formats: $0.latest.files.map { $0.pathExtension }, pageCount: $0.latest.pageCount, tags: $0.latest.tags) }, binding: binding, rateLimited: true, connection: syncConnection)
             testSync = session; return session
         }
         func document(_ member: BookReference) -> OrganizationDocument {

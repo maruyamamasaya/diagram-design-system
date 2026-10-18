@@ -75,3 +75,5 @@ TypeScript同期APIの`test:organization`は一時loopbackだけを起動し、�
 整理同期のAWS準備は承認後に適用済み、現時点はserver無効。固定管理キーCAS用のバケットポリシー例外も追加承認後に適用。以後のS3設定変更でこの限定例外を消さない。[最新の適用状態と検証](docs/organization-sync-deployment.md)。
 
 整理同期APIは2026-10-18に実認証/合成1フォルダ検証後server enabledとなった。通常アプリへは自動接続しない。停止はstackのOrganizationEnabled=falseを変更セットでレビューして適用し、管理オブジェクトを削除/空で上書きしない。[最新状態](docs/organization-sync-deployment.md)。
+
+通常本棚の製品接続は[実端末の接続状況](docs/organization-sync-live-clients.md)を参照。2026-10-18の公開設定で有効化したビルドから、本人ログイン→管理バックアップ→統合件数確認→手動同期を使う。以前の「通常起動では無効」は当時の検証ビルドの条件であり、現在の公開設定と区別する。AWS変更なしで利用できる既存APIを使用する。

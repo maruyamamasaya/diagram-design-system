@@ -21,6 +21,19 @@ public struct OrganizationBootstrap: Codable, Sendable {
         guard protocolVersion == 1, limit == 5, windowSeconds == 3600, (1...50).contains(maxOperations), (512...262144).contains(maxBodyBytes ?? 262144) else { throw OrganizationConnectionError.invalidBootstrap }
     }
 }
+/// Keep one connection below the existing API stage's one-request/second budget.
+/// Reserve the next slot before suspension so concurrent callers cannot share it.
+private actor OrganizationRequestPacer {
+    private let clock = ContinuousClock()
+    private var next: ContinuousClock.Instant?
+    func wait() async throws {
+        let now = clock.now
+        let slot = next.map { max($0, now) } ?? now
+        next = slot.advanced(by: .milliseconds(1100))
+        try await clock.sleep(until: slot)
+        try Task.checkCancellation()
+    }
+}
 /// Explicitly configured endpoint and account. Never accepts an endpoint from a response.
 public struct AuthenticatedSyncConnection: Sendable {
     public let baseURL: URL
@@ -28,6 +41,7 @@ public struct AuthenticatedSyncConnection: Sendable {
     public let subject: String
     public let access: @Sendable (_ forceRefresh: Bool) async throws -> OrganizationAccess
     public let session: URLSession
+    private let pacer = OrganizationRequestPacer()
     public var identityKey: String { [baseURL.absoluteString, issuer, subject].joined(separator: "\n") }
     public init(baseURL: URL, issuer: String, subject: String, session: URLSession? = nil, access: @escaping @Sendable (Bool) async throws -> OrganizationAccess) throws {
         guard baseURL.scheme == "https", baseURL.host != nil, baseURL.user == nil, baseURL.password == nil, baseURL.query == nil, baseURL.fragment == nil,
@@ -45,6 +59,7 @@ public struct AuthenticatedSyncConnection: Sendable {
     func request(path: String, body: Data?) async throws -> (Data, HTTPURLResponse) {
         let url = baseURL.appendingPathComponent(path)
         for attempt in 0...1 {
+            try await pacer.wait()
             let credentials: OrganizationAccess
             do { credentials = try await access(attempt == 1) } catch { throw OrganizationConnectionError.authentication }
             guard credentials.issuer == issuer, credentials.subject == subject else { throw OrganizationConnectionError.accountChanged }
