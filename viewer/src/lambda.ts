@@ -1,4 +1,5 @@
 import { handle } from './lib/api';
+import { organizationRuntime } from './lib/organization/runtime';
 // API Gateway HTTP API payload v2. No local password/cookie routes are dispatched.
 export function createHandler(dependencies: Parameters<typeof handle>[3] = {}) {
  return async function handler(event: {rawPath: string; rawQueryString?: string; headers?: Record<string,string>; body?: string; isBase64Encoded?: boolean; requestContext: {http: {method: string}}}) {
@@ -14,5 +15,5 @@ export function createHandler(dependencies: Parameters<typeof handle>[3] = {}) {
   return {statusCode: result.status, headers: Object.fromEntries(result.headers), body: await result.text()};
 }
 }
-// Default deployment remains unchanged: organization service is not connected.
-export const handler = createHandler();
+// Disabled unless an explicitly reviewed deployment sets the feature flag.
+export const handler = createHandler({organization: organizationRuntime()});

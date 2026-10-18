@@ -94,3 +94,5 @@ Mac分類・まとめ（2026-10-17）：仕事/私用/その他・自由タグ�
 AWS向け同期APIのローカル実装（2026-10-18）：既存viewerへTypeScript authority/回数台帳/無変更応答/CAS保存ポート/認可付きルートを追加。Swiftと5共通fixture・75ステップの応答一致、実loopback24通信とACK喪失を確認。既定Lambdaの同期ルートは無効のままで、AWS/既存データ/実機変更なし。[境界と検証](docs/organization-sync-api-local.md)。
 
 認証付き同期HTTPS/分割送信（2026-10-18、テストのみ）：共通のBearer/bootstrap/1回silent refresh/アカウント固定、最大50操作＋実JSONバイト上限、部分ACK後の永続再送を実装。Mac/iOSのテスト本棚へ明示注入し、既定は無効。125フォルダの実ローカルTLS/応答喪失/再起動/双方向を確認。AWS/既存データ/実機未変更。[仕様](docs/organization-sync-https.md)。
+
+同期の本番接続準備（2026-10-18、未適用）：Mac/iOSへログイン前説明・統合確認への導線、無効が既定のLambda組立、未適用CloudFormationと固定UUID/初期管理JSONのオフライン準備を追加。初回分割込み通常追加約7.71円/月、多分割常用では100円超。AWS読取はセッション期限切れ、新画面CUAはtimeoutで未操作。AWS/既存データ/実機未変更。[適用・復旧と残り](docs/organization-sync-readiness.md)。

@@ -19,8 +19,8 @@ public struct SyncLabView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(session.isTestLibrary ? "テスト本棚の同期" : "ローカル同期の検証").font(.title2.bold())
-                    Text(session.isTestLibrary ? "通常画面での編集と受信結果を、このテスト本棚へ保存します。競合の選択後は同期して反映してください。既存の本棚・AWSには接続しません。" : "本棚から取り込んだ検証コピーだけを編集・同期します。元の資料・フォルダ・タグ・まとめには書き込みません。iPhoneはSimulatorで検証してください。")
+                    Text(session.httpsConnection != nil ? "本棚の整理情報を同期" : session.isTestLibrary ? "テスト本棚の同期" : "ローカル同期の検証").font(.title2.bold())
+                    Text(session.httpsConnection != nil ? "この端末の整理情報を同期します。初回は管理バックアップと統合内容を確認し、競合は選択して解決してください。" : session.isTestLibrary ? "通常画面での編集と受信結果を、このテスト本棚へ保存します。競合の選択後は同期して反映してください。既存の本棚・AWSには接続しません。" : "本棚から取り込んだ検証コピーだけを編集・同期します。元の資料・フォルダ・タグ・まとめには書き込みません。iPhoneはSimulatorで検証してください。")
                         .font(.callout).foregroundStyle(.secondary)
                     HStack { Text(session.status).bold(); Spacer(); Text("送信待ち \(session.pendingCount)件 · 競合 \(session.conflicts.count)件") }
                     if let date = session.lastSynced { Text("最終同期：" + date.formatted()).font(.caption) }
@@ -74,8 +74,8 @@ public struct SyncLabView: View {
                             conflictList
                             if !session.isTestLibrary { rehearsalEditor }
                         }
-                        Button(session.isTestLibrary ? "テスト本棚の同期を解除" : "この端末の検証コピーを解除") { session.clear() }.disabled(session.restorationPending)
-                        Text("解除しても模擬サーバーのデータは残ります。再接続時は初回統合から確認できます。") .font(.caption).foregroundStyle(.secondary)
+                        Button(session.httpsConnection != nil ? "この端末の同期を解除" : session.isTestLibrary ? "テスト本棚の同期を解除" : "この端末の検証コピーを解除") { session.clear() }.disabled(session.restorationPending)
+                        Text("解除してもサーバーのデータは残ります。再接続時は初回統合から確認できます。") .font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(24).disabled(session.busy)
             }

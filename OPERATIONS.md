@@ -69,3 +69,5 @@ Mac/iPhone整理同期のAWS案と適用前条件は[未適用設計・試算](d
 TypeScript同期APIの`test:organization`は一時loopbackだけを起動し、ローカル署名トークン/Memory store/合成データで検証する。既定Lambdaは同期サービスを注入せず404のまま。実AWS設定・S3初期状態作成・配備前に別承認と再見積もりが必要。[手順](docs/organization-sync-api-local.md)。
 
 ローカルHTTPS検証は`npm --prefix viewer run test:organization:https`。一時証明書/秘密鍵/JWTは終了時削除し、OSへCAを追加しない。製品用TLSの例外なし。通常起動/本番同期は無効。[境界](docs/organization-sync-https.md)。
+
+整理同期の本番接続はまだ無効。ログインUI/未適用template/オフライン初期状態準備と停止・復元順序は[接続準備](docs/organization-sync-readiness.md)。AWSの短期セッション再認証とライブ差分・料金提示・明示承認を済ませてから適用する。

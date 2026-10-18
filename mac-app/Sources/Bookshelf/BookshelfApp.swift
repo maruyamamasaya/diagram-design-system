@@ -33,6 +33,7 @@ struct ShelfView: View {
     @State private var selectedTag = ""
     @State private var classificationDraft: Book?
     @State private var syncLab: SyncLabSession?
+    @State private var syncSetup = false
     @State private var collectionDraft: ReadingCollection<BookReference>?
     var selectedCollection: ReadingCollection<BookReference>? { store.settings.collections.first { shelf == "collection:" + $0.id.uuidString } }
     var collectionCards: [ReadingCollection<BookReference>] {
@@ -233,9 +234,11 @@ struct ShelfView: View {
         .onChange(of: visibleBooks.map(\.id)) { _, ids in selection.retainVisible(ids) }
         .searchable(text: $search, prompt: "タイトル・資料ID・タグで検索")
         .sheet(item: $syncLab) { SyncLabView(session: $0) }
+        .sheet(isPresented: $syncSetup) { SyncSetupView(available: store.organizationSyncAvailable) { try await store.connectOrganizationSync() } }
         .sheet(item: $classificationDraft) { book in ClassificationEditor(book: book, value: store.settings.classification(for: book)).environmentObject(store) }
         .sheet(item: $collectionDraft) { value in CollectionEditor(value: value).environmentObject(store) }
         .toolbar {
+            Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
             Button("同期の検証", systemImage: "arrow.triangle.2.circlepath") { syncLab = store.makeSyncLab() }
             if let folderID {
                 Menu("フォルダ", systemImage: "folder.badge.gearshape") {

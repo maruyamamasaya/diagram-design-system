@@ -18,7 +18,7 @@ import LibraryOrganizationUI
     private lazy var watcher = FolderWatcher { [weak self] in
         Task { await self?.refresh() }
     }
-    private let syncConnection: AuthenticatedSyncConnection?
+    private var syncConnection: AuthenticatedSyncConnection?
     private var activationObserver: NSObjectProtocol?
     init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true, enableTestSync: Bool = false, syncConnection: AuthenticatedSyncConnection? = nil) {
         self.syncConnection = syncConnection
@@ -46,7 +46,7 @@ import LibraryOrganizationUI
     }
     private var writeEnabled = true
     private var testSync: SyncLabSession?
-    private let testSyncEnabled: Bool
+    private var testSyncEnabled: Bool
     @discardableResult func change(_ edit: (inout LibrarySettings) -> Void) -> Bool {
         guard writeEnabled else { return false }
         guard testSync?.blocksLibraryEdits != true else { error = "同期の確認・復元処理中です。同期画面で完了または解除してから編集してください。"; return false }
@@ -59,6 +59,18 @@ import LibraryOrganizationUI
         state.folders = settings.folders; state.folderOrder = settings.folderOrder; state.assignments = settings.assignments; state.classifications = settings.classifications
         state.collections = settings.collections.map { value in ReadingCollection(id: value.id, title: value.title, members: value.members.map { OrganizationDocument(id: $0.id, title: $0.title, type: $0.type, version: $0.version, formats: $0.formats, pageCount: $0.pageCount, tags: $0.tags) }) }
         return state
+    }
+    private var organizationAuth: OrganizationOIDC?
+    var organizationSyncAvailable: Bool { (try? OrganizationOIDCConfiguration.bundled()) != nil }
+    func connectOrganizationSync() async throws -> SyncLabSession {
+        guard let config = try OrganizationOIDCConfiguration.bundled(), writeEnabled else { throw OrganizationConnectionError.authentication }
+        if organizationAuth == nil { organizationAuth = try OrganizationOIDC(config: config) }
+        guard let auth = organizationAuth else { throw OrganizationConnectionError.authentication }
+        // Do not replace a pending session/account. The checkpoint enforces the identity.
+        try await auth.login()
+        if let testSync { return testSync }
+        syncConnection = try auth.connection(); testSyncEnabled = true
+        return makeSyncLab()
     }
     func makeSyncLab() -> SyncLabSession {
         if testSyncEnabled {

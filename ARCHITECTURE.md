@@ -78,3 +78,5 @@ LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizatio
 AWS向け同期APIはviewerのorganization/model（状態遷移）・service（認可済みowner/固定library/CAS）・S3保存ポートへ分離。既存OIDCとAPI/Lambdaの明示的な依存注入で接続し、既定の同期ルートは無効。資料保存・読取と生成は独立したまま。[実装境界](docs/organization-sync-api-local.md)。
 
 認証付き同期transportはFoundationコア、PKCE/Keychain/ASWebAuthenticationSessionは共有UI側に隔離する。iOSは既存CloudOIDCを再利用し、Mac/iOSのStoreは同じ明示的なテスト接続を受け取る。bootstrapと実JSONサイズで分割し、確認済み分だけcheckpointへ確定する。[境界](docs/organization-sync-https.md)。
+
+同期の接続準備は共有SyncSetupView→既存認証→通常管理bindingを再利用。Lambdaは明示flagのみで固定キーS3OrganizationStoreを組立て、既定は未接続。未適用構成と復旧は[接続準備](docs/organization-sync-readiness.md)。

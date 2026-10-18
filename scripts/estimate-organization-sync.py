@@ -14,11 +14,13 @@ cases = [
  dict(name='five_per_hour', unchangedPercent=75, sessions=3600, extraSessions=0, dataPerSession=1, sends=1, denied=60, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=500, stateMiB=16),
  dict(name='five_per_hour_all_retried', unchangedPercent=75, sessions=3600, extraSessions=0, dataPerSession=1, sends=3, denied=60, bootstrap=60, casAttempts=3, seconds='1', responseKiB=500, stateMiB=16),
  dict(name='normal_plus_consent', unchangedPercent=75, retryData=150, retryControl=330, sessions=1200, extraSessions=300, dataPerSession=1, sends=1, denied=30, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=100, stateMiB=5),
+ dict(name='normal_with_initial_merge', unchangedPercent=74, retryData=120, retryControl=240, sessions=1202, extraSessions=0, dataPerSession=1, initialMergeExtraData=6, sends=1, denied=30, bootstrap=62, casAttempts=1, seconds='0.3', responseKiB=100, stateMiB=5),
+ dict(name='five_per_hour_ten_batches', unchangedPercent=75, sessions=3600, extraSessions=0, dataPerSession=10, sends=1, denied=60, bootstrap=60, casAttempts=1, seconds='0.3', responseKiB=500, stateMiB=16),
  dict(name='protocol_stress', unchangedPercent=0, sessions=3600, extraSessions=0, dataPerSession=12, sends=3, denied=60, bootstrap=60, casAttempts=3, seconds='1', responseKiB=2048, stateMiB=16),
 ]
 result = dict(checkedDate=config['checkedDate'],region=config['region'],fxJPYPerUSD=config['fxJPYPerUSD'],taxMultiplier=config['taxMultiplier'], note='30 days; no API/Lambda/log/storage free tier or credits; owner totals; parameterized estimate, not a billing ceiling',scenarios=[])
 for c in cases:
- s=c['sessions']+c['extraSessions']; a=c['sends']; data=s*c['dataPerSession']*a+c.get('retryData',0)
+ s=c['sessions']+c['extraSessions']; a=c['sends']; data=(s*c['dataPerSession']+c.get('initialMergeExtraData',0))*a+c.get('retryData',0)
  # Extra consent adds one denied begin/challenge before the confirmed begin.
  control=(2*s+c['extraSessions']+c['denied'])*a+c.get('retryControl',0)
  bootstrap=c['bootstrap']*a

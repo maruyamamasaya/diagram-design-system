@@ -44,3 +44,5 @@ APIのbootstrapにテスト専用8192-byte上限を提示し、125フォルダ�
 ## 次工程
 
 AWSへサービスを組み立てて有効化する前に、最新料金と最大状態の実測、CognitoのMac client/callback/scope、API/IAM/固定管理キー/初期状態/feature flag/ロールバックの差分を提示して承認を得る。資料本体は従来S3から読み、管理バックアップは端末内JSONだけ。初回の分割通信が増える場合の費用も配備前に再計算し、既存の月額見積もりを上限保証にしない。
+
+接続画面・Lambda組立・未適用templateは[本番接続準備](organization-sync-readiness.md)へ進んだ。既定無効、実AWS/実Cognito/実機は引き続き未検証。

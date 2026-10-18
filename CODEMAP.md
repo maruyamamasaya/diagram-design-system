@@ -92,3 +92,5 @@ Macタグ/まとめ：BookshelfCore/Organization.swift（BookReference/分類/�
 AWS向け同期APIのローカル入口：viewer/src/lib/organization/{model,service,s3-store}.ts、api.tsの注入ルート、lambda.tsのcreateHandler。viewer/tests/fixtures/organizationとOrganizationSyncMock conformanceでSwift照合。再現はviewerのtest:organization。[仕様](docs/organization-sync-api-local.md)。
 
 HTTPS同期：LibraryOrganization/AuthenticatedSyncTransport.swift、UI/OrganizationOIDC.swiftとSyncLabSession。Mac Store/iOS CloudOIDC・CloudLibraryStoreの明示注入。HTTPSConnectionTests、viewer/scripts/check-organization-https.ts。[手順](docs/organization-sync-https.md)。
+
+本番接続準備：UI/SyncSetupView.swift、Mac Store.connectOrganizationSync、iOSのonSyncLogin、viewer/lib/organization/runtime.ts、infra/organization-sync.proposed.json、viewer/scripts/prepare-organization-deployment.ts。[未適用手順](docs/organization-sync-readiness.md)。
