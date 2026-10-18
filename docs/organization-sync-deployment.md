@@ -37,3 +37,7 @@
 初回の共有/TypeScript回帰25件は再実行して合格。認証付きの実APIテストと最終有効化は、本人ログイン後に続ける。現時点では未確認を成功として扱わず、server flagはfalseのまま保持する。
 
 証跡：outputs/organization-sync-deployment/（Git管理外）。元の非秘密parameter、無効時configuration、変更セット、bucket policy前後/validation、初期PUTと拒否後の管理JSON、HTTPS無効時応答を保存。CursorSecret/token/署名URLを含む設定はコミットしない。
+
+### 本人アカウントの復旧（2026-10-18）
+
+本人が再設定画面のエラーを報告。読取確認でemail_verified未設定・電話未確認、復旧先はverified_email優先・MFA OFFと判明した。本人が登録済みメールの確認済み設定と再設定コード送信を明示承認したため、同じownerのemail_verifiedだけをtrueへ変更し、AdminResetUserPasswordを実行。API成功・RESET_REQUIRED・email_verified=trueを読取確認。旧パスワードは無効となり、本人によるコード/新パスワード入力待ち。コード/パスワードは取得・設定していない。メールの受信完了は本人確認前。資料/整理情報/同期flagは変更せずfalseを維持。追加リソースなし・同じ本人1MAUのままで、承認済み料金試算の変更なし。専用CUAの再設定画面確認はtimeoutReachedのため未確認。
