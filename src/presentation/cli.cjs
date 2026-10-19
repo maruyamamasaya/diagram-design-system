@@ -27,6 +27,7 @@ async function main() {
   const result = await generatePresentation(input, {
     output: options.output && path.resolve(options.output),
     fontPath: options.font,
+    assetRoot: path.dirname(path.resolve(options.input)),
     browserPath: options.browser || process.env.DIAGRAM_BROWSER,
     exportFormats:
       options.formats === "svg,png"

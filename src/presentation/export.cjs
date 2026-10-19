@@ -86,6 +86,10 @@ async function readScene(svg, page) {
               };
             }),
           };
+        if (e.tagName === "image") {
+          if (!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(a.href || "")) throw Error("Unsafe embedded image");
+          return {kind:"image", ...a};
+        }
         if (!["rect", "path"].includes(e.tagName))
           throw Error("Unsupported SVG element " + e.tagName);
         return { kind: e.tagName, ...a };
@@ -93,19 +97,20 @@ async function readScene(svg, page) {
   );
 }
 function segments(d) {
-  if (/[^0-9eE.,+\-\sMmLlHh]/.test(d)) throw Error("Unsupported SVG path");
-  const a = d.match(/[MmHhLl]|-?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi) || [];
+  if (/[^0-9eE.,+\-\sMmLlHhVv]/.test(d)) throw Error("Unsupported SVG path");
+  const a = d.match(/[MmHhLlVv]|-?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi) || [];
   let x = 0,
     y = 0,
     i = 0,
     cmd;
   const out = [];
   while (i < a.length) {
-    if (/^[MmHhLl]$/.test(a[i])) cmd = a[i++];
+    if (/^[MmHhLlVv]$/.test(a[i])) cmd = a[i++];
     const relative = cmd === cmd.toLowerCase();
     let nx = x,
       ny = y;
     if (cmd.toLowerCase() === "h") nx = (relative ? x : 0) + Number(a[i++]);
+    else if (cmd.toLowerCase() === "v") ny = (relative ? y : 0) + Number(a[i++]);
     else if (["m", "l"].includes(cmd.toLowerCase())) {
       nx = (relative ? x : 0) + Number(a[i++]);
       ny = (relative ? y : 0) + Number(a[i++]);
@@ -301,7 +306,15 @@ async function exportPptx(pages, directory) {
           sh.text = l.value;
           styleText(sh, n, +n["font-size"]);
         }
-      else if (n.kind === "rect")
+      else if (n.kind === "image") {
+        const [header, encoded] = n.href.split(",");
+        s.images.add({
+          blob: new Uint8Array(Buffer.from(encoded, "base64")),
+          contentType: header.slice(5, header.indexOf(";")),
+          alt: n["aria-label"] || n.id, fit: "contain",
+          position: {left:+n.x, top:+n.y, width:+n.width, height:+n.height},
+        });
+      } else if (n.kind === "rect")
         s.shapes.add({
           name: n.id,
           geometry: +n.rx ? "roundRect" : "rect",
@@ -500,7 +513,11 @@ async function exportPresentation(
               const ref = source.references.find((r) => r.referenceId === id);
               return ref.label + ": " + ref.source;
             })
-            .join("\n"),
+            .join("\n") +
+          (source.assets || []).filter(a => {
+            const content = source.slides.find(s => s.slideId === slide.slideId).content;
+            return (content.images || (content.image ? [content.image] : [])).some(im => im.assetId === a.assetId);
+          }).map(a => `\nImage ${a.assetId}: ${a.origin}\nLicense: ${a.license}\nSHA256: ${a.sha256}${a.kind === "generated" ? "\nGenerated illustration, not documentary evidence. Prompt: " + a.prompt : ""}`).join(""),
       });
     }
     const report = { pdf: "not_requested", pptx: "not_requested" };

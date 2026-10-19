@@ -7,6 +7,7 @@ const validate = new Ajv({ strict: true, allErrors: true }).compile(schema);
 function validatePresentation(value) {
   if (!validate(value))
     throw new Error("Presentation schema: " + JSON.stringify(validate.errors));
+  require("./graphic-assets.cjs").validateGraphicAssets(value);
   const refs = new Set();
   for (const r of value.references) {
     if (refs.has(r.referenceId)) throw Error("Duplicate referenceId");

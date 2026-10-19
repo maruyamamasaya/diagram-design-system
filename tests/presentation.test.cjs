@@ -8,7 +8,7 @@ const example = require("../examples/linux-presentation/source.json");
 const registry = require("../config/slide-templates.json");
 test("all six registered slide content contracts validate and have specs", () => {
   assert.equal(validatePresentation(example), example);
-  assert.equal(registry.templates.length, 12);
+  assert.equal(registry.templates.length, 18);
   for (const t of registry.templates) {
     assert.ok(fs.existsSync(path.resolve(__dirname, "../config", t.spec)));
     assert.equal(t.rendererImplemented, true);

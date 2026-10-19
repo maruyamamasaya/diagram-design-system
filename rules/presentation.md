@@ -10,7 +10,7 @@
 ## 選択規則
 開始/章扉→Title、並列要点→Bullet、同条件の二択→Two Column Comparison、順序/分岐/構成/関係→Diagram、複数列の同軸一覧→Table、既出の結論/次の行動→Summary。単なる文章を無理に図へ変換しない。条件が競合したら説明すべき関係を優先し、選択理由と入力項目対応をvalidation.jsonへ記録する。一スライドの主題を明確にし、見出しはその判断・関係を示す。関連情報の統合と標準の枚数・密度は[layout](layout.md)に従う。Title/Summaryは必須ではなく目的に合わせる。
 
-[登録表](../config/slide-templates.json)に存在するtemplateIdのみ使用。新しい構成が必要なら登録仕様・スキーマ・境界ケース・視覚証跡を先に追加し、無登録のレイアウトを生成しない。designedは仕様のみ、visualValidation=not_runは品質確認未実施。将来レンダラーはrendererImplemented=trueかつ承認された視覚検証済みのテンプレートだけを選ぶ。Phase 6で6種のSVG/PNG描画に対応。対応範囲と視覚証跡はdocs/phase6-validation.mdを参照。図解は直列Roadmapのみ。
+[登録表](../config/slide-templates.json)に存在するtemplateIdのみ使用。新しい構成が必要なら登録仕様・スキーマ・境界ケース・視覚証跡を先に追加し、無登録のレイアウトを生成しない。designedは仕様のみ、visualValidation=not_runは品質確認未実施。将来レンダラーはrendererImplemented=trueかつ承認された視覚検証済みのテンプレートだけを選ぶ。Phase 6で6種のSVG/PNG描画に対応。対応範囲と視覚証跡はdocs/phase6-validation.mdを参照。従来Diagramは直列Roadmapのみ。共通グラフィックの固定構成・2分岐等は[別の登録経路](../docs/graphic-renderer.md)。
 
 ## 検証
 schema検査に加え、slideId/referenceId一意性、出典参照解決、表の矩形性、危険な参照パス禁止を意味検査する。登録表とスキーマのtype/IDを一致させる。内容・条件・主張順は原資料と照合する。描画実装後は実測テキスト矩形・包含以外の重なり・境界・全ページ再レンダリングを検査し、[quality](quality.md)の状態を記録する。未読資料、未実装形式、未検証の視覚品質を成功扱いしない。

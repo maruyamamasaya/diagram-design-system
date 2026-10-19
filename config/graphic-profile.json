@@ -1,0 +1,19 @@
+{
+  "bodyTop": 168,
+  "takeawayTop": 728,
+  "columnGap": 80,
+  "nodeTop": 196,
+  "nodeHeight": 200,
+  "edgeTop": 436,
+  "contextTop": 568,
+  "imageWidth": 920,
+  "imageHeight": 400,
+  "imageGap": 48,
+  "pairGap": 40,
+  "pairImageHeight": 310,
+  "pairCaptionTop": 494,
+  "pairReadingTop": 554,
+  "pairComparisonTop": 626,
+  "pairConditionsTop": 692,
+  "pairTakeawayTop": 736
+}

@@ -75,3 +75,12 @@ test('render failure leaves an incomplete new version and keeps the old version 
     assert.equal(await fs.readFile(path.join(f.baseline,'slides/005/slide.png'),'utf8'),'png-4');
   }finally{await fs.rm(f.temp,{recursive:true,force:true});}
 });
+
+test('image-bearing partial update stops before creating a new package',async()=>{
+ const f=await fixture();try {
+  const metadata=JSON.parse(await fs.readFile(path.join(f.baseline,'metadata.json')));
+  metadata.assets=[{assetId:'image',path:'source/assets/image.png',sha256:hash('image'),sizeBytes:5,kind:'existing',referenceId:'input',origin:'test',license:'test',alt:'test'}];
+  await fs.writeFile(path.join(f.baseline,'metadata.json'),JSON.stringify(metadata));
+  const dep=mocks(f);await assert.rejects(regenerate(f,dep),/Image asset partial updates/);assert.equal(dep.calls.length,0);await assert.rejects(fs.access(f.output));
+ }finally{await fs.rm(f.temp,{recursive:true,force:true});}
+});

@@ -116,3 +116,7 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 configの任意boolean `lifecycleProtection` は既定無効。承認後の有効化で、全公開処理を資料単位の `library/document-locks/{id}.json` のCASロックで囲み、trashed/deleting/deletedへの再保存を拒否する。完了/失敗時は自分のロックを解放する。CASはAES256/ExpectedBucketOwnerと条件付きPUTを維持。停止した処理のロックは自動期限切れにせず、旧処理停止確認後の個別復旧が必要。未更新CLIや管理者の直接書込は協調排他の対象外。[設計と承認](shared-library-trash.md)。
 
 2026-10-19の本人承認後、既存ローカル承認済み設定のlifecycleProtectionをtrueとし、本番合成資料のGET照合/削除後の再公開拒否を確認。[配備記録](shared-trash-deployment.md)。
+
+## 登録グラフィックの画像ページ
+
+共通グラフィックの画像ページは原色保持の検査結果、登録ID、画像スロット/素材台帳の対応とローカル原画像のサイズ/SHA256を照合する。従来のモノクロページ検査は維持。S3送信は従来の完成PNG/PDF/PPTXと最小manifestだけで、source/assetsや生成プロンプト台帳を追加送信しない。実AWS検証とは区別する。[共通描画器](graphic-renderer.md)。

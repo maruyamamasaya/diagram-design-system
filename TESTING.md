@@ -113,3 +113,5 @@ S3保存容量：viewer/tests/storage-capacity.test.tsで全版/削除マーカ�
 Mac閲覧キャッシュ：`CloudBookshelfTests.testCoverGridDoesNotEvictPreviouslyReadPDFButBudgetsStillApply`で表紙48版と既読PDFの共存、本文版枠、総容量枠を確認する。実機の速度比較とは分離。[調査記録](sessions/2026-10-19-mac-preview-cache-quota.md)。
 
 固定列幅表：`tests/presentation-width-profile.test.cjs`で列役割/列数拒否・旧等幅保持・実測/分割/全セル保持を確認。変換時は`tests/export/presentation-exports.test.cjs`の固定列幅ケースでPDF文字とPPTXネイティブ列幅を確認。目視・実PowerPointは別証跡。
+
+共通グラフィック：`node --test tests/graphic-presentation.test.cjs`で6種実描画、素材ハッシュ/出典/生成表示/危険パス/symlink/型/容量/境界/重なり/超過拒否を確認。`tests/export/graphic-exports.test.cjs`はPNG/JPEG画像とネイティブ要素、PDF文字保持、PPTX画像バイト/生成記録を照合。最終形式の再描画と目視は[記録](sessions/2026-10-19-graphic-renderer.md)。

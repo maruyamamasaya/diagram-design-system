@@ -9,6 +9,8 @@ const { loadRules } = require("../rules.cjs");
 const { loadFont } = require("../font.cjs");
 const { openBrowser, prepare } = require("../browser.cjs");
 const { escape } = require("../engine.cjs");
+const { drawGraphic } = require("./graphic.cjs");
+const { readAssets, snapshotAssets } = require("./graphic-assets.cjs");
 const { drawDense } = require("./dense.cjs");
 const profile = require("../../config/presentation-profile.json");
 const hash = (b) => crypto.createHash("sha256").update(b).digest("hex");
@@ -32,9 +34,11 @@ async function renderSlide(
     diagram = null,
     pageNumber = 1,
     referenceLabel = "",
+    assets = new Map(),
   },
 ) {
-  const dense = slide.templateId.endsWith(".v2");
+  const graphic = slide.slideType === "graphic";
+  const dense = graphic || slide.templateId.endsWith(".v2");
   const t = dense ? { ...rules.tokens, ...profile.tokens } : rules.tokens,
     c = rules.colors,
     page = await context.newPage();
@@ -42,14 +46,15 @@ async function renderSlide(
     await prepare(page, font.css + codeFont.css);
     const blocks = [],
       shapes = [],
-      body = [];
+      body = [],
+      imageBoxes = [];
     async function measure(text, width, size, bold = false) {
       const code = /^[A-Za-z][A-Za-z0-9_-]*(?: [A-Za-z0-9_-]+)*(?:：|$)/.test(
         text,
       );
       font.ensureGlyphs(text);
       return page.evaluate(
-        ({ text, width, size, bold, code }) => {
+        ({ text, width, size, bold, code, graphic }) => {
           const ctx = document.createElement("canvas").getContext("2d");
           ctx.font = `${bold ? 700 : 400} ${size}px ${code ? "DiagramMono,DiagramJP" : "DiagramJP"}`;
           const lines = [];
@@ -59,8 +64,16 @@ async function renderSlide(
               if (ctx.measureText(char).width > width)
                 throw Error("Unbreakable text");
               if (line && ctx.measureText(line + char).width > width) {
-                lines.push(line);
-                line = "";
+                const chars = Array.from(line);
+                if (graphic && chars.length > 1 &&
+                    ("、。，．）)]」』！？：；".includes(char) || "（([「『".includes(chars.at(-1)))) {
+                  const last = chars.pop();
+                  lines.push(chars.join(""));
+                  line = last;
+                } else {
+                  lines.push(line);
+                  line = "";
+                }
               }
               line += char;
             }
@@ -88,7 +101,7 @@ async function renderSlide(
             code,
           };
         },
-        { text, width, size, bold, code },
+        { text, width, size, bold, code, graphic },
       );
     }
     async function text(id, value, x, y, w, size, maxLines = 2, bold = false) {
@@ -113,7 +126,9 @@ async function renderSlide(
     const m = t.margin,
       w = t.width - 2 * m,
       s = slide.content;
-    if (dense) {
+    if (graphic) {
+      await drawGraphic({ slide, t, c, text, card, body, assets, imageBoxes, page });
+    } else if (dense) {
       await drawDense({
         slide,
         t,
@@ -437,6 +452,13 @@ async function renderSlide(
         )
           throw Error("Text crosses shape " + b.id);
     }
+    for (const image of imageBoxes) {
+      if (image.x < m || image.y < m || image.x + image.w > t.width - m || image.y + image.h > t.height - m) throw Error("Image out of canvas");
+      if (bounds.some(b => intersects(b, image))) throw Error("Image overlaps text");
+    }
+    for (let i = 0; i < imageBoxes.length; i++)
+      for (let j = i + 1; j < imageBoxes.length; j++)
+        if (intersects(imageBoxes[i], imageBoxes[j])) throw Error("Image overlap");
     for (let i = 0; i < bounds.length; i++)
       for (let j = i + 1; j < bounds.length; j++)
         if (intersects(bounds[i], bounds[j]))
@@ -468,8 +490,7 @@ async function renderSlide(
     if (p.width !== 3200 || p.height !== 1800) throw Error("PNG dimensions");
     for (let i = 0; i < p.data.length; i += 4)
       if (
-        p.data[i] !== p.data[i + 1] ||
-        p.data[i] !== p.data[i + 2] ||
+        (!imageBoxes.length && (p.data[i] !== p.data[i + 1] || p.data[i] !== p.data[i + 2])) ||
         p.data[i + 3] !== 255
       )
         throw Error("Non-monochrome PNG");
@@ -482,6 +503,7 @@ async function renderSlide(
         bounds,
         blocks,
         shapes,
+        ...(graphic ? { images: imageBoxes } : {}),
         designQuality: {
           minimumFontSize: Math.min(...blocks.map((b) => b.size)),
           enclosedGroups: shapes.length,
@@ -494,7 +516,8 @@ async function renderSlide(
           glyphs: "passed",
           textBounds: "passed",
           overlaps: "passed",
-          monochrome: "passed",
+          monochrome: imageBoxes.length ? "not_applicable_source_colors_preserved" : "passed",
+          ...(imageBoxes.length ? { sourceImageColors: "preserved" } : {}),
           pngDimensions: "passed",
           contentAccuracy: "not_reviewed",
           visualReview: "not_reviewed",
@@ -513,6 +536,7 @@ async function generatePresentation(
     fontPath = process.env.DIAGRAM_FONT || "C:/Windows/Fonts/NotoSansJP-VF.ttf",
     browserPath = process.env.DIAGRAM_BROWSER,
     sourceFiles = {},
+    assetRoot = root,
     pageNumberStart = 1,
     allowUnreviewedTemplates = false,
     exportFormats = ["pdf", "pptx"],
@@ -540,11 +564,15 @@ async function generatePresentation(
     )
       throw Error("Unverified template: " + slide.templateId);
   }
+  const assets = await readAssets(input, assetRoot);
   const rules = await loadRules(root);
   for (const name of [
     "rules/presentation.md",
     "config/presentation-profile.json",
     "src/presentation/dense.cjs",
+    "src/presentation/graphic.cjs",
+    "src/presentation/graphic-assets.cjs",
+    "config/graphic-profile.json",
     "src/presentation/export.cjs",
     "src/presentation/normalize-pptx.py",
     "src/presentation/normalize-pdf.py",
@@ -593,6 +621,7 @@ async function generatePresentation(
     await fs.mkdir(directory);
     created = true;
     await fs.mkdir(path.join(directory, "source"));
+    if (assets.size) metadata.assets = await snapshotAssets(assets, directory);
     await fs.writeFile(
       path.join(directory, "source/presentation.json"),
       JSON.stringify(input, null, 2),
@@ -657,6 +686,7 @@ async function generatePresentation(
             codeFont,
             rules,
             diagram,
+            assets,
             pageNumber: metadata.slides.length + pageNumberStart,
             referenceLabel: current.references
               .map(
@@ -666,7 +696,7 @@ async function generatePresentation(
               .join(" / "),
           });
         } catch (e) {
-          const key = current.content.items
+          const key = current.slideType === "graphic" ? null : current.content.items
             ? "items"
             : current.content.takeaways
               ? "takeaways"
@@ -735,6 +765,7 @@ async function generatePresentation(
         font: font.info.sha256,
         codeFont: codeFont.info.sha256,
         engine: hash(await fs.readFile(__filename)),
+        ...(metadata.assets ? { assets: metadata.assets.map(a => ({ assetId: a.assetId, sha256: a.sha256 })) } : {}),
       }),
     );
     const validMetadata = new (require("ajv"))({ strict: true }).compile(

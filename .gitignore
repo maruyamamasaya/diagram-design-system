@@ -15,3 +15,7 @@ viewer/*.tsbuildinfo
 viewer/.env.local
 viewer/playwright-report/
 viewer/test-results/
+
+# Python cache
+__pycache__/
+*.py[cod]

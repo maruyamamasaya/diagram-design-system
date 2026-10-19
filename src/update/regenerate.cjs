@@ -28,6 +28,7 @@ async function prepare({ baseline, plan, input, sourceFiles }) {
   const baselineBytes = await readSafe(baseline, 'metadata.json');
   const metadata = json(baselineBytes);
   if (!validateMetadata(metadata)) throw Error('Invalid baseline metadata');
+  if (input.assets?.length || metadata.assets?.length) throw Error('Image asset partial updates are not supported; generate a complete new version');
   const original = validatePresentation(json(await readSafe(baseline, 'source/presentation.json')));
   input = validatePresentation(require('../presentation/defaults.cjs').applyTemplateDefaults(input));
   if (original.presentationId !== metadata.presentationId || original.version !== metadata.presentationVersion || input.presentationId !== original.presentationId || input.version <= original.version || input.version > 999999) throw Error('New version must retain presentationId and increase version');

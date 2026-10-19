@@ -6,9 +6,9 @@
 
 - 原資料の意味理解・調査・構成はAIが担当する。CLIの自動自然言語解析は未実装。
 - 通常プレゼンは登録6種のv2が標準。v1明示指定は保持。SVG共通配置からPNG/PDF/編集可能PPTXを生成し、一括制作の標準納品では内部SVGを削除する。[生成契約](docs/presentation-engine.md)、[一括制作](docs/phase12-workflow.md)。
-- グラフィック版は資料専用の意味入力契約・固定レイアウト登録・サンプル検証を含む制作運用。任意の関係図や画像を標準エンジンが自動処理する機能ではない。[運用](docs/presentation-graphic-mode.md)、[レイアウト選択](docs/presentation-layout-policy.md)。
+- グラフィック版は共通描画器の6種（構成・手順・原因分岐・比較・大きい図版・図版比較）へ対応。PNG/JPEGの既存/生成素材を台帳付きで埋込み、PNG/PDF/編集可能PPTXを出力。未対応の構成は専用固定登録を使用する。[共通描画器](docs/graphic-renderer.md)。[運用](docs/presentation-graphic-mode.md)、[レイアウト選択](docs/presentation-layout-policy.md)。
 - 独立一枚図はsvg/hybrid/imageで制作しPNG/PDFを納品。PPTXは対象外。[制作仕様](docs/illustration-workflow.md)。旧定型単一図解CLIは直列RoadmapのSVG/PNGのみ。
-- 登録プレゼンの差分計画・部分再生成・旧ページ再利用に対応。専用グラフィックパッケージの自動差分更新は保証しない。[差分更新](docs/phase10b-partial-update.md)。
+- 登録プレゼンの差分計画・部分再生成・旧ページ再利用に対応。画像付き共通グラフィックと専用パッケージの部分再生成は未対応で、新版全体生成を使う。[差分更新](docs/phase10b-partial-update.md)。
 - 通常表の列幅は従来等幅を保持し、説明・例・条件の役割に応じた固定プロファイルを追加。[v2配置](docs/presentation-layout-v2.md)。認定範囲はサンプルと[今回の検証記録](sessions/2026-10-19-document-routes-layout-update.md)に限定する。
 
 ## 保存・閲覧・アプリ
@@ -22,6 +22,6 @@
 
 ## 制約・今後の扱い
 
-標準登録エンジンの図解は直列Roadmap。Architecture・分岐Flowchartなどは専用登録制作で対応し、標準描画対応と混同しない。PPTXは書体非埋込み、接続線は独立線分。実PowerPoint・別端末・投影の確認範囲は資料ごとの証跡に従う。大規模資料の自動解析・Git自動解析は保留。AWS変更は料金試算と本人の明示承認後、資料送信も別承認。
+標準登録エンジンの図解は直列Roadmap。グラフィック共通描画器は固定の直列構成・2分岐等に対応するが、任意のArchitecture/Flowchartを自動配置する機能ではない。PPTXは書体非埋込み、接続線は独立線分。実PowerPoint・別端末・投影の確認範囲は資料ごとの証跡に従う。大規模資料の自動解析・Git自動解析は保留。AWS変更は料金試算と本人の明示承認後、資料送信も別承認。
 
 過去の実装・配布経緯は[sessions](sessions/README.md)と[整理前スナップショット](sessions/2026-10-19-current-before-reorganization.md)に保持する。ここへ作業履歴を追記せず、現行状態を更新する。

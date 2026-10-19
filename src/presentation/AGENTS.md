@@ -9,3 +9,7 @@ PDF/PPTX、一括制作、差分更新の現在の実装と登録状態は[CURRE
 
 
 Phase 7：v2標準、明示v1互換。export.cjsが共通SVGからPDF/PPTXへ派生し、各パッケージの生成処理と分離する。[出力仕様](../../docs/presentation-export.md)を読む。追加変換試験はnpm run test:exports。
+
+## 共通グラフィック
+
+schema1.3のslideType=graphic・明示templateIdを使う6種は[共通描画器](../../docs/graphic-renderer.md)。graphic.cjs、graphic-assets.cjs、graphic-profile.jsonが配置と素材を所有する。入力へ座標を追加しない。既存図版/生成画像は台帳・ハッシュ・利用条件を保持し、画像の色をモノクロへ変更しない。生成/検索は制作者の工程。画像付き部分更新は明示拒否して全体新版生成とする。

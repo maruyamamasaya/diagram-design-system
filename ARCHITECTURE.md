@@ -7,7 +7,7 @@
 ```text
 原資料 → AIの理解・調査・構成
   ├─ 通常プレゼン：登録v2 → SVG共通配置 → PNG/PDF/PPTX
-  ├─ グラフィック版：資料専用契約・固定登録 → PNG/PDF/PPTX
+  ├─ グラフィック版：共通6構図＋画像台帳 / 専用固定登録 → PNG/PDF/PPTX
   ├─ 独立一枚図：SVG/画像/混成 → PNG/PDF
   └─ 旧定型単一図解：直列Roadmap JSON → SVG/PNG
                     ↓
@@ -22,7 +22,7 @@ AIは意味理解と構成設計、レンダラーは描画、exportは形式変
 |---|---|
 |rules / templates / prompts|共通原則・意味構造・制作手順|
 |schemas / config|意味入力・保存契約・登録表・配置トークン|
-|src/presentation|プレゼン検査・描画・変換・版別保存|
+|src/presentation|プレゼン検査・描画・変換・版別保存。graphicは意味入力から固定構図、graphic-assetsは原画像検査/保存|
 |src/illustration|完成SVG/PNGの検査・一枚図パッケージ化|
 |src/workflow / src/update|制作工程の統括 / 更新計画・部分再生成|
 |src/engine.cjs / src/storage.cjs|旧Roadmap描画 / ローカル保存|

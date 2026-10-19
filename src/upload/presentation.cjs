@@ -34,12 +34,31 @@ async function loadPresentation(dir,config) {
   if(validation.slides?.length!==meta.slides.length) throw Error('Slide validation count mismatch');
   for(let i=0;i<meta.slides.length;i++) {
     const slide=meta.slides[i],n=String(i+1).padStart(3,'0'),v=validation.slides[i];
-    if(v.slideId!==slide.slideId||v.part!==slide.part||!['schema','glyphs','textBounds','overlaps','monochrome','pngDimensions'].every(k=>v.report?.checks?.[k]==='passed')) throw Error('Required slide checks failed');
+    const content=source.slides.find(s=>s.slideId===slide.slideId)?.content;
+    const imageSlots=content?.images || (content?.image ? [content.image] : []);
+    const colorCheck=imageSlots.length === 0 ? v.report?.checks?.monochrome==='passed' : (
+      /^slide\.graphic\.evidence(?:-pair)?\.v1$/.test(slide.templateId) &&
+      v.report?.checks?.monochrome==='not_applicable_source_colors_preserved' &&
+      v.report?.checks?.sourceImageColors==='preserved' && imageSlots.length>0 &&
+      v.report?.images?.length===imageSlots.length &&
+      imageSlots.every(im=>meta.assets?.some(a=>a.assetId===im.assetId))
+    );
+    if(v.slideId!==slide.slideId||v.part!==slide.part||!colorCheck||!['schema','glyphs','textBounds','overlaps','pngDimensions'].every(k=>v.report?.checks?.[k]==='passed')) throw Error('Required slide checks failed');
     const allowed=[`slides/${n}/slide.svg`,`slides/${n}/slide.png`,`thumbnails/${n}.png`];
     if(slide.artifacts.length!==3||!allowed.every(p=>slide.artifacts.some(a=>a.path===p))) throw Error('Unexpected slide artifact');
     for(const a of slide.artifacts) if(a.path.endsWith('/slide.png')) await add(a.path,a,true);
   }
   for(const s of meta.sources) {if(!/^source\/[A-Za-z0-9][A-Za-z0-9._-]*\.(md|json)$/.test(s.path)) throw Error('Unexpected source path');await add(s.path,s);}
+  const assetIds=new Set();
+  if ((source.assets || []).length !== (meta.assets || []).length) throw Error('Asset snapshot count mismatch');
+  for (const asset of meta.assets || []) {
+    const original=source.assets?.find(a=>a.assetId===asset.assetId);
+    if (assetIds.has(asset.assetId) || !/^source\/assets\/[A-Za-z][A-Za-z0-9_-]*\.(png|jpg)$/.test(asset.path) ||
+        !original || ['sha256','kind','referenceId','origin','license','alt','prompt'].some(k=>original[k]!==asset[k])) throw Error('Invalid asset snapshot');
+    assetIds.add(asset.assetId);
+    const bytes=await safeRead(dir,asset.path);
+    if (sha256(bytes)!==asset.sha256 || bytes.length!==asset.sizeBytes) throw Error('Asset snapshot integrity mismatch');
+  }
   // Diagram inputs are selected by the source contract, not directory enumeration.
   for(const slide of source.slides) if(slide.slideType==='diagram') {
     const d=slide.content.diagram;

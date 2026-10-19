@@ -27,3 +27,5 @@ outputs/<presentationId>/versions/<版>/source/にpresentation.jsonとinput.md�
 Phase 10Bの部分再生成は[専用経路](phase10b-partial-update.md)。generatePresentationへ更新対象のみを渡し、pageNumberStart（既定1）で開始番号を指定。旧ページの再利用と新版保存/形式再構成はsrc/updateが担当し、既存生成CLIは維持する。
 
 通常v2の表は役割別の固定列幅を選択でき、省略時は旧等幅を保持する。[配置契約](presentation-layout-v2.md)。通常/グラフィック版の選択と専用登録は[レイアウト方針](presentation-layout-policy.md)。
+
+共通グラフィックはschema1.3/slideType=graphic。6構図とPNG/JPEG素材をgraphic.cjs/graphic-assets.cjsへ分離し、既存のgeneratePresentationと共通形式変換を使う。[契約と制約](graphic-renderer.md)。assetRootはCLI入力ファイルのフォルダ、Node APIは明示指定可能。素材自動検索・自動生成は行わない。

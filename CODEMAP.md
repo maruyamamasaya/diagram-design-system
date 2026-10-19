@@ -113,3 +113,5 @@ S3保存容量：viewer/src/lib/storage-capacity.ts（全版List/削除マーカ
 フォルダ統合：`LibraryOrganization/LibraryFolders.swift`（種類別の親/旧ツリー分割/旧まとめ所属互換）→Mac `ShelfStore.folderOrganization`・iOS `CloudLibraryStore.integratedOrganization`。共通 `LibraryFolderTests` とiOS統合テスト。[仕様](docs/unified-library-folders.md)。
 
 通常表の固定列幅：`config/presentation-profile.json`のtableWidthProfiles → `dense.cjs`。契約はtableContentV2.widthProfileとvalidate.cjs、PPTX列幅はexport.cjsのaddNativeTable。
+
+グラフィック共通6構図：`src/presentation/graphic.cjs`、`graphic-assets.cjs`、`config/graphic-profile.json`。`engine.cjs`へ画像・本文の配置を統合し、`export.cjs`でPPTX画像/文字/図形へ変換。回帰は`tests/graphic-presentation.test.cjs`・`tests/export/graphic-exports.test.cjs`。[仕様](docs/graphic-renderer.md)。

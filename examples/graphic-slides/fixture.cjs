@@ -1,0 +1,16 @@
+"use strict";
+const crypto=require('node:crypto');
+function fixture(assets=[]) {
+  const contents={
+    structure:{heading:'認証・取得・表示の責務',nodes:[{id:'client',label:'端末',boundary:'利用者の端末',detail:'利用者が資料を選び、取得済みの内容を表示する。'},{id:'api',label:'認証API',boundary:'サービス境界',detail:'権限を確認し、取得可能な成果物だけを案内する。'},{id:'storage',label:'非公開保存先',boundary:'保存領域',detail:'完成した成果物を版ごとに保持する。'}],connections:[{from:'client',to:'api',label:'一覧を要求',condition:'認証済み利用者として問い合わせる。'},{from:'api',to:'storage',label:'成果物を参照',condition:'許可されたIDと版だけを読み取る。'}],context:'説明用の構成例。認証を行う場所とファイルを保持する場所を分け、接続の意味と成立条件を対応づける。',takeaway:'権限の判断と成果物の保存を別の責務として読む。'},
+    process:{heading:'原資料から完成資料までの制作手順',steps:[{label:'構成を設計',actor:'担当：制作者',action:'原資料の主張・根拠・具体例を整理し、ページごとの説明を決める。',result:'必須情報と掲載ページの対応が明確になる。'},{label:'共通描画',actor:'担当：描画器',action:'選択した固定レイアウトへ内容を配置し、同じ設計から各形式を出力する。',result:'文字・図形・画像の配置が形式間で揃う。'},{label:'内容と表示を確認',actor:'担当：制作者',action:'原文と照合し、最終PDFとPPTXを読み込み直して、見え方を確認する。',result:'欠落と表示上の問題を修正して納品する。'}],exception:'例外：内容が収まらない場合は、重要条件を削らず構成を分け直す。',takeaway:'生成の成功と、内容・表示の確認を別の工程にする。'},
+    cause:{heading:'資料が使えない原因と修正する場所',trigger:'説明用ケース：生成した資料を読者が理解できない',branches:[{condition:'前提が欠けている',result:'用語や対象が分からず、結論の理由を追えない。',intervention:'背景と具体例を追加し、主張と根拠を同じページで対応させる。',remaining:'残る確認：対象読者の既知知識は別途確認する。'},{condition:'図の関係が曖昧',result:'矢印の意味や方向が読み取れず、誤った関係に見える。',intervention:'接続の意味・条件・主体を明記し、構成と処理順を区別する。',remaining:'残る確認：実際の構成が不明な箇所は断定しない。'}],takeaway:'見た目の調整だけで済ませず、不足する説明の位置を特定する。'},
+    comparison:{heading:'通常版とグラフィック版の選び方',leftLabel:'通常版',rightLabel:'グラフィック版',axes:[{axis:'主な内容',left:'同じ軸の要点・表・直列の手順。',right:'構成・分岐・図版・操作例を使った説明。'},{axis:'適する場面',left:'条件を一覧で読み比べる。',right:'関係や図版の読みどころを理解する。'},{axis:'残す情報',left:'理由・具体例・条件を表の行へ統合する。',right:'画像と説明を対応させ、根拠と留保を近くに置く。'}],conditions:'画像を増やすこと自体を目的にせず、説明したい関係から選ぶ。',takeaway:'どちらの表現でも重要条件と具体性を保持する。'}
+  };
+  if(assets.length) {
+    contents.evidence={heading:'大きい図版と読みどころを並べる',image:{assetId:assets[0].assetId,caption:'既存資料から再利用した図版',reading:'図版を自動で切り抜かず、全体の比率と注記を保持して配置する。'},explanation:'史料や既存写真を大きく見せ、本文は図版から何を読み取るかを説明する。画像だけで説明を完結させず、対象・年代・出典を対応づける。',context:'レイアウト検証用の例。図版の再掲は新しい歴史的主張や実測結果を意味しない。',takeaway:'図版・説明・成立条件を同じページで読める構成にする。'};
+    contents['evidence-pair']={heading:'二つの図版を同じ軸で比較する',images:assets.slice(0,2).map((a,i)=>({assetId:a.assetId,caption:`比較対象${i+1}：既存素材の再利用`,reading:'対象と出典を保ち、図版を読むための観点を添える。'})),comparison:'比較軸の例：見せたい部分、原図の範囲、作成時期、表現の違い。同じ前提で比べられるかを先に確認する。',conditions:'図面の縮尺が一致していない場合、画像上の大きさを実物の寸法差と読み替えない。',takeaway:'並べるだけでなく、同じ比較軸と留保を表示する。'};
+  }
+  return {schemaVersion:'1.3',presentationId:crypto.randomUUID(),version:1,title:'グラフィック共通レイアウト検証',audience:'共通描画器を利用する制作者',purpose:'過去の資料で使った構成を意味入力から再現する',references:[{referenceId:'input',label:'レイアウト検証用の説明例',source:'input.md'},...assets.map(a=>({referenceId:a.referenceId,label:a.referenceId,source:a.origin}))].filter((r,i,all)=>all.findIndex(a=>a.referenceId===r.referenceId)===i),assets,slides:Object.entries(contents).map(([kind,content])=>({slideId:crypto.randomUUID(),slideType:'graphic',templateId:`slide.graphic.${kind}.v1`,content,references:['input',...new Set((content.images || (content.image?[content.image]:[])).map(im=>assets.find(a=>a.assetId===im.assetId).referenceId))],notes:'説明用のレイアウト検証例。製品の実設定や歴史的事実の追加主張ではない。'})),notes:''};
+}
+module.exports={fixture};

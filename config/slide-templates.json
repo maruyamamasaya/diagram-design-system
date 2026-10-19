@@ -120,6 +120,66 @@
       "rendererImplemented": true,
       "visualValidation": "sample_reviewed",
       "evidence": "../docs/phase65-validation.md"
+    },
+    {
+      "templateId": "slide.graphic.structure.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_structure",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
+    },
+    {
+      "templateId": "slide.graphic.process.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_process",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
+    },
+    {
+      "templateId": "slide.graphic.cause.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_cause",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
+    },
+    {
+      "templateId": "slide.graphic.comparison.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_comparison",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
+    },
+    {
+      "templateId": "slide.graphic.evidence.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_evidence",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
+    },
+    {
+      "templateId": "slide.graphic.evidence-pair.v1",
+      "slideType": "graphic",
+      "contentSchema": "../schemas/presentation.schema.json#/definitions/graphic_evidence_pair",
+      "spec": "../templates/slides/graphic.md",
+      "status": "implemented",
+      "rendererImplemented": true,
+      "visualValidation": "sample_reviewed",
+      "evidence": "../docs/graphic-renderer.md"
     }
   ],
   "defaultTemplateVersion": 2

@@ -39,13 +39,15 @@ async function verifyApi(base, token, manifest, request = fetch) {
   }
   throw Error('API listing missing presentation');
 }
-async function run({input, sources, output, config, policy, review, apiBase, token, fontPath, browserPath}, dependencies = {}) {
+async function run({input, sources, output, config, policy, review, apiBase, token, fontPath, browserPath, assetRoot = process.cwd()}, dependencies = {}) {
   require('../presentation/validate.cjs').validatePresentation(require('../presentation/defaults.cjs').applyTemplateDefaults(input));
   const inputHash = hash(canonical(input));
   const sourceHashes = {};
   for (const [id, file] of Object.entries(sources || {})) sourceHashes[id] = hash(await fs.readFile(file));
   if (!Object.keys(sourceHashes).length) throw Error('Original source required');
-  const fingerprint = hash(canonical({inputHash, sourceHashes}));
+  const assets = await require("../presentation/graphic-assets.cjs").readAssets(input, assetRoot);
+  const assetHashes = [...assets.values()].map(a => ({assetId:a.assetId,sha256:a.sha256}));
+  const fingerprint = hash(canonical({inputHash, sourceHashes, ...(assetHashes.length ? {assetHashes} : {})}));
   const job = path.resolve(output, input.presentationId, 'workflow', String(input.version).padStart(6,'0'));
   await fs.mkdir(job, {recursive:true});
   const lock = await fs.open(path.join(job,'.lock'),'wx');
@@ -59,7 +61,7 @@ async function run({input, sources, output, config, policy, review, apiBase, tok
       state.stage = 'generating';
       await save(path.join(job,'state.json'),state);
       const result = await (dependencies.generate || generatePresentation)(input, {
-        output:path.join(job,'attempts',String(state.attempt)), sourceFiles:sources, fontPath, browserPath,
+        output:path.join(job,'attempts',String(state.attempt)), sourceFiles:sources, fontPath, browserPath, assetRoot,
       });
       state.directory = result.directory;
       state.stage = 'local';
@@ -72,7 +74,7 @@ async function run({input, sources, output, config, policy, review, apiBase, tok
     if (state.packageHash && state.packageHash !== packageHash) throw Error('Completed metadata changed; use a new version');
     if (!Object.entries(sourceHashes).every(([id,digest]) => meta.sources.some(s => s.sourceId === id && s.sha256 === digest))) throw Error('Source snapshot changed');
     // Check every local artifact, including SVG and thumbnails, before reuse or transmission.
-    for (const descriptor of [...meta.slides.flatMap(s => s.artifacts), ...(meta.deckArtifacts || []), ...meta.sources]) {
+    for (const descriptor of [...meta.slides.flatMap(s => s.artifacts), ...(meta.deckArtifacts || []), ...meta.sources, ...(meta.assets || [])]) {
       let bytes;
       try {bytes = await safeRead(state.directory, descriptor.path);}
       catch(e) {if (e.code === 'ENOENT' && descriptor.path.endsWith('.svg')) continue; throw e;}

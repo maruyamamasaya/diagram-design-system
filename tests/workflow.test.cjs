@@ -76,3 +76,14 @@ test('approved workflow uploads once, retries API failure and blocks stale appro
     const blocked=await run({...approved,policy:{...approved.policy,fingerprint:'wrong'}},{generate,storage,fetch});assert.equal(blocked.upload,'blocked-policy');assert.equal(writes,5);
   }finally{await fs.rm(dir,{recursive:true,force:true});}
 });
+
+test('workflow blocks changed image bytes before invoking generation',async()=>{
+ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'workflow-assets-'));
+ try {
+  const png=new (require('pngjs').PNG)({width:2,height:2});png.data.fill(255);
+  const bytes=require('pngjs').PNG.sync.write(png);await fs.writeFile(path.join(dir,'asset.png'),bytes);await fs.writeFile(path.join(dir,'input.md'),'source');
+  const p=structuredClone(input);p.schemaVersion='1.3';p.assets=[{assetId:'image',path:'asset.png',sha256:hash(bytes),kind:'existing',referenceId:p.references[0].referenceId,origin:'test',license:'test',alt:'test'}];
+  await fs.writeFile(path.join(dir,'asset.png'),Buffer.from('changed'));
+  let invoked=false;await assert.rejects(run({input:p,sources:{input:path.join(dir,'input.md')},assetRoot:dir,output:dir},{generate:async()=>{invoked=true;}}),/Asset hash mismatch/);assert.equal(invoked,false);
+ }finally{await fs.rm(dir,{recursive:true,force:true});}
+});
