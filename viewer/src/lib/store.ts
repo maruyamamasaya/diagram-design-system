@@ -16,6 +16,7 @@ import {
 } from "@aws-sdk/credential-providers";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config, error } from "./config";
+import {lifecycleRuntime} from './lifecycle-runtime';
 import { token } from "./auth";
 import { presentationManifest, target, type Manifest, type Artifact } from "./manifest";
 export type { Manifest, Artifact } from "./manifest";
@@ -78,6 +79,7 @@ export function s3() {
 }
 let cache: { until: number; data: Manifest[] } | null = null;
 let pending: Promise<Manifest[]> | null = null;
+export function invalidateCatalog() { cache=null; }
 const mockFolders=new Map<string,string>();
 async function scan(): Promise<Manifest[]> {
   if (config().storage === "mock") {
@@ -277,6 +279,11 @@ function stateKey(id: string) {
   return `${statePrefix}${id}.json`;
 }
 export async function libraryState(id: string): Promise<LibraryState | null> {
+  const current=await lifecycleRuntime()?.port.read(id);
+  if(current)return {schemaVersion:'library-state-1.0',id,trashed:current.entry.status!=='active',updatedAt:current.entry.updatedAt};
+  return legacyLibraryState(id);
+}
+export async function legacyLibraryState(id: string): Promise<LibraryState | null> {
   const key = stateKey(id);
   if (config().storage === "s3" && process.env.VIEWER_TRASH_ENABLED !== "true") return null;
   let bytes: string;
@@ -300,6 +307,7 @@ export async function libraryState(id: string): Promise<LibraryState | null> {
   return state;
 }
 export async function setLibraryState(id: string, trashed: boolean): Promise<LibraryState> {
+  if(lifecycleRuntime())error(409,'USE_LIBRARY_LIFECYCLE');
   const key = stateKey(id);
   if (config().storage === "s3" && process.env.VIEWER_TRASH_ENABLED !== "true") error(503, "TRASH_NOT_ENABLED");
   // Validate existence against the complete catalog, including all hidden versions.
@@ -315,5 +323,6 @@ export async function setLibraryState(id: string, trashed: boolean): Promise<Lib
   return state;
 }
 export async function requireActive(id: string) {
+  if(await lifecycleRuntime()?.blocked(id))error(404,'NOT_FOUND');
   if ((await libraryState(id))?.trashed) error(404, "NOT_FOUND");
 }

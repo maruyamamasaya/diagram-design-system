@@ -4,6 +4,7 @@ import BookshelfCore
 import BookshelfWatching
 import LibraryOrganization
 import LibraryOrganizationUI
+import CryptoKit
 
 @MainActor final class ShelfStore: ObservableObject {
     @Published var settings = LibrarySettings()
@@ -11,6 +12,88 @@ import LibraryOrganizationUI
     @Published var warnings: [String] = []
     @Published var busy = false
     @Published var error: String?
+    @Published private(set) var lifecycle = LibraryLifecycleIndex()
+    @Published private(set) var lifecycleBusy = false
+    var lifecycleEnabled: Bool { Bundle.main.object(forInfoDictionaryKey: "LibraryLifecycleEnabled") as? Bool == true }
+    private var lifecycleClient: AuthenticatedLibraryLifecycle?
+    private var lifecycleURL: URL?
+    var trashEntries: [LibraryLifecycleEntry] { lifecycle.entries.values.filter { $0.status == .trashed || $0.status == .deleting }.sorted { $0.document.title.localizedStandardCompare($1.document.title) == .orderedAscending } }
+    func visibleInLibrary(_ id: String) -> Bool { lifecycle.status(id) == .active }
+    private func prepareLifecycle(login: Bool) async throws {
+        guard lifecycleEnabled else { throw OrganizationConnectionError.invalidEndpoint }
+        guard let config = try OrganizationOIDCConfiguration.bundled() else { throw OrganizationConnectionError.authentication }
+        if organizationAuth == nil { organizationAuth = try OrganizationOIDC(config: config) }
+        guard let auth = organizationAuth else { throw OrganizationConnectionError.authentication }
+        if login { try await auth.login() }
+        let connection = try auth.connection()
+        let namespace = SHA256.hash(data: Data(connection.identityKey.utf8)).map { String(format: "%02x", $0) }.joined()
+        let url = stateURL.deletingLastPathComponent().appendingPathComponent("lifecycle-\(namespace).json")
+        if lifecycleURL != url {
+            lifecycle = FileManager.default.fileExists(atPath: url.path) ? try JSONDecoder().decode(LibraryLifecycleIndex.self, from: Data(contentsOf: url)) : LibraryLifecycleIndex()
+            lifecycleURL = url
+        }
+        lifecycleClient = AuthenticatedLibraryLifecycle(connection: connection)
+        try removeDeletedAppCopies()
+    }
+    private func persistLifecycle() throws {
+        guard let lifecycleURL else { throw OrganizationConnectionError.authentication }
+        try FileManager.default.createDirectory(at: lifecycleURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try JSONEncoder().encode(lifecycle).write(to: lifecycleURL, options: .atomic)
+        try removeDeletedAppCopies()
+    }
+    private func removeDeletedAppCopies() throws {
+        // Source folders contain production originals, not application-owned copies.
+        // Only this account's future cloud-copy directory may be cleaned automatically.
+        guard let lifecycleURL else { return }
+        let root = lifecycleURL.deletingPathExtension().appendingPathExtension("copies")
+        guard FileManager.default.fileExists(atPath: root.path) else { return }
+        guard try root.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else { throw OrganizationConnectionError.invalidResponse }
+        for id in lifecycle.deletedIDs {
+            let child = root.appendingPathComponent(id)
+            if FileManager.default.fileExists(atPath: child.path) { try FileManager.default.removeItem(at: child) }
+        }
+    }
+    func refreshLifecycle(login: Bool = false) async {
+        guard lifecycleEnabled, !lifecycleBusy else { return }
+        lifecycleBusy = true; defer { lifecycleBusy = false }
+        do {
+            try await prepareLifecycle(login: login)
+            guard let lifecycleClient else { throw OrganizationConnectionError.authentication }
+            let snapshot = try await lifecycleClient.snapshot()
+            try lifecycle.merge(snapshot); try persistLifecycle()
+        } catch { self.error = "共通ゴミ箱を更新できませんでした。接続とログインを確認してください。" }
+    }
+    func setTrashed(_ ids: Set<String>, trashed: Bool) async {
+        guard lifecycleEnabled, !lifecycleBusy else { return }
+        lifecycleBusy = true; defer { lifecycleBusy = false }
+        do {
+            try await prepareLifecycle(login: false)
+            guard let lifecycleClient else { throw OrganizationConnectionError.authentication }
+            for rawID in ids.sorted() {
+                let id = rawID.lowercased()
+                let entry = try await lifecycleClient.move(id: id, revision: lifecycle.entries[id]?.revision ?? 0, trashed: trashed)
+                try lifecycle.merge(entry); try persistLifecycle()
+            }
+        } catch { self.error = "完了した操作は保持しました。残りはゴミ箱を更新してから再試行してください。" }
+    }
+    func deletionPlans(_ ids: Set<String>) async -> [LibraryDeletionPlan]? {
+        guard lifecycleEnabled, !lifecycleBusy else { return nil }
+        lifecycleBusy = true; defer { lifecycleBusy = false }
+        do {
+            try await prepareLifecycle(login: false)
+            guard let lifecycleClient else { throw OrganizationConnectionError.authentication }
+            var plans: [LibraryDeletionPlan] = []
+            for id in ids.sorted() { plans.append(try await lifecycleClient.plan(id: id)) }
+            return plans
+        } catch { self.error = "削除対象を確認できませんでした。更新してから再試行してください。"; return nil }
+    }
+    func permanentlyDelete(_ plans: [LibraryDeletionPlan]) async {
+        guard lifecycleEnabled, !lifecycleBusy, let lifecycleClient else { return }
+        lifecycleBusy = true; defer { lifecycleBusy = false }
+        do {
+            for plan in plans { let entry = try await lifecycleClient.erase(plan); try lifecycle.merge(entry); try persistLifecycle() }
+        } catch { self.error = "削除を完了できない資料があります。削除中の資料は復元できません。更新後、同じ対象で再試行してください。" }
+    }
     private var activeURLs: [URL] = []
     private let stateURL: URL
     var iconFiles: FolderIconFiles { FolderIconFiles(directory: stateURL.deletingLastPathComponent().appendingPathComponent("folder-icons")) }
@@ -130,6 +213,7 @@ import LibraryOrganizationUI
     }
     func removeSource(_ id: UUID) { change { $0.sources.removeAll { $0.id == id } }; Task { await refresh() } }
     func refresh() async {
+        if lifecycleEnabled { await refreshLifecycle() }
         guard !busy else { refreshAgain = true; return }; busy = true
         repeat {
             refreshAgain = false

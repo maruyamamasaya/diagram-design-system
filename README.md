@@ -176,7 +176,7 @@ http://127.0.0.1:3000 を開き、viewer/.local/login.txtのランダムパス�
 
 [Phase 4実装・検証](docs/phase4-validation.md)、[認証・公開候補・料金](docs/phase4-deployment.md)、[共通API](docs/viewer-api.md)。現在はローカル専用。別PC/iPhoneからの利用には承認後の公開構築とOIDC認証が必要。
 
-iOSは既存Presentation-Viewerへ図解ライブラリを追加する方針を推奨する。[連携案・実装順序](docs/ios-integration.md)。現在は設計のみで既存iOSアプリを変更していない。
+iOSの閲覧クライアントは隣接する [zukan](../zukan/README.md)（旧名：Presentation-Viewer）。図解ライブラリ・本番OIDC認証・クラウド取得・オフライン閲覧を実装済み。現在の状態は [zukanの現在地](../zukan/CURRENT.md)、Mac/iPhoneの整理同期は[接続状況](docs/organization-sync-live-clients.md)を参照する。[連携方針](docs/ios-integration.md)には当初の設計を保持する。
 
 ## Phase 5：プレゼン設計基盤
 登録されたTitle / Bullet / Two Column Comparison / Diagram / Table / Summaryを選択・組合せする設計を追加。[設計](docs/presentation-design.md)、[選択・配置ルール](rules/presentation.md)、[プロンプト](prompts/presentation.md)、[6ページJSON例](examples/linux-presentation/source.json)。描画経路の存在と認定状況は[CURRENT](CURRENT.md)を参照する。既存単一RoadmapのSVG/PNG機能は維持。

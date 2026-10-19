@@ -1,4 +1,6 @@
 import type { OrganizationService } from "./organization/service";
+import type {LibraryLifecycle} from './lifecycle';
+import {lifecycleRuntime} from './lifecycle-runtime';
 import { oidcPrincipal } from "./oidc";
 import { ApiError, config, error } from "./config";
 import {
@@ -30,7 +32,7 @@ export async function handle(
   req: Request,
   mode: "web" | "api" | "artifact",
   segments: string[] = [],
-  dependencies: {oidcKeys?: JWTVerifyGetKey; catalog?: typeof catalog; organization?: OrganizationService} = {},
+  dependencies: {oidcKeys?: JWTVerifyGetKey; catalog?: typeof catalog; organization?: OrganizationService; lifecycle?:LibraryLifecycle} = {},
 ): Promise<Response> {
   try {
     const c = config();
@@ -96,6 +98,25 @@ export async function handle(
     }
     if (c.publicAPI && route === "me" && req.method === "GET") return response({issuer: (principal as {issuer: string}).issuer, subject: sub});
     if (organizationRoute) return await dependencies.organization!.handle(req, principal as {issuer: string; sub: string}, route);
+    const lifecycle=dependencies.lifecycle??lifecycleRuntime();
+    if(segments[0]==='library-lifecycle') {
+      if(!lifecycle)error(404,'NOT_FOUND');
+      if(url.search)error(400,'INVALID_REQUEST');
+      if(segments.length===1&&req.method==='GET')return response(await lifecycle.snapshot());
+      if(segments.length===3&&segments[2]==='deletion-plan'&&req.method==='GET')return response(await lifecycle.plan(segments[1]));
+      if(segments.length===3&&req.method==='POST') {
+        const body=await json(req);
+        if(['trash','restore'].includes(segments[2])) {
+          if(Object.keys(body).length!==1||!Number.isSafeInteger(body.revision)||body.revision<0)error(400,'INVALID_REQUEST');
+          return response(await lifecycle.move(segments[1],body.revision,segments[2]==='trash'));
+        }
+        if(segments[2]==='delete') {
+          if(Object.keys(body).length!==1||typeof body.digest!=='string')error(400,'INVALID_REQUEST');
+          return response(await lifecycle.erase(segments[1],body.digest));
+        }
+      }
+      error(404,'NOT_FOUND');
+    }
     if (segments[0] !== "diagrams") error(404, "NOT_FOUND");
     if (segments.length === 1 && req.method === "GET") {
       const q = url.searchParams.get("q") || "";
@@ -140,7 +161,9 @@ export async function handle(
         )
           latest.set(m.diagramId, m);
       const states = new Map(await Promise.all([...latest.keys()].map(async id => [id, await libraryState(id)] as const)));
+      const lifecycleStates=new Map((await lifecycle?.snapshot())?.entries.map(e=>[e.id,e.status])??[]);
       const all = [...latest.values()]
+        .filter(m=>!lifecycleStates.has(m.diagramId)||lifecycleStates.get(m.diagramId)==='active')
         .filter(m => Boolean(states.get(m.diagramId)?.trashed) === (state === "trashed"))
         .map(summary)
         .filter(
@@ -168,6 +191,7 @@ export async function handle(
       if (Object.keys(body).length || url.search) error(400, "INVALID_REQUEST");
       return response(await setLibraryState(segments[1], segments[2] === "trash"));
     }
+    if(lifecycle&&segments[1]&&await lifecycle.blocked(segments[1]))error(404,'NOT_FOUND');
     const v = url.searchParams.get("version");
     const version = v ? Number(v) : undefined;
     if (

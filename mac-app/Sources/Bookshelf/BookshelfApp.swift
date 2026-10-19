@@ -34,11 +34,16 @@ struct ShelfView: View {
     @State private var classificationDraft: Book?
     @State private var syncLab: SyncLabSession?
     @State private var syncSetup = false
+    @State private var showCommonTrash = false
+    @State private var trashIDs = Set<String>()
+    @State private var confirmTrash = false
     @State private var collectionDraft: ReadingCollection<BookReference>?
     var selectedCollection: ReadingCollection<BookReference>? { store.settings.collections.first { shelf == "collection:" + $0.id.uuidString } }
     var collectionCards: [ReadingCollection<BookReference>] {
         guard shelf == "all", selectedGroup == "すべて", selectedTag.isEmpty, selection.ids.isEmpty else { return [] }
-        return store.settings.collections.filter { search.isEmpty || $0.title.localizedStandardContains(search) || $0.members.contains { $0.title.localizedStandardContains(search) } }
+        return store.settings.collections.compactMap { collection -> ReadingCollection<BookReference>? in
+            var visible = collection; visible.members = collection.members.filter { store.visibleInLibrary($0.id) }; return visible.members.isEmpty ? nil : visible
+        }.filter { search.isEmpty || $0.title.localizedStandardContains(search) || $0.members.contains { $0.title.localizedStandardContains(search) } }
     }
     var gridBooks: [Book] {
         let grouped = Set(collectionCards.flatMap { $0.members.map(\.id) })
@@ -52,7 +57,7 @@ struct ShelfView: View {
             let assignment = store.settings.assignments[book.id]
             let inShelf = shelf == "unfiled" ? assignment == nil : ids.map { assignment.map($0.contains) ?? false } ?? true
             let classification = store.settings.classification(for: book)
-            return inShelf && (selectedGroup == "すべて" || classification.group.rawValue == selectedGroup)
+            return store.visibleInLibrary(book.id) && inShelf && (selectedGroup == "すべて" || classification.group.rawValue == selectedGroup)
                 && (selectedTag.isEmpty || classification.tags.contains { $0.localizedCaseInsensitiveCompare(selectedTag) == .orderedSame })
                 && (search.isEmpty || book.latest.title.localizedStandardContains(search) || book.id.localizedStandardContains(search) || classification.tags.contains { $0.localizedStandardContains(search) })
         }
@@ -119,6 +124,9 @@ struct ShelfView: View {
                     }
                     Button("まとめを作成") { collectionDraft = ReadingCollection(id: UUID(), title: "", members: []) }
                 }
+                Section {
+                    Button { showCommonTrash = true } label: { Label("ゴミ箱", systemImage: "trash") }
+                }
                 Section("保存場所") {
                     ForEach(store.settings.sources) { source in
                         Label(URL(fileURLWithPath: source.path).lastPathComponent, systemImage: "externaldrive")
@@ -184,7 +192,7 @@ struct ShelfView: View {
                                         selection.click(book.id, orderedIDs: visibleBooks.map(\.id), toggle: flags.contains(.command), extend: flags.contains(.shift))
                                         if count == 2, let url = book.latest.preview { NSWorkspace.shared.open(url) }
                                     }).frame(width: geometry.size.width, height: geometry.size.height) })
-                                    .contextMenu { Button("グループ・タグを編集") { classificationDraft = book }; assignmentMenu(selection.targets(for: book.id)); Button("Finderで表示") { NSWorkspace.shared.activateFileViewerSelecting([book.latest.directory]) } }
+                                    .contextMenu { Button("グループ・タグを編集") { classificationDraft = book }; assignmentMenu(selection.targets(for: book.id)); Button("共通ゴミ箱へ移動", role: .destructive) { trashIDs = selection.targets(for: book.id); confirmTrash = true }.disabled(!store.lifecycleEnabled || store.lifecycleBusy); Button("Finderで表示") { NSWorkspace.shared.activateFileViewerSelecting([book.latest.directory]) } }
                                     .accessibilityElement(children: .combine).accessibilityAddTraits(.isButton)
                                     .accessibilityValue(selection.ids.contains(book.id) ? "選択中" : "未選択")
                                     .accessibilityAction { select(book.id) }
@@ -219,7 +227,7 @@ struct ShelfView: View {
             }.background(Color(nsColor: .underPageBackgroundColor))
             .navigationSplitViewColumnWidth(min: 420, ideal: 750)
         } detail: {
-            if let book = store.books.first(where: { $0.id == selection.focusedID }) {
+            if let book = store.books.first(where: { $0.id == selection.focusedID && store.visibleInLibrary($0.id) }) {
                 VStack(spacing: 0) {
                     HStack {
                         Text(store.settings.classification(for: book).group.rawValue).font(.caption)
@@ -233,6 +241,11 @@ struct ShelfView: View {
         }
         .onChange(of: visibleBooks.map(\.id)) { _, ids in selection.retainVisible(ids) }
         .searchable(text: $search, prompt: "タイトル・資料ID・タグで検索")
+        .sheet(isPresented: $showCommonTrash) { CommonTrashView().environmentObject(store) }
+        .alert("\(trashIDs.count)件を共通ゴミ箱へ移しますか？", isPresented: $confirmTrash) {
+            Button("キャンセル", role: .cancel) {}
+            Button("ゴミ箱へ移動", role: .destructive) { let ids = trashIDs; Task { await store.setTrashed(ids, trashed: true) } }
+        } message: { Text("スマホとMacの通常一覧から外れます。完全削除するまで復元できます。登録フォルダの制作原本は変更しません。") }
         .sheet(item: $syncLab) { SyncLabView(session: $0) }
         .sheet(isPresented: $syncSetup) { SyncSetupView(available: store.organizationSyncAvailable) { try await store.connectOrganizationSync() } }
         .sheet(item: $classificationDraft) { book in ClassificationEditor(book: book, value: store.settings.classification(for: book)).environmentObject(store) }
