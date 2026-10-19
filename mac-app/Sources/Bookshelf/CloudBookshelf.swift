@@ -84,7 +84,7 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
     }
     func pruneCache(maxBytes: Int = 512 * 1024 * 1024, maxVersions: Int = 30) {
         let fm = FileManager.default
-        struct Entry { let url: URL; let key: String; let date: Date; let bytes: Int }
+        struct Entry { let url: URL; let key: String; let date: Date; let bytes: Int; let hasPreview: Bool }
         var entries: [Entry] = []
         for id in (try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isSymbolicLinkKey])) ?? [] {
             guard UUID(uuidString: id.lastPathComponent) != nil,
@@ -96,14 +96,17 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
                 guard let values = try? marker.resourceValues(forKeys: [.contentModificationDateKey]), let date = values.contentModificationDate else { continue }
                 let files = (try? fm.contentsOfDirectory(at: version, includingPropertiesForKeys: [.fileSizeKey])) ?? []
                 let bytes = files.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
-                entries.append(Entry(url: version, key: id.lastPathComponent + "/" + version.lastPathComponent, date: date, bytes: bytes))
+                let hasPreview = files.contains { ["document.pdf", "diagram.pdf", "diagram.png", "presentation.pptx"].contains($0.lastPathComponent) }
+                entries.append(Entry(url: version, key: id.lastPathComponent + "/" + version.lastPathComponent, date: date, bytes: bytes, hasPreview: hasPreview))
             }
         }
-        var total = entries.reduce(0) { $0 + $1.bytes }, count = entries.count
-        for entry in entries.sorted(by: { $0.date < $1.date }) where total > maxBytes || count > maxVersions {
+        // Browsing cover grids must not evict previously opened PDFs: cover-only
+        // entries share the byte budget but do not consume the preview quota.
+        var total = entries.reduce(0) { $0 + $1.bytes }, count = entries.filter(\.hasPreview).count
+        for entry in entries.sorted(by: { $0.date < $1.date }) where total > maxBytes || (entry.hasPreview && count > maxVersions) {
             guard inUse[entry.key] == nil else { continue }
             if (try? fm.removeItem(at: entry.url)) != nil {
-                details.removeValue(forKey: entry.key); total -= entry.bytes; count -= 1
+                details.removeValue(forKey: entry.key); total -= entry.bytes; if entry.hasPreview { count -= 1 }
             }
         }
     }

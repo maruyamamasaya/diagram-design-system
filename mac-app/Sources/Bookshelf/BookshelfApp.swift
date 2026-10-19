@@ -38,32 +38,26 @@ struct ShelfView: View {
     @State private var syncSetup = false
     @State private var trashIDs = Set<String>()
     @State private var confirmTrash = false
-    @State private var collectionDraft: ReadingCollection<BookReference>?
-    var selectedCollection: ReadingCollection<BookReference>? { store.settings.collections.first { shelf == "collection:" + $0.id.uuidString } }
-    var collectionCards: [ReadingCollection<BookReference>] {
-        guard shelf == "all", selectedKind != "presentation", selectedGroup == "すべて", selectedTag.isEmpty, selection.ids.isEmpty else { return [] }
-        return store.settings.collections.compactMap { collection -> ReadingCollection<BookReference>? in
-            var visible = collection; visible.members = collection.members.filter { member in store.visibleInLibrary(member.id) && store.books.contains(where: { $0.id == member.id }) }; return visible.members.isEmpty ? nil : visible
-        }.filter { search.isEmpty || $0.title.localizedStandardContains(search) || $0.members.contains { $0.title.localizedStandardContains(search) } }
-    }
-    var gridBooks: [Book] {
-        let grouped = Set(collectionCards.flatMap { $0.members.map(\.id) })
-        return visibleBooks.filter { !grouped.contains($0.id) }
-    }
+    var selectedCollection: ReadingCollection<BookReference>? { store.settings.collections.first { shelf == $0.id.uuidString } }
+    var libraryShelf: LibraryShelf { selectedKind == "presentation" ? .presentation : .illustration }
+    var folders: [ShelfFolder] { store.folderOrganization.folders(in: libraryShelf) }
+    var gridBooks: [Book] { visibleBooks }
     var folderID: UUID? { shelf.flatMap(UUID.init(uuidString:)) }
     var visibleBooks: [Book] {
-        let ids = folderID.map { store.settings.descendants(of: $0) }
-        let candidates = selectedCollection.map { store.settings.members(of: $0, books: store.books) } ?? store.books
+        let organization = store.folderOrganization
+        let candidates = store.books
         let books = candidates.filter { book in
-            let assignment = store.settings.assignments[book.id]
-            let inShelf = shelf == "unfiled" ? assignment == nil : ids.map { assignment.map($0.contains) ?? false } ?? true
+            let inShelf = shelf == "unfiled" ? !organization.isFiled(book.id, memberID: { $0.id }) : folderID.map { organization.containsDocument(book.id, in: $0, memberID: { $0.id }) } ?? true
             let classification = store.settings.classification(for: book)
             let inKind = selectedKind == "all" || (selectedKind == "presentation" ? book.latest.kind == "presentation" : book.latest.kind != "presentation")
             return store.visibleInLibrary(book.id) && inKind && inShelf && (selectedGroup == "すべて" || classification.group.rawValue == selectedGroup)
                 && (selectedTag.isEmpty || classification.tags.contains { $0.localizedCaseInsensitiveCompare(selectedTag) == .orderedSame })
                 && (search.isEmpty || book.latest.title.localizedStandardContains(search) || book.id.localizedStandardContains(search) || classification.tags.contains { $0.localizedStandardContains(search) })
         }
-        if selectedCollection != nil { return books }
+        if let collection = selectedCollection {
+            let ranks = Dictionary(collection.members.enumerated().map { ($0.element.id, $0.offset) }, uniquingKeysWith: min)
+            return books.sorted { (ranks[$0.id] ?? Int.max) < (ranks[$1.id] ?? Int.max) }
+        }
         return books.sorted { sortBy == "title" ? $0.latest.title.localizedStandardCompare($1.latest.title) == .orderedAscending : $0.latest.modified > $1.latest.modified }
     }
     var body: some View {
@@ -71,8 +65,8 @@ struct ShelfView: View {
             List(selection: $shelf) {
                 Section("本棚") {
                     Picker("資料の種類", selection: $selectedKind) {
-                        Text("プレゼン資料").tag("presentation")
-                        Text("図解ライブラリ").tag("illustration")
+                        Text("プレゼン").tag("presentation")
+                        Text("図解").tag("illustration")
                     }.pickerStyle(.menu).labelsHidden().accessibilityLabel("資料の種類")
                     Label("すべて", systemImage: "books.vertical").tag("all")
                     Label("未整理", systemImage: "tray").tag("unfiled")
@@ -87,7 +81,7 @@ struct ShelfView: View {
                         })
                 }
                 Section {
-                    ForEach(store.settings.orderedFolders) { folder in
+                    ForEach(folders) { folder in
                         Label {
                             Text(folder.name)
                         } icon: {
@@ -127,7 +121,6 @@ struct ShelfView: View {
                 Section {
                     Menu {
                         Button("フォルダを作成", systemImage: "folder.badge.plus") { editingFolder = nil; folderName = ""; folderDialog = true }
-                        if selectedKind == "illustration" { Button("まとめを作成", systemImage: "rectangle.stack.badge.plus") { collectionDraft = ReadingCollection(id: UUID(), title: "", members: []) } }
                         Divider()
                         Button("S3へログイン・更新", systemImage: "cloud") { Task { await store.refreshCloud(login: true) } }
                         Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
@@ -146,7 +139,7 @@ struct ShelfView: View {
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(selectedCollection?.title ?? folderID.map(store.folderPath) ?? (shelf == "unfiled" ? "未整理" : "すべての資料")).font(.headline)
+                        Text(folderID.map { id in folders.first(where: { $0.id == id })?.name ?? store.folderPath(id) } ?? (shelf == "unfiled" ? "未整理" : "すべての資料")).font(.headline)
                         Text("\(visibleBooks.count) 冊 · 改訂版と各形式をひとまとめに表示").font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -163,32 +156,13 @@ struct ShelfView: View {
                         ForEach(Array(Set(store.books.flatMap { store.settings.classification(for: $0).tags } + (selectedTag.isEmpty ? [] : [selectedTag]))).sorted(), id: \.self) { Text($0).tag($0) }
                     }
                 }.padding(.horizontal, 22).padding(.bottom, 12)
-                if let collection = selectedCollection {
-                    HStack {
-                        Button("まとめを編集") { collectionDraft = collection }
-                        Button("まとめを解除") { store.change { $0.collections.removeAll { $0.id == collection.id } }; shelf = "all" }
-                        Text("読む順番で表示 · 未取得 \(collection.members.count - store.settings.members(of: collection, books: store.books).count)件").font(.caption).foregroundStyle(.secondary)
-                        Spacer()
-                        Button("前の資料") { stepCollection(-1) }.disabled(visibleBooks.isEmpty)
-                        Button("次の資料") { stepCollection(1) }.disabled(visibleBooks.isEmpty)
-                    }.padding(.horizontal, 22).padding(.bottom, 10)
-                }
                 Divider()
-                if visibleBooks.isEmpty && collectionCards.isEmpty {
+                if visibleBooks.isEmpty {
                     ContentUnavailableView(store.settings.sources.isEmpty ? "資料の本棚をはじめる" : "資料がありません", systemImage: "books.vertical", description: Text(store.usesCloudCatalog ? "S3へログインして本棚を更新してください。" : "検索条件やフォルダを変更してください。"))
                     if store.usesCloudCatalog { Button("S3へログイン・更新") { Task { await store.refreshCloud(login: true) } }.buttonStyle(.borderedProminent).padding(.bottom, 70) }
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: cardSize), spacing: 20)], spacing: 24) {
-                            ForEach(collectionCards) { collection in
-                                Button { shelf = "collection:" + collection.id.uuidString; selection.clear() } label: {
-                                    SquareBookCard(title: collection.title,
-                                                   coverURL: store.settings.members(of: collection, books: store.books).first?.latest.thumbnail) {
-                                        EmptyView()
-                                    }
-                                }.buttonStyle(.plain).contextMenu { Button("まとめを編集") { collectionDraft = collection } }
-                                .task(id: store.cloudTaskKey(collection.members.first?.id ?? "")) { if let member = collection.members.first { await store.prepareCloudBook(member.id, preview: false) } }
-                            }
                             ForEach(gridBooks) { book in
                                 BookCard(book: book, selected: selection.ids.contains(book.id))
                                     .overlay(GeometryReader { geometry in CardDragSurface(payload: {
@@ -213,10 +187,7 @@ struct ShelfView: View {
                     if !selection.ids.isEmpty {
                         Text("\(selection.ids.count) 冊を選択").font(.callout.bold())
                         assignmentMenu(selection.ids)
-                        Button("選択からまとめ") {
-                            let members = visibleBooks.filter { selection.ids.contains($0.id) && BookReference(book: $0).canCollect }.map(BookReference.init(book:))
-                            collectionDraft = ReadingCollection(id: UUID(), title: "", members: Array(members.prefix(100)))
-                        }.disabled(selection.ids.count > 100 || visibleBooks.contains { selection.ids.contains($0.id) && !BookReference(book: $0).canCollect })
+                        Button("選択からフォルダを作成") { editingFolder = nil; folderName = ""; folderDialog = true }
                         Button("選択を解除") { selection.clear() }.buttonStyle(.plain)
                     } else {
                         Text("⌘クリックで複数選択 · Shiftクリックで範囲選択").font(.caption).foregroundStyle(.secondary)
@@ -260,7 +231,6 @@ struct ShelfView: View {
         .sheet(item: $syncLab) { SyncLabView(session: $0) }
         .sheet(isPresented: $syncSetup) { SyncSetupView(available: store.organizationSyncAvailable) { try await store.connectOrganizationSync() } }
         .sheet(item: $classificationDraft) { book in ClassificationEditor(book: book, value: store.settings.classification(for: book)).environmentObject(store) }
-        .sheet(item: $collectionDraft) { value in CollectionEditor(value: value).environmentObject(store) }
         .toolbar {
             BookshelfThemePicker()
             Button { Task { await store.refresh() } } label: { Label("更新", systemImage: "arrow.clockwise") }.disabled(store.busy)
@@ -272,19 +242,17 @@ struct ShelfView: View {
                 let name = folderName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return }
                 store.change { settings in
+                    settings.folders = settings.organization.folders
                     if let id = editingFolder, let index = settings.folders.firstIndex(where: { $0.id == id }) { settings.folders[index].name = name }
-                    else { settings.folders.append(ShelfFolder(name: name, parentID: folderID)) }
+                    else {
+                        settings.createFolder(name: name, shelf: libraryShelf, parentID: folderID)
+                        if let created = settings.folders.last { settings.moveBooks(selection.ids, to: created.id) }
+                    }
                 }
             }
         } message: { Text(editingFolder == nil && folderID != nil ? "選択中のフォルダ内に作成します。" : "本棚の分類情報だけを変更します。") }
         .alert("本棚のエラー", isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })) { Button("閉じる") { store.error = nil } } message: { Text(store.error ?? "") }
         .sheet(isPresented: $showWarnings) { VStack(alignment: .leading) { Text("読込の注意").font(.title2); Text("読めないパッケージは一覧から除外しています。ハッシュ検証は実施しません。").foregroundStyle(.secondary); ScrollView { Text(store.warnings.joined(separator: "\n\n")).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }; Button("閉じる") { showWarnings = false } }.padding(24).frame(width: 680, height: 450) }
-    }
-    private func stepCollection(_ delta: Int) {
-        guard !visibleBooks.isEmpty else { return }
-        let current = visibleBooks.firstIndex { $0.id == selection.focusedID }
-        let next = current.map { min(max($0 + delta, 0), visibleBooks.count - 1) } ?? 0
-        selection.click(visibleBooks[next].id, orderedIDs: visibleBooks.map(\.id))
     }
     private func folderContextMenu(_ folder: ShelfFolder) -> NSMenu {
         let menu = NSMenu()
@@ -302,7 +270,7 @@ struct ShelfView: View {
     @ViewBuilder func assignmentMenu(_ ids: Set<String>) -> some View {
         Menu(ids.count > 1 ? "\(ids.count)冊をフォルダへ移動" : "フォルダへ移動") {
             Button("未整理") { store.change { $0.moveBooks(ids, to: nil) } }
-            ForEach(store.settings.folders) { folder in
+            ForEach(folders) { folder in
                 Button(store.folderPath(folder.id)) { store.change { $0.moveBooks(ids, to: folder.id) } }
             }
         }

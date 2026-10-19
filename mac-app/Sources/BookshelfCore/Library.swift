@@ -53,8 +53,8 @@ public struct LibrarySettings: Codable, Sendable {
     }
     public func descendants(of id: UUID) -> Set<UUID> { organization.descendants(of: id) }
     public mutating func removeFolder(_ id: UUID) {
-        var value = organization; value.removeFolder(id)
-        folders = value.folders; folderOrder = value.folderOrder; assignments = value.assignments
+        var value = organization; value.removeIntegratedFolder(id)
+        folders = value.folders; folderOrder = value.folderOrder; assignments = value.assignments; collections = value.collections
     }
     public func save(to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

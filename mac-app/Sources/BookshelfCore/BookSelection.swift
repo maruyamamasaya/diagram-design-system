@@ -41,7 +41,7 @@ public struct BookSelection: Sendable {
 extension LibrarySettings {
     /// A single settings transaction moves every selected document, across all its editions.
     public mutating func moveBooks(_ ids: Set<String>, to folderID: UUID?) {
-        var value = organization; value.moveBooks(ids, to: folderID)
-        assignments = value.assignments
+        var value = organization; value.moveDocuments(ids, to: folderID, memberID: { $0.id })
+        folders = value.folders; assignments = value.assignments; collections = value.collections
     }
 }

@@ -163,7 +163,7 @@ import OSLog
     @discardableResult func change(_ edit: (inout LibrarySettings) -> Void) -> Bool {
         guard writeEnabled else { return false }
         guard testSync?.blocksLibraryEdits != true else { error = "同期の確認・復元処理中です。同期画面で完了または解除してから編集してください。"; return false }
-        var next = settings; edit(&next)
+        var next = settings; next.folders = folderOrganization.folders; next.assignments = folderOrganization.assignments; next.folderOrder = folderOrganization.folderOrder; edit(&next)
         do { try next.save(to: stateURL); settings = next; Task { await testSync?.captureLibraryChanges() }; return true }
         catch { self.error = "保存できませんでした: \(error.localizedDescription)"; return false }
     }
@@ -329,9 +329,18 @@ import OSLog
         if let activationObserver { NotificationCenter.default.removeObserver(activationObserver) }
         for url in activeURLs { url.stopAccessingSecurityScopedResource() }
     }
+    var folderOrganization: OrganizationState<BookReference> {
+        var state = settings.organization
+        let kinds = Dictionary(books.map { ($0.id, $0.latest.kind) }, uniquingKeysWith: { a, _ in a })
+        state.scopeLegacyFolders { id in
+            let kind = kinds[id] ?? settings.collections.flatMap(\.members).first(where: { $0.id == id })?.type ?? "presentation"
+            return kind == "presentation" ? .presentation : .illustration
+        }
+        return state
+    }
     func folderPath(_ id: UUID) -> String {
         var names: [String] = []; var current: UUID? = id; var seen = Set<UUID>()
-        while let value = current, seen.insert(value).inserted, let folder = settings.folders.first(where: { $0.id == value }) { names.insert(folder.name, at: 0); current = folder.parentID }
+        while let value = current, seen.insert(value).inserted, let folder = folderOrganization.folders.first(where: { $0.id == value }) { if !LibraryShelf.isRoot(folder.id) { names.insert(folder.name, at: 0) }; current = folder.parentID }
         return names.joined(separator: " / ")
     }
 }

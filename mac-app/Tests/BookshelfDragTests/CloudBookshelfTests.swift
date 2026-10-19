@@ -124,6 +124,35 @@ private final class ShelfHTTP: URLProtocol, @unchecked Sendable {
         XCTAssertFalse(FileManager.default.fileExists(atPath:client.folder(d).path))
         XCTAssertTrue(FileManager.default.fileExists(atPath:unrelated.path))
     }
+    func testCoverGridDoesNotEvictPreviouslyReadPDFButBudgetsStillApply() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let connection = try AuthenticatedSyncConnection(baseURL:URL(string:"https://api.example")!, issuer:"https://issuer.example", subject:"owner") { _ in throw OrganizationConnectionError.authentication }
+        let client = CloudBookshelfClient(connection: connection, directory: root)
+        func entry(_ id: String, preview: Bool, date: TimeInterval) throws -> URL {
+            let directory = root.appendingPathComponent(id).appendingPathComponent("1")
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let marker = directory.appendingPathComponent("detail.json")
+            try Data("{}".utf8).write(to: marker)
+            try Data(repeating: 1, count: 32).write(to: directory.appendingPathComponent(preview ? "document.pdf" : "cover.png"))
+            try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: date)], ofItemAtPath: marker.path)
+            return directory
+        }
+        let pdf = try entry(id, preview: true, date: 1)
+        var covers: [URL] = []
+        for index in 0..<48 { covers.append(try entry(UUID().uuidString, preview: false, date: Double(index + 10))) }
+        client.pruneCache()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: pdf.appendingPathComponent("document.pdf").path))
+        XCTAssertTrue(covers.allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
+        let newerPDF = try entry(UUID().uuidString, preview: true, date: 100)
+        client.pruneCache(maxVersions: 1)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: pdf.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: newerPDF.path))
+        XCTAssertTrue(covers.allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
+        client.pruneCache(maxBytes: 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: newerPDF.path))
+        XCTAssertTrue(covers.allSatisfy { !FileManager.default.fileExists(atPath: $0.path) })
+    }
     func testCorruptCachedFilesAreNotExposedAsPreview() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at:root) }

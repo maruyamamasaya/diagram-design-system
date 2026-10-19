@@ -1,3 +1,5 @@
+> 2026-10-19：操作上は「まとめ」をフォルダへ統合。旧collectionsは所属・順番の互換データとして保持する。[最新仕様](unified-library-folders.md)。以下の「相互変換しない」は統合前の設計記録。
+
 # 整理機能の共通データ仕様 v1
 
 2026-10-17。実装の正本は `packages/LibraryOrganization`。Foundationのみ、macOS 14/iOS 17以上。同期・通信・アカウント管理は含まない。

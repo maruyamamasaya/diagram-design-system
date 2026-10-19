@@ -1,3 +1,5 @@
+> 最新仕様：本人の追加指示で「まとめ」をフォルダへ統合。[図解・プレゼンのフォルダ統合](unified-library-folders.md)。以下は統合前の履歴。
+
 > 2026-10-19追記：本人の追加指示によりMac Applications/iPhone Vespera/iPad Miraへ更新済み。起動・ログイン・実機操作の確認は本人が後日実施。[反映記録](../sessions/2026-10-19-s3-unified-app-install.md)。以下の配布前記述は実装時点の記録。
 
 # Mac・iOSで共通にする本棚の操作
