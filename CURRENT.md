@@ -1,4 +1,4 @@
-2026-10-19：MacのS3プレビュー取得待ちを調査し、UI外のバイト読取・表紙取得上限・PDF取得の独立・再取得UIを追加。更新後の実S3表示はキーチェーン本人許可待ち。iPad実機確認はMira再接続待ち。[記録](sessions/2026-10-19-mac-fetch-and-prepush.md)。
+2026-10-19：MacのS3プレビュー取得待ちを調査し、UI外のバイト読取・表紙取得上限・PDF取得の独立・再取得UIを追加。本人キーチェーン許可後、Macで問題の2資料のPDF表示を確認。iPad Miraの本棚16件/表紙表示も実画面確認、Macの2フォルダがiPadに未表示のため整理同期を確認中。[記録](sessions/2026-10-19-mac-fetch-and-prepush.md)。
 
 2026-10-19：今月のAWS費用を図鑑配賦分/共通・未配賦に分けるAPI/iOS表示をローカル実装。7日間の永続共有予約で有料照会を抑制。本人承認後AWSコード/IAM/固定cache keyを無効flagで配備・Projectタグ有効化済み。CE側のタグ反映待ちで、有料金額照会/iOS更新は未実施。本人が自動継続を明示承認、8時間おき最大4回の同チャット確認を設定済み。[配備記録](sessions/2026-10-19-monthly-billing-deployment.md)、[追加費用案](docs/monthly-billing-aws-proposal.md)を承認前に提示。[仕様](docs/monthly-billing.md)。
 
