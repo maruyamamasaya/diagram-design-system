@@ -1,0 +1,21 @@
+{
+  "status": "APPLIED_ENABLED",
+  "date": "2026-10-19",
+  "region": "ap-northeast-1",
+  "stack": "diagram-library-api",
+  "codeSHA256": "8e1cf136c05aa72c5abd26a2fad00091d8cf4eb04589f5e7e9649f81d147dd38",
+  "serverEnabled": true,
+  "iosEnabled": true,
+  "macEnabled": true,
+  "syntheticID": "be36f20b-9868-4f9a-bbde-c994213c861e",
+  "httpsRequests": 15,
+  "syntheticObjectsRemaining": 0,
+  "existingCatalogObjectsUnchanged": 53,
+  "userDocumentsDeleted": 0,
+  "iosXCTests": 71,
+  "sharedSwiftTests": 43,
+  "macTestTotal": 27,
+  "macTestSkipped": 1,
+  "fixedAdditionalMonthlyUSD": 0,
+  "details": "docs/shared-trash-deployment.md"
+}

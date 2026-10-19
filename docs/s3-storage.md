@@ -111,6 +111,8 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 
 整理同期の管理JSON（2026-10-18）：資料パッケージとは別の固定キー1個だけ、既存Lambda roleのIf-Match更新を追加承認後に許可した。資料本体の不変キー/If-None-Match、TLS/AES256/BPAを維持する。bucket policyを以前の一律上書き禁止へ戻すと同期CASが拒否されるため、[適用した限定例外](organization-sync-deployment.md#既存バケットポリシーの修正追加承認後に完了)を保持する。
 
-## 共通ゴミ箱との排他（配備承認待ち）
+## 共通ゴミ箱との排他（2026-10-19配備済み）
 
 configの任意boolean `lifecycleProtection` は既定無効。承認後の有効化で、全公開処理を資料単位の `library/document-locks/{id}.json` のCASロックで囲み、trashed/deleting/deletedへの再保存を拒否する。完了/失敗時は自分のロックを解放する。CASはAES256/ExpectedBucketOwnerと条件付きPUTを維持。停止した処理のロックは自動期限切れにせず、旧処理停止確認後の個別復旧が必要。未更新CLIや管理者の直接書込は協調排他の対象外。[設計と承認](shared-library-trash.md)。
+
+2026-10-19の本人承認後、既存ローカル承認済み設定のlifecycleProtectionをtrueとし、本番合成資料のGET照合/削除後の再公開拒否を確認。[配備記録](shared-trash-deployment.md)。

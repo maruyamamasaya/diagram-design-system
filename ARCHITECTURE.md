@@ -1,5 +1,7 @@
 # 現在の構成
 
+本棚の外観は共有LibraryOrganizationUIの `BookshelfTheme.swift` と同梱PNGで定義。Macと別repoのiOSが同じ素材・配色・カードを使い、テーマは端末のUserDefaultsへ保存する。整理同期・資料データから分離する。[素材テーマ](docs/bookshelf-material-themes.md)。
+
 資料を理解するAI、描画、ローカル保存、S3保存、閲覧を分離する。設計上の機能と実装・認定の差分は[CURRENT](CURRENT.md)を参照。
 
 ```text

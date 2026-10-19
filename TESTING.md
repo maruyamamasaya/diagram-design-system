@@ -1,5 +1,7 @@
 # 検証の入口
 
+素材UI変更：共有Swift packageの `BookshelfMaterialTests` は実SwiftUI描画の画素変動を検査する。`BOOKSHELF_MATERIAL_EVIDENCE=<出力先>` を指定して `swift test --disable-sandbox --package-path packages/LibraryOrganization --filter BookshelfMaterialTests` を実行すると素材面PNGを保存する。画像の存在・decode成功だけでは描画成功としない。Mac/両Simulatorでの素材目視と署名アプリ配布も確認する。[回帰検査と証跡](docs/bookshelf-material-themes.md#素材が描画されない問題の修正)。
+
 共通ゴミ箱（本番無効）はviewerの`lifecycle.test.ts`（revision/CAS、計画変更、途中削除と再送、認可、S3 prefix/暗号化/バージョニング）と共有Swiftの`LibraryLifecycleTests`（永続削除通知/古い応答/復元）を検証する。`node --import tsx --test --test-concurrency=1 tests/lifecycle.test.ts tests/trash.test.ts`はviewer内で実行。CLIのIPC待受を使わない。iOSのコピー削除XCTestと実画面/通常ビルドの制約は[作業中の仕様](docs/shared-library-trash.md#検証記録)を参照。
 
 実在するコマンドだけを使用する。ルートの`npm test`はNode test runner（単一図解実レンダリング、S3モック、パッケージ・プレゼン契約）。viewerの`npm test`はtsxのAPI試験。lint/format script、ルートtypecheck/build、DB migration/security専用コマンドはない。
@@ -97,3 +99,5 @@ TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビル�
 通常クライアント接続：HTTPSConnectionTestsで並行呼出しの要求開始間隔1秒以上、iOS CloudLibraryTestsで同じ管理領域の2画面が単一キューを共有し準備だけでは既存JSONが不変であることを検査。[実機適用・保持確認の範囲](docs/organization-sync-live-clients.md)。
 
 共通ゴミ箱の配備準備（2026-10-19）：`node --test tests/document-lock.test.cjs tests/upload.test.cjs tests/presentation-upload.test.cjs` 16件、viewer 31合格/1スキップ・型検査、日本語SVG/PNG実描画3件、Mac `swift test` 27件/1スキップ/失敗0。Node24、Mac/Chromeは承認付き実行。ログは `outputs/shared-trash-readiness/`。モック検証は実AWSゴミ箱確認とは区別する。[承認案](docs/shared-trash-aws-proposal.md)。
+
+共通ゴミ箱の本番検証（2026-10-19本人承認後）：合成1件の認証付きHTTPS15要求、S3残存0/既存catalog53件保持/削除ID再公開拒否に合格。両アプリ有効化後、iOS71 XCTest失敗0・共通Swift43合格。Mac本番削除通知受信とシート表示を確認。[証跡](docs/shared-trash-deployment.md)。

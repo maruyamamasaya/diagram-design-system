@@ -9,6 +9,11 @@ swift scripts/make-icon.swift "$PWD/.build/Bookshelf.iconset"
 python3 scripts/pack-icon.py "$PWD/.build/Bookshelf.iconset" "$APP/Contents/Resources/Bookshelf.icns"
 cp "$PWD/.build/Bookshelf.iconset/icon_512x512@2x.png" "$PWD/assets/Bookshelf.png"
 cp .build/release/Bookshelf "$APP/Contents/MacOS/Bookshelf"
+# BookshelfAssets checks the signed app's resource directory before Bundle.module.
+for resource_bundle in .build/release/*.bundle; do
+    [ -d "$resource_bundle" ] || continue
+    cp -R "$resource_bundle" "$APP/Contents/Resources/"
+done
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -31,6 +36,7 @@ with open(sys.argv[1], 'rb') as source: info = plistlib.load(source)
 with open(sys.argv[2]) as source: config = json.load(source)
 assert set(config) == {"OrganizationSyncEnabled", "OrganizationIssuer", "OrganizationDomain", "OrganizationAPI", "OrganizationClientID", "OrganizationCallback"}
 info.update(config)
+info["LibraryLifecycleEnabled"] = True
 with open(sys.argv[1], 'wb') as target: plistlib.dump(info, target)
 PYCONFIG
 codesign --force --sign - "$APP"

@@ -1,5 +1,7 @@
 # コード探索の入口
 
+素材テーマ：`packages/LibraryOrganization/Sources/LibraryOrganizationUI/BookshelfTheme.swift`（配色・端末別保存・素材・カード・メニュー）、`Resources/`（生成PNG）。Mac `BookshelfApp.swift` と隣接zukanへ接続。同梱は `mac-app/scripts/build-app.sh`。[仕様と証跡](docs/bookshelf-material-themes.md)。
+
 概念から以下の機能を選び、パスを絞って検索する。全ファイルの読込・一覧化は不要。
 
 |機能|主要パスと入口|検索語|関連テスト|
@@ -97,3 +99,5 @@ HTTPS同期：LibraryOrganization/AuthenticatedSyncTransport.swift、UI/Organiza
 本番接続準備：UI/SyncSetupView.swift、Mac Store.connectOrganizationSync、iOSのonSyncLogin、viewer/lib/organization/runtime.ts、infra/organization-sync.proposed.json、viewer/scripts/prepare-organization-deployment.ts。[未適用手順](docs/organization-sync-readiness.md)。
 
 共通ゴミ箱の資料単位CAS排他は `src/upload/document-lock.cjs`、保存側の有効化はconfigの `lifecycleProtection`。配備差分生成は `scripts/prepare-shared-trash-aws.cjs`、料金再計算は `scripts/estimate-shared-trash.py`。[承認案](docs/shared-trash-aws-proposal.md)。
+
+Mac/iPad左本棚：Mac `BookshelfApp.swift` のshelf選択と `CommonTrashView(embedded:)`、iPad `CloudLibraryView.swift` のtabletShelfBar/phoneFolderRail、`PresentationViewerApp.swift` のhideLibraryTabs。[仕様](docs/mac-ipad-sidebar.md)。

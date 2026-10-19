@@ -10,7 +10,7 @@ import LibraryOrganizationUI
 @main struct BookshelfApp: App {
     @StateObject private var store = ShelfStore()
     var body: some Scene {
-        WindowGroup("図鑑 — 資料の本棚") { ShelfView().environmentObject(store).frame(minWidth: 1000, minHeight: 650) }
+        WindowGroup("図鑑 — 資料の本棚") { ShelfView().environmentObject(store).frame(minWidth: 1000, minHeight: 650).bookshelfAppearance() }
         .defaultSize(width: 1380, height: 860)
         .commands { CommandGroup(after: .newItem) {
             Button("資料フォルダを登録…") { store.addSource() }.keyboardShortcut("o")
@@ -19,6 +19,7 @@ import LibraryOrganizationUI
     }
 }
 struct ShelfView: View {
+    @Environment(\.bookshelfTheme) private var theme
     @EnvironmentObject var store: ShelfStore
     @State private var shelf: String? = "all"
     @State private var selection = BookSelection()
@@ -34,7 +35,7 @@ struct ShelfView: View {
     @State private var classificationDraft: Book?
     @State private var syncLab: SyncLabSession?
     @State private var syncSetup = false
-    @State private var showCommonTrash = false
+    @State private var showSources = false
     @State private var trashIDs = Set<String>()
     @State private var confirmTrash = false
     @State private var collectionDraft: ReadingCollection<BookReference>?
@@ -67,7 +68,7 @@ struct ShelfView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $shelf) {
-                Section("ライブラリ") {
+                Section("本棚") {
                     Label("すべての資料", systemImage: "books.vertical").tag("all")
                     Label("未整理", systemImage: "tray").tag("unfiled")
                         .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
@@ -125,28 +126,35 @@ struct ShelfView: View {
                     Button("まとめを作成") { collectionDraft = ReadingCollection(id: UUID(), title: "", members: []) }
                 }
                 Section {
-                    Button { showCommonTrash = true } label: { Label("ゴミ箱", systemImage: "trash") }
+                    Label("ゴミ箱", systemImage: "trash").tag("trash")
                 }
-                Section("保存場所") {
+                Section {
+                    DisclosureGroup("保存場所", isExpanded: $showSources) {
                     ForEach(store.settings.sources) { source in
                         Label(URL(fileURLWithPath: source.path).lastPathComponent, systemImage: "externaldrive")
                             .help(source.path).contextMenu { Button("登録を解除") { store.removeSource(source.id) } }
                     }
                     Button { store.addSource() } label: { Label("資料フォルダを登録", systemImage: "plus") }
+                    }
                 }
             }
-            .listStyle(.sidebar).navigationSplitViewColumnWidth(min: 210, ideal: 235, max: 340)
+            .listStyle(.sidebar).scrollContentBackground(.hidden)
+            .background(BookshelfMaterial())
+            .navigationSplitViewColumnWidth(min: 210, ideal: 235, max: 340)
         } content: {
+            Group {
+            if shelf == "trash" { CommonTrashView(embedded: true).environmentObject(store) }
+            else {
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(selectedCollection?.title ?? folderID.map(store.folderPath) ?? (shelf == "unfiled" ? "未整理" : "すべての資料")).font(.title2.bold())
+                        Text(selectedCollection?.title ?? folderID.map(store.folderPath) ?? (shelf == "unfiled" ? "未整理" : "すべての資料")).font(.headline)
                         Text("\(visibleBooks.count) 冊 · 改訂版と各形式をひとまとめに表示").font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     if store.busy { ProgressView().controlSize(.small) }
                     Picker("並べ替え", selection: $sortBy) { Text("更新順").tag("updated"); Text("名前順").tag("title") }.labelsHidden().frame(width: 105)
-                }.padding(22)
+                }.padding(.horizontal, 22).padding(.vertical, 12)
                 HStack {
                     Picker("グループ", selection: $selectedGroup) {
                         Text("すべて").tag("すべて")
@@ -176,11 +184,10 @@ struct ShelfView: View {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: cardSize), spacing: 20)], spacing: 24) {
                             ForEach(collectionCards) { collection in
                                 Button { shelf = "collection:" + collection.id.uuidString; selection.clear() } label: {
-                                    VStack(alignment: .leading, spacing: 10) {
-                                        CoverImage(url: store.settings.members(of: collection, books: store.books).first?.latest.thumbnail).frame(height: 148).frame(maxWidth: .infinity).background(.white)
-                                        Text(collection.title).font(.headline)
-                                        Text("\(collection.members.count)件のまとめ").font(.caption)
-                                    }.padding(12).background(Color(nsColor: .controlBackgroundColor)).clipShape(RoundedRectangle(cornerRadius: 12))
+                                    SquareBookCard(title: collection.title,
+                                                   coverURL: store.settings.members(of: collection, books: store.books).first?.latest.thumbnail) {
+                                        Text("\(collection.members.count)件のまとめ")
+                                    }
                                 }.buttonStyle(.plain).contextMenu { Button("まとめを編集") { collectionDraft = collection } }
                             }
                             ForEach(gridBooks) { book in
@@ -224,9 +231,11 @@ struct ShelfView: View {
                     Slider(value: $cardSize, in: 170...330).frame(width: 110).help("サムネイルの大きさ")
                     }
                 }.padding(12)
-            }.background(Color(nsColor: .underPageBackgroundColor))
-            .navigationSplitViewColumnWidth(min: 420, ideal: 750)
+            }.background(theme.canvas)
+            }
+            }.navigationSplitViewColumnWidth(min: 420, ideal: 750)
         } detail: {
+            Group {
             if let book = store.books.first(where: { $0.id == selection.focusedID && store.visibleInLibrary($0.id) }) {
                 VStack(spacing: 0) {
                     HStack {
@@ -238,10 +247,11 @@ struct ShelfView: View {
                 }
             }
             else { ContentUnavailableView("資料を選択", systemImage: "doc.text.magnifyingglass", description: Text("表紙を選ぶと、ここで閲覧できます。")) }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity).background(theme.canvas)
         }
         .onChange(of: visibleBooks.map(\.id)) { _, ids in selection.retainVisible(ids) }
         .searchable(text: $search, prompt: "タイトル・資料ID・タグで検索")
-        .sheet(isPresented: $showCommonTrash) { CommonTrashView().environmentObject(store) }
+        .onChange(of: shelf) { _, _ in selection.clear() }
         .alert("\(trashIDs.count)件を共通ゴミ箱へ移しますか？", isPresented: $confirmTrash) {
             Button("キャンセル", role: .cancel) {}
             Button("ゴミ箱へ移動", role: .destructive) { let ids = trashIDs; Task { await store.setTrashed(ids, trashed: true) } }
@@ -251,6 +261,7 @@ struct ShelfView: View {
         .sheet(item: $classificationDraft) { book in ClassificationEditor(book: book, value: store.settings.classification(for: book)).environmentObject(store) }
         .sheet(item: $collectionDraft) { value in CollectionEditor(value: value).environmentObject(store) }
         .toolbar {
+            BookshelfThemePicker()
             Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
             Button("同期の検証", systemImage: "arrow.triangle.2.circlepath") { syncLab = store.makeSyncLab() }
             if let folderID {
@@ -308,15 +319,35 @@ struct BookCard: View {
     let book: Book
     let selected: Bool
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            CoverImage(url: book.latest.thumbnail ?? book.latest.preview)
-                .frame(height: 148).frame(maxWidth: .infinity).background(.white).clipShape(RoundedRectangle(cornerRadius: 7))
-            Text(book.latest.title).font(.system(size: 13, weight: .medium)).lineLimit(2).frame(height: 36, alignment: .topLeading)
-            HStack { Text("\(book.latest.pageCount) ページ"); Spacer(); Text("v\(book.latest.version)") }.font(.caption).foregroundStyle(.secondary)
-        }.padding(12).background(selected ? Color.accentColor.opacity(0.12) : Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Color.accentColor : Color.primary.opacity(0.07), lineWidth: selected ? 2 : 1))
+        SquareBookCard(title: book.latest.title, coverURL: book.latest.thumbnail ?? book.latest.preview, selected: selected) {
+            HStack { Text("\(book.latest.pageCount) ページ"); Spacer(); Text("v\(book.latest.version)") }
+        }
     }
 }
+
+/// A common square outer frame keeps documents and collections aligned.
+struct SquareBookCard<Caption: View>: View {
+    let title: String
+    let coverURL: URL?
+    var selected = false
+    @ViewBuilder var caption: () -> Caption
+    var body: some View {
+        Color.clear.aspectRatio(1, contentMode: .fit)
+            .overlay {
+                VStack(alignment: .leading, spacing: 10) {
+                    Color.white.overlay { CoverImage(url: coverURL) }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 7))
+                    Text(title).font(.system(size: 13, weight: .medium))
+                        .lineLimit(2, reservesSpace: true).truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    caption().font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }.padding(12)
+            }
+            .bookshelfCard(selected: selected)
+    }
+}
+
 struct CoverImage: View {
     let url: URL?
     @State private var image: NSImage?
