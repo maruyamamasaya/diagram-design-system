@@ -1,4 +1,6 @@
-2026-10-19：MacのS3プレビュー取得待ちを調査し、UI外のバイト読取・表紙取得上限・PDF取得の独立・再取得UIを追加。本人キーチェーン許可後、Macで問題の2資料のPDF表示を確認。iPad Miraの本棚16件/表紙表示も実画面確認、Macの2フォルダがiPadに未表示のため整理同期を確認中。[記録](sessions/2026-10-19-mac-fetch-and-prepush.md)。
+2026-10-19：Mac閲覧キャッシュの検証メタデータを永続化し、512 MiB/直近30版の保持目安を追加。同期接続は既存認証とAPIペーサーを共用。Mac33回帰（1スキップ）失敗0・Applications更新済み。Digital NatureはMacの最後の同期記録に未包含で、正規差分送信とiPad反映を継続確認中。[記録](sessions/2026-10-19-mac-cache-sync.md)。
+
+2026-10-19：MacのS3プレビュー取得待ちを調査し、UI外のバイト読取・表紙取得上限・PDF取得の独立・再取得UIを追加。本人キーチェーン許可後、Macで問題の2資料のPDF表示を確認。iPad Miraの本棚16件/表紙表示も実画面確認、iPadの初回統合/同期操作後に「技術」フォルダ反映を確認。「Digital Nature」の一致・双方向変更・ゴミ箱は未確認。[記録](sessions/2026-10-19-mac-fetch-and-prepush.md)。
 
 2026-10-19：今月のAWS費用を図鑑配賦分/共通・未配賦に分けるAPI/iOS表示をローカル実装。7日間の永続共有予約で有料照会を抑制。本人承認後AWSコード/IAM/固定cache keyを無効flagで配備・Projectタグ有効化済み。CE側のタグ反映待ちで、有料金額照会/iOS更新は未実施。本人が自動継続を明示承認、8時間おき最大4回の同チャット確認を設定済み。[配備記録](sessions/2026-10-19-monthly-billing-deployment.md)、[追加費用案](docs/monthly-billing-aws-proposal.md)を承認前に提示。[仕様](docs/monthly-billing.md)。
 

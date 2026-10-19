@@ -24,7 +24,7 @@ struct CloudShelfDocument: Codable, Equatable {
         return f.date(from: text) ?? ISO8601DateFormatter().date(from: text)
     }
 }
-struct CloudShelfFile: Decodable {
+struct CloudShelfFile: Codable {
     let name: String
     let format: String
     let sizeBytes: Int
@@ -64,6 +64,49 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
     let directory: URL
     private let session: URLSession
     private var details: [String: [CloudShelfFile]] = [:]
+    private var inUse: [String: Int] = [:]
+    private struct CachedDetail: Codable {
+        let document: CloudShelfDocument
+        let files: [CloudShelfFile]
+    }
+    // Cache contains only authenticated metadata and verified artifacts, never grants.
+    private func cachedFiles(_ d: CloudShelfDocument) -> [CloudShelfFile]? {
+        let key = d.id + "/" + String(d.version)
+        if let files = details[key] { return files }
+        guard (try? d.validate()) != nil else { return nil }
+        let path = folder(d).appendingPathComponent("detail.json")
+        guard let data = try? Data(contentsOf: path), data.count <= 1_000_000,
+              let cached = try? JSONDecoder().decode(CachedDetail.self, from: data),
+              cached.document == d, !cached.files.isEmpty, cached.files.count <= 501,
+              cached.files.allSatisfy({ (try? $0.validate()) != nil }) else { return nil }
+        details[key] = cached.files
+        return cached.files
+    }
+    func pruneCache(maxBytes: Int = 512 * 1024 * 1024, maxVersions: Int = 30) {
+        let fm = FileManager.default
+        struct Entry { let url: URL; let key: String; let date: Date; let bytes: Int }
+        var entries: [Entry] = []
+        for id in (try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isSymbolicLinkKey])) ?? [] {
+            guard UUID(uuidString: id.lastPathComponent) != nil,
+                  (try? id.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == false else { continue }
+            for version in (try? fm.contentsOfDirectory(at: id, includingPropertiesForKeys: [.isSymbolicLinkKey])) ?? [] {
+                guard Int(version.lastPathComponent).map({ $0 > 0 }) == true,
+                      (try? version.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == false else { continue }
+                let marker = version.appendingPathComponent("detail.json")
+                guard let values = try? marker.resourceValues(forKeys: [.contentModificationDateKey]), let date = values.contentModificationDate else { continue }
+                let files = (try? fm.contentsOfDirectory(at: version, includingPropertiesForKeys: [.fileSizeKey])) ?? []
+                let bytes = files.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+                entries.append(Entry(url: version, key: id.lastPathComponent + "/" + version.lastPathComponent, date: date, bytes: bytes))
+            }
+        }
+        var total = entries.reduce(0) { $0 + $1.bytes }, count = entries.count
+        for entry in entries.sorted(by: { $0.date < $1.date }) where total > maxBytes || count > maxVersions {
+            guard inUse[entry.key] == nil else { continue }
+            if (try? fm.removeItem(at: entry.url)) != nil {
+                details.removeValue(forKey: entry.key); total -= entry.bytes; count -= 1
+            }
+        }
+    }
     init(connection: AuthenticatedSyncConnection, directory: URL, session: URLSession? = nil) {
         self.connection = connection; self.directory = directory
         let c = URLSessionConfiguration.ephemeral; c.httpShouldSetCookies = false; c.urlCache = nil; c.timeoutIntervalForRequest = 30
@@ -93,8 +136,8 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
     func folder(_ d: CloudShelfDocument) -> URL { directory.appendingPathComponent(d.id).appendingPathComponent(String(d.version)) }
     func book(_ d: CloudShelfDocument) -> Book {
         let root = folder(d)
-        let known = details[d.id + "/" + String(d.version)] ?? []
-        let files = known.compactMap { file -> URL? in
+        let known = cachedFiles(d) ?? []
+        let files = known.filter { !$0.name.contains("/") || $0.page == 1 }.compactMap { file -> URL? in
             let name = file.name.contains("/") ? "diagram.png" : file.name
             let path = root.appendingPathComponent(name)
             guard let data = try? Data(contentsOf: path), Self.matches(data, file) else { return nil }
@@ -110,16 +153,22 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
     func prepare(_ d: CloudShelfDocument, preview: Bool, artifact: String? = nil, active: () -> Bool) async throws {
         try d.validate(); guard active() else { return }
         let key = d.id + "/" + String(d.version)
+        inUse[key, default: 0] += 1
+        defer { if inUse[key] == 1 { inUse.removeValue(forKey: key) } else { inUse[key, default: 1] -= 1 } }
         let files: [CloudShelfFile]
-        if let cached = details[key] { files = cached }
+        if let cached = cachedFiles(d) { files = cached }
         else {
             struct Detail: Decodable { let id: String; let version: Int; let files: [CloudShelfFile] }
             let detail: Detail = try await request("v1/diagrams/" + d.id, query: [URLQueryItem(name: "version", value: String(d.version))])
             guard detail.id == d.id, detail.version == d.version else { throw OrganizationConnectionError.invalidResponse }
             files = detail.files.filter { ["png", "pdf", "pptx"].contains($0.format) }
             for file in files { try file.validate() }
+            guard active() else { throw CancellationError() }
+            try FileManager.default.createDirectory(at: folder(d), withIntermediateDirectories: true)
+            try JSONEncoder().encode(CachedDetail(document: d, files: files)).write(to: folder(d).appendingPathComponent("detail.json"), options: .atomic)
             details[key] = files
         }
+        try? FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: folder(d).appendingPathComponent("detail.json").path)
         Logger(subsystem: "jp.local.zukan.bookshelf", category: "cloud").debug("Validated detail files: \(files.count)")
         let cover = files.first { $0.format == "png" }
         var wanted = cover.map { [($0, "cover.png")] } ?? []
@@ -141,6 +190,7 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
             try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
             try data.write(to: path, options: .atomic)
         }
+        pruneCache()
     }
     // AsyncBytes must be consumed away from MainActor: otherwise every byte can
     // schedule a UI actor hop, leaving multi-megabyte previews apparently stuck.

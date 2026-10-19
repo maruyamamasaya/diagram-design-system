@@ -180,9 +180,12 @@ import OSLog
         if organizationAuth == nil { organizationAuth = try OrganizationOIDC(config: config) }
         guard let auth = organizationAuth else { throw OrganizationConnectionError.authentication }
         // Do not replace a pending session/account. The checkpoint enforces the identity.
-        try await auth.login()
+        do { _ = try await auth.access() }
+        catch { try await auth.login() }
         if let testSync { return testSync }
-        syncConnection = try auth.connection(); testSyncEnabled = true; productionSync = true
+        // Share the existing API pacer with catalog/cover requests.
+        syncConnection = try cloudClient?.connection ?? auth.connection()
+        testSyncEnabled = true; productionSync = true
         return makeSyncLab()
     }
     func makeSyncLab() -> SyncLabSession {

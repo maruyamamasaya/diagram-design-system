@@ -109,6 +109,20 @@ private final class ShelfHTTP: URLProtocol, @unchecked Sendable {
         XCTAssertEqual(downloads, 1)
         XCTAssertEqual(client.book(d).latest.preview?.lastPathComponent, "document.pdf")
         XCTAssertEqual(try Data(contentsOf:client.folder(d).appendingPathComponent("document.pdf")), data)
+        // A new client represents a relaunch: the authenticated metadata and
+        // verified bytes must survive without requesting another signed URL.
+        ShelfHTTP.reply = { _ in XCTFail("Verified cache should not use the network"); throw URLError(.notConnectedToInternet) }
+        let relaunched = CloudBookshelfClient(connection:connection,directory:root,session:session())
+        XCTAssertEqual(relaunched.book(d).latest.preview?.lastPathComponent, "document.pdf")
+        try await relaunched.prepare(d,preview:true,active:{true})
+        try Data("damaged".utf8).write(to:client.folder(d).appendingPathComponent("document.pdf"))
+        XCTAssertNil(relaunched.book(d).latest.preview)
+        // Only this account's managed cache version is evicted, not sibling data.
+        let unrelated = root.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to:unrelated)
+        relaunched.pruneCache(maxBytes:0, maxVersions:0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath:client.folder(d).path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath:unrelated.path))
     }
     func testCorruptCachedFilesAreNotExposedAsPreview() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
