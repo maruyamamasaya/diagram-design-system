@@ -11,12 +11,18 @@ public struct BookEdition: Codable, Hashable, Sendable {
     public var kind: String = "presentation"
     public var tags: [String] = []
     public var modified: Date
+    public var remoteFormats: [String]? = nil
+    public init(version: Int, title: String, directory: URL, files: [URL], thumbnail: URL?, pageCount: Int, kind: String = "presentation", tags: [String] = [], modified: Date, remoteFormats: [String]? = nil) {
+        self.version = version; self.title = title; self.directory = directory; self.files = files
+        self.thumbnail = thumbnail; self.pageCount = pageCount; self.kind = kind; self.tags = tags; self.modified = modified; self.remoteFormats = remoteFormats
+    }
     public var preview: URL? { files.first { $0.pathExtension.lowercased() == "pdf" } ?? files.first { $0.pathExtension.lowercased() == "png" } ?? files.first }
 }
 public struct Book: Identifiable, Sendable {
     public var id: String
     public var editions: [BookEdition]
     public var latest: BookEdition { editions[0] }
+    public init(id: String, editions: [BookEdition]) { self.id = id; self.editions = editions }
 }
 public typealias ShelfFolder = OrganizationFolder
 public struct SourceFolder: Codable, Identifiable, Sendable {

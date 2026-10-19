@@ -13,7 +13,7 @@ import LibraryOrganizationUI
         WindowGroup("図鑑 — 資料の本棚") { ShelfView().environmentObject(store).frame(minWidth: 1000, minHeight: 650).bookshelfAppearance() }
         .defaultSize(width: 1380, height: 860)
         .commands { CommandGroup(after: .newItem) {
-            Button("資料フォルダを登録…") { store.addSource() }.keyboardShortcut("o")
+            Button("S3へログイン・更新") { Task { await store.refreshCloud(login: true) } }.keyboardShortcut("o")
             Button("本棚を更新") { Task { await store.refresh() } }.keyboardShortcut("r")
         } }
     }
@@ -28,22 +28,22 @@ struct ShelfView: View {
     @State private var editingFolder: UUID?
     @State private var folderDialog = false
     @State private var sortBy = "updated"
-    @State private var cardSize = 230.0
+    @State private var cardSize = 160.0
     @State private var showWarnings = false
+    @State private var selectedKind = "presentation"
     @State private var selectedGroup = "すべて"
     @State private var selectedTag = ""
     @State private var classificationDraft: Book?
     @State private var syncLab: SyncLabSession?
     @State private var syncSetup = false
-    @State private var showSources = false
     @State private var trashIDs = Set<String>()
     @State private var confirmTrash = false
     @State private var collectionDraft: ReadingCollection<BookReference>?
     var selectedCollection: ReadingCollection<BookReference>? { store.settings.collections.first { shelf == "collection:" + $0.id.uuidString } }
     var collectionCards: [ReadingCollection<BookReference>] {
-        guard shelf == "all", selectedGroup == "すべて", selectedTag.isEmpty, selection.ids.isEmpty else { return [] }
+        guard shelf == "all", selectedKind != "presentation", selectedGroup == "すべて", selectedTag.isEmpty, selection.ids.isEmpty else { return [] }
         return store.settings.collections.compactMap { collection -> ReadingCollection<BookReference>? in
-            var visible = collection; visible.members = collection.members.filter { store.visibleInLibrary($0.id) }; return visible.members.isEmpty ? nil : visible
+            var visible = collection; visible.members = collection.members.filter { member in store.visibleInLibrary(member.id) && store.books.contains(where: { $0.id == member.id }) }; return visible.members.isEmpty ? nil : visible
         }.filter { search.isEmpty || $0.title.localizedStandardContains(search) || $0.members.contains { $0.title.localizedStandardContains(search) } }
     }
     var gridBooks: [Book] {
@@ -58,7 +58,8 @@ struct ShelfView: View {
             let assignment = store.settings.assignments[book.id]
             let inShelf = shelf == "unfiled" ? assignment == nil : ids.map { assignment.map($0.contains) ?? false } ?? true
             let classification = store.settings.classification(for: book)
-            return store.visibleInLibrary(book.id) && inShelf && (selectedGroup == "すべて" || classification.group.rawValue == selectedGroup)
+            let inKind = selectedKind == "all" || (selectedKind == "presentation" ? book.latest.kind == "presentation" : book.latest.kind != "presentation")
+            return store.visibleInLibrary(book.id) && inKind && inShelf && (selectedGroup == "すべて" || classification.group.rawValue == selectedGroup)
                 && (selectedTag.isEmpty || classification.tags.contains { $0.localizedCaseInsensitiveCompare(selectedTag) == .orderedSame })
                 && (search.isEmpty || book.latest.title.localizedStandardContains(search) || book.id.localizedStandardContains(search) || classification.tags.contains { $0.localizedStandardContains(search) })
         }
@@ -69,7 +70,11 @@ struct ShelfView: View {
         NavigationSplitView {
             List(selection: $shelf) {
                 Section("本棚") {
-                    Label("すべての資料", systemImage: "books.vertical").tag("all")
+                    Picker("資料の種類", selection: $selectedKind) {
+                        Text("プレゼン資料").tag("presentation")
+                        Text("図解ライブラリ").tag("illustration")
+                    }.pickerStyle(.menu).labelsHidden().accessibilityLabel("資料の種類")
+                    Label("すべて", systemImage: "books.vertical").tag("all")
                     Label("未整理", systemImage: "tray").tag("unfiled")
                         .frame(maxWidth: .infinity, minHeight: 26, alignment: .leading)
                         .overlay(GeometryReader { geometry in
@@ -84,12 +89,14 @@ struct ShelfView: View {
                 Section {
                     ForEach(store.settings.orderedFolders) { folder in
                         Label {
-                            Text(store.folderPath(folder.id))
+                            Text(folder.name)
                         } icon: {
                             if let url = store.iconURL(for: folder), let image = NSImage(contentsOf: url) {
                                 Image(nsImage: image).resizable().scaledToFit().frame(width: 22, height: 22).clipShape(RoundedRectangle(cornerRadius: 4))
                             } else { Image(systemName: "folder") }
-                        }.tag(folder.id.uuidString)
+                        }.padding(.leading, CGFloat(max(0, store.folderPath(folder.id).components(separatedBy: " / ").count - 1)) * 12)
+                            .accessibilityLabel(store.folderPath(folder.id))
+                            .tag(folder.id.uuidString)
                             .contextMenu {
                                 Button("アイコン画像を設定…") { store.chooseFolderIcon(folder.id) }
                                 if folder.iconFile != nil { Button("標準アイコンに戻す") { store.resetFolderIcon(folder.id) } }
@@ -113,30 +120,21 @@ struct ShelfView: View {
                                 }).frame(width: geometry.size.width, height: geometry.size.height)
                             })
                     }
-                    Button { editingFolder = nil; folderName = ""; folderDialog = true } label: { Label("フォルダを作成", systemImage: "folder.badge.plus") }
-                } header: { Text("本棚のフォルダ") } footer: { Text("フォルダをドラッグして並べ替え。資料をドロップして分類できます。") }
-                Section("図解のまとめ") {
-                    ForEach(store.settings.collections) { collection in
-                        Label(collection.title, systemImage: "rectangle.stack").tag("collection:" + collection.id.uuidString)
-                            .contextMenu {
-                                Button("まとめを編集") { collectionDraft = collection }
-                                Button("まとめを解除") { store.change { $0.collections.removeAll { $0.id == collection.id } }; shelf = "all" }
-                            }
-                    }
-                    Button("まとめを作成") { collectionDraft = ReadingCollection(id: UUID(), title: "", members: []) }
-                }
+                } header: { Text("フォルダ") }
                 Section {
                     Label("ゴミ箱", systemImage: "trash").tag("trash")
                 }
                 Section {
-                    DisclosureGroup("保存場所", isExpanded: $showSources) {
-                    ForEach(store.settings.sources) { source in
-                        Label(URL(fileURLWithPath: source.path).lastPathComponent, systemImage: "externaldrive")
-                            .help(source.path).contextMenu { Button("登録を解除") { store.removeSource(source.id) } }
-                    }
-                    Button { store.addSource() } label: { Label("資料フォルダを登録", systemImage: "plus") }
-                    }
+                    Menu {
+                        Button("フォルダを作成", systemImage: "folder.badge.plus") { editingFolder = nil; folderName = ""; folderDialog = true }
+                        if selectedKind == "illustration" { Button("まとめを作成", systemImage: "rectangle.stack.badge.plus") { collectionDraft = ReadingCollection(id: UUID(), title: "", members: []) } }
+                        Divider()
+                        Button("S3へログイン・更新", systemImage: "cloud") { Task { await store.refreshCloud(login: true) } }
+                        Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
+                        Menu("詳細") { Button("同期の検証") { syncLab = store.makeSyncLab() } }
+                    } label: { Label("本棚を管理", systemImage: "slider.horizontal.3") }
                 }
+
             }
             .listStyle(.sidebar).scrollContentBackground(.hidden)
             .background(BookshelfMaterial())
@@ -177,8 +175,8 @@ struct ShelfView: View {
                 }
                 Divider()
                 if visibleBooks.isEmpty && collectionCards.isEmpty {
-                    ContentUnavailableView(store.settings.sources.isEmpty ? "資料の本棚をはじめる" : "資料がありません", systemImage: "books.vertical", description: Text(store.settings.sources.isEmpty ? "生成済みの outputs フォルダを登録してください。" : "検索条件やフォルダを変更してください。"))
-                    if store.settings.sources.isEmpty { Button("資料フォルダを登録…") { store.addSource() }.buttonStyle(.borderedProminent).padding(.bottom, 70) }
+                    ContentUnavailableView(store.settings.sources.isEmpty ? "資料の本棚をはじめる" : "資料がありません", systemImage: "books.vertical", description: Text(store.usesCloudCatalog ? "S3へログインして本棚を更新してください。" : "検索条件やフォルダを変更してください。"))
+                    if store.usesCloudCatalog { Button("S3へログイン・更新") { Task { await store.refreshCloud(login: true) } }.buttonStyle(.borderedProminent).padding(.bottom, 70) }
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: cardSize), spacing: 20)], spacing: 24) {
@@ -186,9 +184,10 @@ struct ShelfView: View {
                                 Button { shelf = "collection:" + collection.id.uuidString; selection.clear() } label: {
                                     SquareBookCard(title: collection.title,
                                                    coverURL: store.settings.members(of: collection, books: store.books).first?.latest.thumbnail) {
-                                        Text("\(collection.members.count)件のまとめ")
+                                        EmptyView()
                                     }
                                 }.buttonStyle(.plain).contextMenu { Button("まとめを編集") { collectionDraft = collection } }
+                                .task(id: store.cloudTaskKey(collection.members.first?.id ?? "")) { if let member = collection.members.first { await store.prepareCloudBook(member.id, preview: false) } }
                             }
                             ForEach(gridBooks) { book in
                                 BookCard(book: book, selected: selection.ids.contains(book.id))
@@ -228,7 +227,7 @@ struct ShelfView: View {
                     HStack {
                     if !store.warnings.isEmpty { Button("読込の注意 \(store.warnings.count) 件") { showWarnings = true }.buttonStyle(.plain).foregroundStyle(.orange) }
                     Spacer(); Image(systemName: "square.grid.2x2").foregroundStyle(.secondary)
-                    Slider(value: $cardSize, in: 170...330).frame(width: 110).help("サムネイルの大きさ")
+                    Slider(value: $cardSize, in: 120...220).frame(width: 110).help("サムネイルの大きさ")
                     }
                 }.padding(12)
             }.background(theme.canvas)
@@ -243,7 +242,8 @@ struct ShelfView: View {
                         Text(store.settings.classification(for: book).tags.joined(separator: " · ")).font(.caption).lineLimit(2)
                         Spacer(); Button("タグを編集") { classificationDraft = book }
                     }.padding(12)
-                    BookDetail(book: book).id(book.id)
+                    BookDetail(book: book).id(store.cloudTaskKey(book.id))
+                        .task(id: store.cloudTaskKey(book.id)) { await store.prepareCloudBook(book.id, preview: true) }
                 }
             }
             else { ContentUnavailableView("資料を選択", systemImage: "doc.text.magnifyingglass", description: Text("表紙を選ぶと、ここで閲覧できます。")) }
@@ -252,6 +252,7 @@ struct ShelfView: View {
         .onChange(of: visibleBooks.map(\.id)) { _, ids in selection.retainVisible(ids) }
         .searchable(text: $search, prompt: "タイトル・資料ID・タグで検索")
         .onChange(of: shelf) { _, _ in selection.clear() }
+        .onChange(of: selectedKind) { _, _ in shelf = "all"; selection.clear(); selectedGroup = "すべて"; selectedTag = "" }
         .alert("\(trashIDs.count)件を共通ゴミ箱へ移しますか？", isPresented: $confirmTrash) {
             Button("キャンセル", role: .cancel) {}
             Button("ゴミ箱へ移動", role: .destructive) { let ids = trashIDs; Task { await store.setTrashed(ids, trashed: true) } }
@@ -262,15 +263,8 @@ struct ShelfView: View {
         .sheet(item: $collectionDraft) { value in CollectionEditor(value: value).environmentObject(store) }
         .toolbar {
             BookshelfThemePicker()
-            Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
-            Button("同期の検証", systemImage: "arrow.triangle.2.circlepath") { syncLab = store.makeSyncLab() }
-            if let folderID {
-                Menu("フォルダ", systemImage: "folder.badge.gearshape") {
-                    Button("アイコン画像を設定…") { store.chooseFolderIcon(folderID) }
-                    Button("標準アイコンに戻す") { store.resetFolderIcon(folderID) }
-                }
-            }
-            Button { Task { await store.refresh() } } label: { Label("更新", systemImage: "arrow.clockwise") }.disabled(store.busy) }
+            Button { Task { await store.refresh() } } label: { Label("更新", systemImage: "arrow.clockwise") }.disabled(store.busy)
+        }
         .alert(editingFolder == nil ? "フォルダを作成" : "名前を変更", isPresented: $folderDialog) {
             TextField("フォルダ名", text: $folderName)
             Button("キャンセル", role: .cancel) {}
@@ -316,12 +310,12 @@ struct ShelfView: View {
 }
 
 struct BookCard: View {
+    @EnvironmentObject var store: ShelfStore
     let book: Book
     let selected: Bool
     var body: some View {
-        SquareBookCard(title: book.latest.title, coverURL: book.latest.thumbnail ?? book.latest.preview, selected: selected) {
-            HStack { Text("\(book.latest.pageCount) ページ"); Spacer(); Text("v\(book.latest.version)") }
-        }
+        SquareBookCard(title: book.latest.title, coverURL: book.latest.thumbnail ?? book.latest.preview, selected: selected) { EmptyView() }
+            .task(id: store.cloudTaskKey(book.id)) { await store.prepareCloudBook(book.id, preview: false) }
     }
 }
 
@@ -370,6 +364,7 @@ struct CoverImage: View {
     }
 }
 struct BookDetail: View {
+    @EnvironmentObject var store: ShelfStore
     let book: Book
     @State private var editionIndex = 0
     @State private var file: URL?
@@ -379,9 +374,22 @@ struct BookDetail: View {
             Text(edition.title).font(.title3.bold()).textSelection(.enabled)
             Picker("版", selection: $editionIndex) { ForEach(Array(book.editions.enumerated()), id: \.offset) { index, edition in Text("v\(edition.version) · \(edition.pageCount)ページ").tag(index) } }
             if let preview = file ?? edition.preview { DocumentPreview(url: preview).id(preview).frame(maxWidth: .infinity, maxHeight: .infinity) }
-            else { ContentUnavailableView("プレビューできません", systemImage: "doc.questionmark") }
+            else if store.cloudPreviewErrors.contains(book.id) {
+                ContentUnavailableView {
+                    Label("資料を取得できませんでした", systemImage: "exclamationmark.icloud")
+                } description: {
+                    Text("接続を確認して、もう一度お試しください。")
+                } actions: {
+                    Button("再取得") { Task { await store.prepareCloudBook(book.id, preview: true) } }
+                }
+            } else { ContentUnavailableView("資料を取得中", systemImage: "icloud.and.arrow.down", description: Text("S3からプレビューを準備します。")) }
             HStack {
-                Menu("形式を選ぶ") { ForEach(edition.files, id: \.self) { url in Button(url.lastPathComponent) { file = url } } }
+                Menu("形式を選ぶ") {
+                    ForEach(edition.files, id: \.self) { url in Button(url.lastPathComponent) { file = url } }
+                    ForEach(store.cloudFormats(book.id), id: \.self) { format in
+                        Button("\(format.uppercased())を取得") { Task { file = await store.prepareCloudBook(book.id, preview: true, artifact: format) } }
+                    }
+                }
                 Spacer()
                 Button { if let url = file ?? edition.preview { NSWorkspace.shared.open(url) } } label: { Image(systemName: "arrow.up.right.square") }.help("標準アプリで開く")
                 Button { NSWorkspace.shared.activateFileViewerSelecting([edition.directory]) } label: { Image(systemName: "folder") }.help("Finderで表示")

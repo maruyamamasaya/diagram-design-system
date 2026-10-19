@@ -56,8 +56,10 @@ public struct AuthenticatedSyncConnection: Sendable {
         if http.statusCode == 429 { throw SyncRetryFailure(retryAfter: SyncRetryFailure.retryDate(http.value(forHTTPHeaderField: "Retry-After"), now: Date())) }
         let result = try JSONDecoder().decode(OrganizationBootstrap.self, from: data); try result.validate(); return result
     }
-    func request(path: String, body: Data?) async throws -> (Data, HTTPURLResponse) {
-        let url = baseURL.appendingPathComponent(path)
+    public func request(path: String, body: Data?, query: [URLQueryItem] = []) async throws -> (Data, HTTPURLResponse) {
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        components.queryItems = query.isEmpty ? nil : query
+        guard let url = components.url else { throw OrganizationConnectionError.invalidEndpoint }
         for attempt in 0...1 {
             try await pacer.wait()
             let credentials: OrganizationAccess

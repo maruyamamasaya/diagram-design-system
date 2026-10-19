@@ -1,3 +1,15 @@
+2026-10-19：MacのS3プレビュー取得待ちを調査し、UI外のバイト読取・表紙取得上限・PDF取得の独立・再取得UIを追加。更新後の実S3表示はキーチェーン本人許可待ち。iPad実機確認はMira再接続待ち。[記録](sessions/2026-10-19-mac-fetch-and-prepush.md)。
+
+2026-10-19：今月のAWS費用を図鑑配賦分/共通・未配賦に分けるAPI/iOS表示をローカル実装。7日間の永続共有予約で有料照会を抑制。本人承認後AWSコード/IAM/固定cache keyを無効flagで配備・Projectタグ有効化済み。CE側のタグ反映待ちで、有料金額照会/iOS更新は未実施。本人が自動継続を明示承認、8時間おき最大4回の同チャット確認を設定済み。[配備記録](sessions/2026-10-19-monthly-billing-deployment.md)、[追加費用案](docs/monthly-billing-aws-proposal.md)を承認前に提示。[仕様](docs/monthly-billing.md)。
+
+2026-10-19：iOSの保存費画面を専用S3全版の実容量取得へ改修し、手入力を廃止。本人承認後AWSコード/IAM適用・本番容量のCLI一致確認完了。Vespera/Miraへ更新・起動成功、実機画面操作は未確認。[仕様](docs/s3-storage-capacity.md)、[料金と適用案](docs/s3-storage-capacity-aws-proposal.md)。
+
+2026-10-19：本人指示でS3専用・共通サイドバー版をMac Applications/Vespera/Miraへ反映。署名・Mac実行ファイル一致・両端末の更新成功を確認。起動/ログイン/実操作確認は本人が後日実施。[実機確認チェックリスト](docs/bookshelf-device-checklist.md)に結果を記録する。[反映記録](sessions/2026-10-19-s3-unified-app-install.md)。
+
+2026-10-19：S3専用化と同時にMac/iOSのサイドバーを共通整理。種類→すべて/未整理→フォルダ→ゴミ箱→本棚管理。まとめは一覧カードへ集約。コード/自動検証/ビルドまでで実機入替は後日。[共通操作](docs/unified-bookshelf-sidebar.md)。
+
+2026-10-19：本人指示で本棚をS3正本へ統一。Macを認証APIへ接続し、iOS/Macのローカル資料入口を廃止。Macカードを小型化、サムネイルと2行タイトル中心に変更。Mac32（1スキップ）/iOS72/共通44テスト合格。実機配布/確認は後日。[仕様と検証境界](docs/s3-only-bookshelf.md)。
+
 2026-10-19：Macも資料/まとめカードを共通の正方形に統一、タイトル2行分確保・末尾省略。27テスト（1スキップ）失敗0・release署名成功、Applications版更新/起動・画面確認済み。[記録](sessions/2026-10-19-mac-square-cards.md)。
 
 2026-10-19：iOSのクラウド/まとめ/ローカル資料カードを共通の正方形へ統一。タイトルは常に2行分を確保、超過は末尾省略。72 XCTest・署名build成功、Vespera/Miraへ反映。[記録](sessions/2026-10-19-ios-square-cards.md)。

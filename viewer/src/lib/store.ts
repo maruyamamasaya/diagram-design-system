@@ -53,6 +53,9 @@ const policy = {
         `arn:aws:s3:::${target.bucket}/library/state/*`,
       ],
     },
+    ...(process.env.VIEWER_STORAGE_CAPACITY_ENABLED === "true" ? [{
+      Effect: "Allow", Action: "s3:ListBucketVersions", Resource: `arn:aws:s3:::${target.bucket}`,
+    }] : []),
     ...(process.env.VIEWER_TRASH_ENABLED === "true" ? [{Effect: "Allow", Action: "s3:PutObject", Resource: `arn:aws:s3:::${target.bucket}/library/state/*`}] : []),
   ],
 };

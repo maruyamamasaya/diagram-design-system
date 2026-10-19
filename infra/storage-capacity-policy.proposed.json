@@ -1,0 +1,9 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "ReadDedicatedBucketCapacity",
+    "Effect": "Allow",
+    "Action": "s3:ListBucketVersions",
+    "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1"
+  }]
+}

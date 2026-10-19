@@ -1,3 +1,5 @@
+import { monthlyBillingRuntime } from "./monthly-billing-runtime";
+import { storageCapacity } from "./storage-capacity";
 import type { OrganizationService } from "./organization/service";
 import type {LibraryLifecycle} from './lifecycle';
 import {lifecycleRuntime} from './lifecycle-runtime';
@@ -116,6 +118,17 @@ export async function handle(
         }
       }
       error(404,'NOT_FOUND');
+    }
+    if (route === "monthly-billing" && req.method === "GET") {
+      if (url.search) error(400, "INVALID_REQUEST");
+      const billing = c.publicAPI ? monthlyBillingRuntime() : undefined;
+      if (!billing) error(503, "MONTHLY_BILLING_UNAVAILABLE");
+      return response(await billing.get());
+    }
+    if (route === "storage-capacity" && req.method === "GET") {
+      if (url.search) error(400, "INVALID_REQUEST");
+      if (process.env.VIEWER_STORAGE_CAPACITY_ENABLED !== "true" || c.storage !== "s3") error(503, "STORAGE_CAPACITY_UNAVAILABLE");
+      return response(await storageCapacity());
     }
     if (segments[0] !== "diagrams") error(404, "NOT_FOUND");
     if (segments.length === 1 && req.method === "GET") {

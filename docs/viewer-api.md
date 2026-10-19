@@ -78,3 +78,11 @@ viewer/tests/large-presentation.test.tsを追加。check-large-presentation.ts�
 `GET /v1/organization/bootstrap`と`POST /v1/organization/sync`（begin/sync/finish）をTypeScriptで追加。既存Cognito検証＋専用同期scope/owner認可を使う。未設定/flag=falseのhandlerでは404。2026-10-18に承認後の段階的配備と実Cognito/少量合成データ検証を終え、既存公開Lambdaではflag=trueで有効化済み。資料の読取契約は保持。状態遷移・Swiftとの共通fixture・CAS/S3保存ポート・容量境界は[同期API仕様](organization-sync-api-local.md)、配備の現在値と通常本棚の未接続境界は[実AWS記録](organization-sync-deployment.md)を正とする。
 
 整理同期ルート（2026-10-18）：承認後、GET /v1/organization/bootstrapとPOST /v1/organization/syncを既存公開APIへ有効化した。追加organization.sync scope・同owner・固定UUIDの検査、5開始/時、操作50件/256KiB、既存API全体1要求/秒を維持。資料本体の取得契約を変更しない。詳細は[同期契約](organization-sync-https.md)と[実AWS配備証跡](organization-sync-deployment.md)。
+
+## S3実保存容量（2026-10-19、本番配備済み）
+
+本人read認証付きGET /v1/storage-capacity。専用bucket全版/管理/ゴミ箱/削除マーカーのbyte合計と件数・完了日時を返す。保存先指定は不可、明示フラグ必須。[応答契約と制約](s3-storage-capacity.md)、[本番適用承認案](s3-storage-capacity-aws-proposal.md)。
+
+## 今月のAWS請求（2026-10-19、未配備）
+
+本人OIDC/read認証限定GET /v1/monthly-billing。固定account/今月/Project配賦分とタグ未配賦分を返す。7日共有予約・2枠各2ページ上限・強制更新query不可・既定無効。[契約](monthly-billing.md)、[AWS追加費用/適用案](monthly-billing-aws-proposal.md)。

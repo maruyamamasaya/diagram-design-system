@@ -1,0 +1,135 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:PrincipalIsAWSService": "false",
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyLibraryOverwrites",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/*",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true"
+        },
+        "ArnNotEquals": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam",
+            "arn:aws:iam::676643701781:role/diagram-design-system-uploader"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "RequireSSES3",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "AES256"
+        }
+      }
+    },
+    {
+      "Sid": "DenyOrganizationCASOutsideFixedKey",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam"
+      },
+      "Action": "s3:PutObject",
+      "NotResource": [
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/organization/v1/18c9449f68b0d69b37aff414afea31faeb1ae3c97c63b41dbea449128a920a39/state.json",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/lifecycle/*",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/document-locks/*",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/billing/monthly.json"
+      ],
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyOrganizationUnconditionalWrite",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/organization/v1/18c9449f68b0d69b37aff414afea31faeb1ae3c97c63b41dbea449128a920a39/state.json",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true",
+          "s3:if-match": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUploaderCASOutsideDocumentLocks",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::676643701781:role/diagram-design-system-uploader"
+      },
+      "Action": "s3:PutObject",
+      "NotResource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/document-locks/*",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnconditionalLifecycleWrites",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam",
+          "arn:aws:iam::676643701781:role/diagram-design-system-uploader"
+        ]
+      },
+      "Action": "s3:PutObject",
+      "Resource": [
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/lifecycle/*",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/document-locks/*"
+      ],
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true",
+          "s3:if-match": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUnconditionalBillingWrites",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::676643701781:role/diagram-library-api-Role-kKDOVnaoMyam"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/billing/monthly.json",
+      "Condition": {
+        "Null": {
+          "s3:if-none-match": "true",
+          "s3:if-match": "true"
+        }
+      }
+    }
+  ]
+}

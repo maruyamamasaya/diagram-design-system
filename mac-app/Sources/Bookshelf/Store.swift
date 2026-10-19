@@ -5,8 +5,16 @@ import BookshelfWatching
 import LibraryOrganization
 import LibraryOrganizationUI
 import CryptoKit
+import OSLog
 
 @MainActor final class ShelfStore: ObservableObject {
+    private let cloudOnly: Bool
+    var usesCloudCatalog: Bool { cloudOnly }
+    private var cloudCatalog: [CloudShelfDocument] = []
+    private var cloudClient: CloudBookshelfClient?
+    private var preparingCloud = Set<String>()
+    private var activeCoverLoads = 0
+    @Published private(set) var cloudPreviewErrors: Set<String> = []
     @Published var settings = LibrarySettings()
     @Published var books: [Book] = []
     @Published var warnings: [String] = []
@@ -83,6 +91,7 @@ import CryptoKit
                 let entry = try await lifecycleClient.move(id: id, revision: lifecycle.entries[id]?.revision ?? 0, trashed: trashed)
                 try lifecycle.merge(entry); try persistLifecycle()
             }
+            if cloudOnly && !trashed { await refreshCloud() }
         } catch { self.error = "完了した操作は保持しました。残りはゴミ箱を更新してから再試行してください。" }
     }
     func deletionPlans(_ ids: Set<String>) async -> [LibraryDeletionPlan]? {
@@ -113,6 +122,7 @@ import CryptoKit
     private var syncConnection: AuthenticatedSyncConnection?
     private var activationObserver: NSObjectProtocol?
     init(stateURL overrideURL: URL? = nil, autoRefresh: Bool = true, enableTestSync: Bool = false, syncConnection: AuthenticatedSyncConnection? = nil) {
+        cloudOnly = overrideURL == nil && !ProcessInfo.processInfo.arguments.contains("--state")
         self.syncConnection = syncConnection
         let arguments = ProcessInfo.processInfo.arguments
         testSyncEnabled = enableTestSync || (arguments.contains("--test-library-sync") && arguments.contains("--state"))
@@ -219,6 +229,61 @@ import CryptoKit
         let documents = (books.map { document(BookReference(book: $0)) } + seed.collections.flatMap(\.members)).filter { seen.insert($0.id).inserted }
         return SyncLabSession(directory: stateURL.deletingLastPathComponent().appendingPathComponent("sync-lab"), seed: seed, documents: documents)
     }
+    func refreshCloud(login: Bool = false) async {
+        guard !busy else { return }
+        busy = true; defer { busy = false }
+        do {
+            try await prepareLifecycle(login: login)
+            guard let connection = lifecycleClient?.connection, let lifecycleURL else { throw OrganizationConnectionError.authentication }
+            let directory = lifecycleURL.deletingPathExtension().appendingPathExtension("copies")
+            if cloudClient?.connection.identityKey != connection.identityKey {
+                books = []; cloudCatalog = []
+                cloudClient = CloudBookshelfClient(connection: connection, directory: directory)
+            }
+            guard let cloudClient, let lifecycleClient else { throw OrganizationConnectionError.authentication }
+            let snapshot = try await lifecycleClient.snapshot()
+            try lifecycle.merge(snapshot); try persistLifecycle(); lifecycleReadable = true
+            let documents = try await cloudClient.catalog()
+            cloudCatalog = documents
+            books = documents.filter { visibleInLibrary($0.id) }.map(cloudClient.book)
+            warnings = []; error = nil
+        } catch { self.error = "S3の本棚を更新できませんでした。ログインと接続を確認してください。" }
+    }
+    func cloudTaskKey(_ id: String) -> String { id + "/" + String(books.first(where: { $0.id == id })?.latest.version ?? 0) }
+    func cloudFormats(_ id: String) -> [String] { cloudCatalog.first { $0.id == id }?.formats.filter { ["pdf", "png", "pptx"].contains($0) } ?? [] }
+    @discardableResult func prepareCloudBook(_ id: String, preview: Bool, artifact: String? = nil) async -> URL? {
+        guard cloudOnly, let client = cloudClient, let document = cloudCatalog.first(where: { $0.id == id }), visibleInLibrary(id) else { return nil }
+        // Keep background covers from reserving the API pacer's entire queue.
+        // A selected preview can enter immediately, sharing the same rate limit.
+        if !preview {
+            while activeCoverLoads >= 2 {
+                do { try await Task.sleep(for: .milliseconds(100)) } catch { return nil }
+            }
+            guard !Task.isCancelled else { return nil }
+            activeCoverLoads += 1
+        }
+        defer { if !preview { activeCoverLoads -= 1 } }
+        let key = id + "/" + String(document.version) + "/" + (artifact ?? (preview ? "preview" : "cover"))
+        // SwiftUI may cancel/restart selection tasks before the old one unwinds.
+        // Wait for that cleanup instead of leaving the new selection unprepared.
+        while preparingCloud.contains(key) {
+            do { try await Task.sleep(for: .milliseconds(100)) } catch { return nil }
+        }
+        guard !Task.isCancelled else { return nil }
+        preparingCloud.insert(key)
+        defer { preparingCloud.remove(key) }
+        if preview { cloudPreviewErrors.remove(id) }
+        do {
+            try await client.prepare(document, preview: preview, artifact: artifact, active: { [weak self] in self?.visibleInLibrary(id) == true && self?.cloudClient === client && self?.cloudCatalog.contains(where: { $0.id == id && $0.version == document.version }) == true })
+            guard visibleInLibrary(id), cloudClient === client, let index = books.firstIndex(where: { $0.id == id }) else { return nil }
+            books[index] = client.book(document)
+            return artifact.flatMap { format in books[index].latest.files.first { $0.pathExtension == format } } ?? books[index].latest.preview
+        } catch {
+            Logger(subsystem: "jp.local.zukan.bookshelf", category: "cloud").error("Asset fetch failed: \(String(describing: type(of: error)), privacy: .public)")
+            if preview, !(error is CancellationError), !Task.isCancelled { cloudPreviewErrors.insert(id) }
+            return nil
+        }
+    }
     func addSource() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.prompt = "資料フォルダを登録"; panel.message = "outputs または成果物を保存したフォルダを選んでください。元ファイルは変更しません。"
@@ -232,6 +297,7 @@ import CryptoKit
     }
     func removeSource(_ id: UUID) { change { $0.sources.removeAll { $0.id == id } }; Task { await refresh() } }
     func refresh() async {
+        if cloudOnly { await refreshCloud(); return }
         if lifecycleEnabled { await refreshLifecycle() }
         guard !busy else { refreshAgain = true; return }; busy = true
         repeat {

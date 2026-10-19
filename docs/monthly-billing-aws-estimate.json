@@ -1,0 +1,41 @@
+{
+  "region": "ap-northeast-1 (CE endpoint us-east-1)",
+  "exchangeJPYPerUSD": "150",
+  "taxMultiplier": "1.10",
+  "rates": "docs/shared-trash-aws-rates.json + CE 0.01 USD per page (checked 2026-10-19)",
+  "cases": [
+    {
+      "case": "normal",
+      "apiRequests": 62,
+      "ceRequests": 10,
+      "s3GET": 62,
+      "s3PUT": 10,
+      "responseBytes": 65536,
+      "ceJPY": "16.5000",
+      "withTransferFreeTierJPY": "16.64617808965466308593750000",
+      "withoutTransferFreeTierJPY": "16.71735850957653808593750000"
+    },
+    {
+      "case": "heavy",
+      "apiRequests": 1240,
+      "ceRequests": 10,
+      "s3GET": 1240,
+      "s3PUT": 10,
+      "responseBytes": 65536,
+      "ceJPY": "16.5000",
+      "withTransferFreeTierJPY": "18.77119207500732421875000000",
+      "withoutTransferFreeTierJPY": "20.19480047344482421875000000"
+    },
+    {
+      "case": "heavy_retries_and_pagination",
+      "apiRequests": 3720,
+      "ceRequests": 20,
+      "s3GET": 3720,
+      "s3PUT": 10,
+      "responseBytes": 262144,
+      "ceJPY": "33.0000",
+      "withTransferFreeTierJPY": "39.75245882896728515625000000",
+      "withoutTransferFreeTierJPY": "56.83575961021728515625000000"
+    }
+  ]
+}

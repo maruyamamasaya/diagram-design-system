@@ -101,3 +101,9 @@ TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビル�
 共通ゴミ箱の配備準備（2026-10-19）：`node --test tests/document-lock.test.cjs tests/upload.test.cjs tests/presentation-upload.test.cjs` 16件、viewer 31合格/1スキップ・型検査、日本語SVG/PNG実描画3件、Mac `swift test` 27件/1スキップ/失敗0。Node24、Mac/Chromeは承認付き実行。ログは `outputs/shared-trash-readiness/`。モック検証は実AWSゴミ箱確認とは区別する。[承認案](docs/shared-trash-aws-proposal.md)。
 
 共通ゴミ箱の本番検証（2026-10-19本人承認後）：合成1件の認証付きHTTPS15要求、S3残存0/既存catalog53件保持/削除ID再公開拒否に合格。両アプリ有効化後、iOS71 XCTest失敗0・共通Swift43合格。Mac本番削除通知受信とシート表示を確認。[証跡](docs/shared-trash-deployment.md)。
+
+S3専用本棚：Mac `CloudBookshelfTests` はURLProtocolで認証API/署名URL/実バイト/破損キャッシュ/遅延削除通知をモック。Mac32（1スキップ）、iOS72、共通44合格。実サービス/実機確認は別。[記録](docs/s3-only-bookshelf.md)。
+
+S3保存容量：viewer/tests/storage-capacity.test.tsで全版/削除マーカー/ページング/部分失敗/認証/フラグ/キャッシュ/キー非公開を検査。iOSは隣接zukanのCloudLibraryTestsの専用endpoint・scope・履歴分離テスト。AWS CLIの全版実読取と本番新API検証は区別する。[仕様](docs/s3-storage-capacity.md)。
+
+今月のAWS請求：viewer/tests/monthly-billing.test.tsで配賦フィルター/対象account/小数/credit/ページ上限/20並行Lambda/失敗後予約/再起動/月替わり/本人認可/署名HTTPと固定S3 CASをモック検証。iOS CloudLibraryTests.testMonthlyBillingEndpointAllocationAndExactTotalsで取得・Decimal・通信/認証分類・不一致/配賦待ち/欠落拒否。[仕様](docs/monthly-billing.md)。実CE照会とモックを区別する。

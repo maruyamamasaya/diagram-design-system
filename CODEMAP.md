@@ -101,3 +101,9 @@ HTTPS同期：LibraryOrganization/AuthenticatedSyncTransport.swift、UI/Organiza
 共通ゴミ箱の資料単位CAS排他は `src/upload/document-lock.cjs`、保存側の有効化はconfigの `lifecycleProtection`。配備差分生成は `scripts/prepare-shared-trash-aws.cjs`、料金再計算は `scripts/estimate-shared-trash.py`。[承認案](docs/shared-trash-aws-proposal.md)。
 
 Mac/iPad左本棚：Mac `BookshelfApp.swift` のshelf選択と `CommonTrashView(embedded:)`、iPad `CloudLibraryView.swift` のtabletShelfBar/phoneFolderRail、`PresentationViewerApp.swift` のhideLibraryTabs。[仕様](docs/mac-ipad-sidebar.md)。
+
+S3専用Mac本棚：`mac-app/Sources/Bookshelf/CloudBookshelf.swift`（一覧/取得/整合性）、`Store.swift`（正本/キャッシュ/削除通知）、`BookshelfApp.swift`（小型カード/右プレビュー）。既存認証通信のquery対応は `AuthenticatedSyncTransport.swift`。[仕様](docs/s3-only-bookshelf.md)。
+
+S3保存容量：viewer/src/lib/storage-capacity.ts（全版List/削除マーカー/60秒cache）→api.tsのGET /v1/storage-capacity。iOS HTTPSCloudAPI.capacity/CloudCapacityView。viewer/tests/storage-capacity.test.ts、隣接zukanのCloudLibraryTests。[仕様](docs/s3-storage-capacity.md)。
+
+今月のAWS請求：viewer/src/lib/monthly-billing.ts（配賦/金額/7日予約）→monthly-billing-runtime.ts（固定S3 key/CE SigV4）→api.tsのGET /v1/monthly-billing。viewer/tests/monthly-billing.test.ts。iOS CloudAPI/CloudCapacityView。[仕様](docs/monthly-billing.md)。

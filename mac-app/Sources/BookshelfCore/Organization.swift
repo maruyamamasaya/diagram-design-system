@@ -12,7 +12,7 @@ public struct BookReference: Codable, Equatable, Sendable, Identifiable {
     public var tags: [String]
     public init(book: Book) {
         id = book.id; title = book.latest.title; type = book.latest.kind; version = book.latest.version
-        formats = Array(Set(book.latest.files.map { $0.pathExtension.lowercased() })).sorted()
+        formats = book.latest.remoteFormats ?? Array(Set(book.latest.files.map { $0.pathExtension.lowercased() })).sorted()
         pageCount = book.latest.pageCount; tags = book.latest.tags
     }
     public var canCollect: Bool { type != "presentation" && formats.contains(where: { ["png", "pdf"].contains($0) }) }

@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadMonthlyCosts",
+      "Effect": "Allow",
+      "Action": "ce:GetCostAndUsage",
+      "Resource": "*"
+    },
+    {
+      "Sid": "SharedMonthlyBillingCache",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/billing/monthly.json"
+    }
+  ]
+}
