@@ -1,5 +1,7 @@
 # コード探索の入口
 
+最初に[作業経路](docs/work-routes.md)で制作/改修/文書更新を分ける。通常本棚はS3認証API、Macの旧ローカルスキャナは回帰用。公開API・整理同期・共通ゴミ箱は本番接続済み。適用/配布の詳細は[CURRENT](CURRENT.md)。
+
 素材テーマ：`packages/LibraryOrganization/Sources/LibraryOrganizationUI/BookshelfTheme.swift`（配色・端末別保存・素材・カード・メニュー）、`Resources/`（生成PNG）。Mac `BookshelfApp.swift` と隣接zukanへ接続。同梱は `mac-app/scripts/build-app.sh`。[仕様と証跡](docs/bookshelf-material-themes.md)。
 
 概念から以下の機能を選び、パスを絞って検索する。全ファイルの読込・一覧化は不要。
@@ -12,7 +14,7 @@
 |S3保存|src/upload-cli.cjs、src/upload/workflow.cjs `uploadDirectory`、metadata.cjs、s3-storage.cjs|approveContent、IfNoneMatch、catalog、sha256|tests/upload.test.cjs|
 |プレゼン|src/presentation/cli.cjs、engine.cjs `generatePresentation` / `renderSlide`、validate.cjs `validatePresentation`|templateId、OVERFLOW、sourceReferences、rendererImplemented|tests/presentation.test.cjs（契約）、tests/presentation-engine.test.cjs（描画・分割）|
 |閲覧UI|viewer/src/app/page.tsx、components/DiagramCanvas.tsx|zoom、fullscreen、DiagramCanvas|viewer/scripts/browser-check.cjs|
-|共通ゴミ箱（本番無効）|viewer/src/lib/lifecycle.ts、lifecycle-runtime.ts、packages/LibraryOrganization/Sources/LibraryOrganization/LibraryLifecycle.swift|LibraryLifecycle、deletion-plan、LibraryLifecycleIndex|viewer/tests/lifecycle.test.ts、LibraryLifecycleTests.swift|
+|共通ゴミ箱（本番有効）|viewer/src/lib/lifecycle.ts、lifecycle-runtime.ts、packages/LibraryOrganization/Sources/LibraryOrganization/LibraryLifecycle.swift|LibraryLifecycle、deletion-plan、LibraryLifecycleIndex|viewer/tests/lifecycle.test.ts、LibraryLifecycleTests.swift|
 |認証・API|viewer/src/lib/api.ts `handle`、auth.ts、config.ts、app/のroute.ts|login、session、bearer、ORIGIN_REJECTED、diagrams|viewer/tests/api.test.ts|
 |S3読取・mock|viewer/src/lib/store.ts `catalog` / `find` / `access`|VIEWER_AWS_SOURCE_PROFILE、GetObject、mockBytes|viewer/tests/api.test.ts、browser-check.cjs|
 |AWS読取検証・運用案|scripts/validate-s3.cjs、infra/、docs/|probe-overwrite、exercise-upload、Budgets|tests/upload.test.cjs（AWS実接続ではない）|
@@ -46,7 +48,7 @@ PDF/PPTX：src/presentation/export.cjs、ネイティブ表罫線：normalize-pp
 - viewer/scripts/browser-check.cjs：ローカルUIから成果物取得／SHA256と画面を検証。
 - [検証結果](docs/phase11a-validation.md)、[公開設計](docs/phase11a-deployment.md)。
 
-Phase 11B-2：viewer/src/lib/oidc.ts（JWT／owner）、viewer/src/lambda.ts（HTTP API入口）、viewer/scripts/package-lambda.cjs（ローカルbundle）、viewer/tests/oidc.test.ts（公開認証回帰）、infra/phase11b2-api.proposed.json（未適用）。
+Phase 11B-2：viewer/src/lib/oidc.ts（JWT／owner）、viewer/src/lambda.ts（HTTP API入口）、viewer/scripts/package-lambda.cjs（ローカルbundle）、viewer/tests/oidc.test.ts（公開認証回帰）、infra/phase11b2-api.proposed.json（当時の構成案。現行配備はdocs/phase11b2-deployment.md）。
 
 Phase 12：src/workflow/cli.cjs → run.cjs（入力束縛、試行隔離、プレビュー、資料/保存先承認、独立upload、verifyApi）。tests/workflow.test.cjs。運用は[一括手順](docs/phase12-workflow.md)。
 
@@ -60,7 +62,7 @@ Phase 10B：src/update/regenerate-cli.cjs → regenerate.cjs（prepare/regenerat
 
 資料限定サイズ承認：src/upload/limits.cjs と config/upload-size-approvals.json。計画と低水準writeで保存先/キー/サイズ/SHA256を照合。tests/upload-size-approval.test.cjs。閲覧APIの上限は別契約。
 
-Mac本棚：mac-app/Sources/BookshelfCore/Library.swift（資料/版、フォルダ、設定、metadataスキャン）→ Sources/Bookshelf/Store.swift（Macアクセス/更新/保存）→ BookshelfApp.swift（一覧・分類・検索・プレビュー）。mac-app/Tests/BookshelfCoreTests、scripts/build-app.sh。[手順](mac-app/README.md)。
+Mac本棚：通常はmac-app/Sources/Bookshelf/CloudBookshelf.swift（認証API/成果物取得）とStore.swift。旧回帰入口はmac-app/Sources/BookshelfCore/Library.swift（資料/版、フォルダ、設定、metadataスキャン）→ Sources/Bookshelf/Store.swift（Macアクセス/更新/保存）→ BookshelfApp.swift（一覧・分類・検索・プレビュー）。mac-app/Tests/BookshelfCoreTests、scripts/build-app.sh。[手順](mac-app/README.md)。
 
 Mac自動更新：mac-app/Sources/BookshelfWatching/FolderWatcher.swift（FSEvents・デバウンス・解除・代替タイマー）→ Bookshelf/Store.swift（スキャン中の再実行・再アクティブ化）。mac-app/Tests/BookshelfWatchingTestsは実OSイベントを検証。
 
@@ -107,3 +109,7 @@ S3専用Mac本棚：`mac-app/Sources/Bookshelf/CloudBookshelf.swift`（一覧/�
 S3保存容量：viewer/src/lib/storage-capacity.ts（全版List/削除マーカー/60秒cache）→api.tsのGET /v1/storage-capacity。iOS HTTPSCloudAPI.capacity/CloudCapacityView。viewer/tests/storage-capacity.test.ts、隣接zukanのCloudLibraryTests。[仕様](docs/s3-storage-capacity.md)。
 
 今月のAWS請求：viewer/src/lib/monthly-billing.ts（配賦/金額/7日予約）→monthly-billing-runtime.ts（固定S3 key/CE SigV4）→api.tsのGET /v1/monthly-billing。viewer/tests/monthly-billing.test.ts。iOS CloudAPI/CloudCapacityView。[仕様](docs/monthly-billing.md)。
+
+フォルダ統合：`LibraryOrganization/LibraryFolders.swift`（種類別の親/旧ツリー分割/旧まとめ所属互換）→Mac `ShelfStore.folderOrganization`・iOS `CloudLibraryStore.integratedOrganization`。共通 `LibraryFolderTests` とiOS統合テスト。[仕様](docs/unified-library-folders.md)。
+
+通常表の固定列幅：`config/presentation-profile.json`のtableWidthProfiles → `dense.cjs`。契約はtableContentV2.widthProfileとvalidate.cjs、PPTX列幅はexport.cjsのaddNativeTable。

@@ -1,5 +1,7 @@
 # AI図解デザインシステム
 
+依頼別の入口は[作業経路](docs/work-routes.md)。資料制作・アプリ改修・設計思想の整理を分け、現在の責務は[ARCHITECTURE](ARCHITECTURE.md)、制作で得た選好と固定レイアウトは[レイアウト方針](docs/presentation-layout-policy.md)を参照する。
+
 ## 開発を継続するための入口
 AIには「資料を作る」「システムを改修する」「文書を更新する」の目的と対象を伝える。同じ入力資料でも依頼に応じて経路を分ける。[AGENTS](AGENTS.md) → [現在地](CURRENT.md)から開始し、必要な[構成](ARCHITECTURE.md)、[コード探索](CODEMAP.md)、[検証](TESTING.md)、[運用](OPERATIONS.md)へ進む。[設計判断](decisions/README.md)と[作業記録](sessions/README.md)は必要な履歴だけ読む。
 
@@ -20,9 +22,9 @@ Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資
 2. 全共通ルールと関連テンプレートを読み、構成と生成手段を選ぶ。Agent Creation Modeを標準とし、既存エンジンに適合すれば利用、範囲外ならSVG・HTML等を使う。
 3. 共通設計から対応形式を生成し、[検証レベル](rules/quality.md)に沿って内容・日本語・配置を確認する。通常は標準検証と一覧目視、疑わしい箇所だけ詳細確認する。
 4. outputs/配下でID・版、原資料、共通設計、描画ソース、形式別状態、検証記録を管理し、成果物と制約を報告する。
-5. S3は保存先と資料送信の承認、既存保存仕様への適合を確認して別工程で行う。独自成果物のS3・ビューアー連携は現行CLIでは未対応。
+5. S3は保存先と資料送信の承認、既存保存仕様への適合を確認して別工程で行う。登録プレゼンと独立一枚図は対応済みの保存契約を使い、一般の独自成果物は互換性を個別確認する。
 
-[生成モード・責務・現状との差分](docs/agent-creation.md)と[Markdown E2Eシナリオ](examples/agent-creation/README.md)を参照。今回の自然言語入力からの生成E2Eは未実施であり、シナリオ追加や既存回帰テスト合格を意味理解の検証済みとは扱わない。
+[生成モード・責務・現状との差分](docs/agent-creation.md)と[Markdown E2Eシナリオ](examples/agent-creation/README.md)を参照。制作実績はsessionsと個々の成果物の証跡に保持する。シナリオ追加や既存回帰テスト合格だけで意味理解を検証済みとは扱わない。
 
 ## 利用方法
 1. エージェントへ [AGENTS.md](AGENTS.md) を入口として指定する。
@@ -32,7 +34,7 @@ Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資
 
 依頼例：「AGENTS.mdを読み、examples/linux-roadmap/input.mdをRoadmapとして生成してください。SVGとPNGを出力し、quality.mdに沿った検証記録を付けてください。」
 
-未指定時は[export.md](rules/export.md)の対応済み全形式を標準生成対象とする。明示指定を優先する。成果物パッケージと将来のmetadata 2.0は[storage.md](rules/storage.md)を参照する。現行CLIのSVG・PNGとmetadata 1.0は維持し、全形式のオーケストレーション・不足分再生成・新形式の保存は未実装。ルールは出力仕様を定義するもので、実行環境の生成・変換機能を保証しない。
+未指定時は[export.md](rules/export.md)の対応済み全形式を標準生成対象とする。明示指定を優先する。成果物パッケージと将来のmetadata 2.0は[storage.md](rules/storage.md)を参照する。旧単一図解CLIのSVG・PNGとmetadata 1.0は維持する。登録プレゼンの一括制作・PDF/PPTX・S3保存・部分更新、独立一枚図PNG/PDFは対応済み。一般metadata 2.0の不足分再生成は設計段階。ルールは出力仕様を定義するもので、実行環境の生成・変換機能を保証しない。
 
 ## ファイルの責務
 |場所|責務|
@@ -253,3 +255,7 @@ Phase 12一括ワークフローの標準納品はPNG/PDF/PPTX・サムネイル
 ## Macの資料本棚
 
 既存成果物をサムネイルで探し、仮想フォルダ・検索・プレビューで整理する独立Macアプリを`mac-app/`へ追加。[起動と使い方](mac-app/README.md)。iOS同期は未実装。
+
+## 2026-10-19 文書整理・固定列幅の追加
+
+現行状態と過去証跡を分離し、制作・アプリ改修・設計思想の入口を整理。通常表の役割別固定列幅は任意項目の追加で、既存v1/v2・省略時の等幅を保持する。移行は不要。明示利用する場合だけ新しい資料版でwidthProfileを指定する。[配置仕様](docs/presentation-layout-v2.md)。

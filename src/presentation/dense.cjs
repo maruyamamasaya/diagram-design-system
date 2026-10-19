@@ -210,15 +210,21 @@ async function drawDense({
       break;
     }
     case "table": {
-      const cw = w / s.columns.length;
+      const weights =
+        p.tableWidthProfiles[s.widthProfile] || s.columns.map(() => 1);
+      const total = weights.reduce((a, b) => a + b, 0);
+      const widths = weights.map((v) => w * v / total);
+      const offsets = widths.map((_, j) =>
+        widths.slice(0, j).reduce((a, b) => a + b, 0),
+      );
       card("table-header", m, p.bodyTop, w, p.tableHeader, t.padding, false);
       for (let j = 0; j < s.columns.length; j++)
         await text(
           "column-" + j,
           s.columns[j],
-          m + j * cw + t.padding,
+          m + offsets[j] + t.padding,
           p.bodyTop + t.padding,
-          cw - 2 * t.padding,
+          widths[j] - 2 * t.padding,
           t.headingSize,
           1,
           true,
@@ -226,7 +232,9 @@ async function drawDense({
       let y = p.bodyTop + p.tableHeader;
       for (let i = 0; i < s.rows.length; i++) {
         const z = await Promise.all(
-          s.rows[i].map((v) => measure(v, cw - 2 * t.padding, t.bodySize)),
+          s.rows[i].map((v, j) =>
+            measure(v, widths[j] - 2 * t.padding, t.bodySize),
+          ),
         );
         const rh = snap(
           Math.max(
@@ -239,9 +247,9 @@ async function drawDense({
           await text(
             `value-${i}-${j}`,
             s.rows[i][j],
-            m + j * cw + t.padding,
+            m + offsets[j] + t.padding,
             y + t.padding,
-            cw - 2 * t.padding,
+            widths[j] - 2 * t.padding,
             t.bodySize,
             6,
           );

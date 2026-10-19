@@ -16,7 +16,7 @@ upload CLIはillustration-package-1.0を識別し、専用ロード検査から�
 
 ## iOS
 
-既存クラウド項目を「プレゼン資料」に変更し、「図解ライブラリ」を追加。type=presentationと旧未分類資料はプレゼン側、新illustrationと旧roadmap/architecture/flowchart/comparisonは図解側。ページ数だけで分類しないため一枚プレゼンを誤分類しない。オンライン・検索結果・保存済みのすべてで同じ分類。既存PDF/画像ビューアーの拡大・移動、SHA256保存、オフライン閲覧を再利用する。
+資料種別はmanifestのtypeで判別し、ページ数だけで分類しない。一枚プレゼンはpresentation、新一枚図はillustrationとして扱う。現在のMac/iOS本棚はS3正本・全資料一覧と種類別親フォルダを使う。[現在の入口](s3-only-bookshelf.md)、[フォルダ統合](unified-library-folders.md)。既存PDF/画像の拡大・SHA256保存・iOSオフライン閲覧を再利用する。
 
 検証結果・実API更新・実機の境界は[sessions](../sessions/2026-10-10-illustration-workflow.md)に記録。
 

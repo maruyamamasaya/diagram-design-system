@@ -1409,6 +1409,15 @@
               "pattern": "\\S"
             }
           }
+        },
+        "widthProfile": {
+          "type": "string",
+          "enum": [
+            "balanced",
+            "label-detail",
+            "label-detail-condition",
+            "label-detail-example-condition"
+          ]
         }
       }
     },

@@ -153,6 +153,12 @@ function addNativeTable(slide, scene, v2) {
     .filter((n) => n.kind === "path" && /^table-row-/.test(n.id))
     .map((n) => segments(n.d)[0].y);
   const headers = scene.find((n) => n.id === "table-header");
+  const tableWidth = headers ? +headers.width : cw * columns.length;
+  const columnWidths = columns.map((column, i) =>
+    i + 1 < columns.length
+      ? columns[i + 1].lines[0].x - column.lines[0].x
+      : left + tableWidth - (column.lines[0].x - padding),
+  );
   const heights = [headers ? +headers.height : 88 * 0.8];
   if (v2)
     for (let i = 0; i < rows - 1; i++)
@@ -185,9 +191,9 @@ function addNativeTable(slide, scene, v2) {
     columns: columns.length,
     left,
     top,
-    width: cw * columns.length,
+    width: tableWidth,
     height: heights.reduce((a, b) => a + b, 0),
-    columnWidths: Array(columns.length).fill(cw),
+    columnWidths,
     values,
   });
   table.styleOptions = {

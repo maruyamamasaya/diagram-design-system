@@ -2,7 +2,7 @@
 
 素材UI変更：共有Swift packageの `BookshelfMaterialTests` は実SwiftUI描画の画素変動を検査する。`BOOKSHELF_MATERIAL_EVIDENCE=<出力先>` を指定して `swift test --disable-sandbox --package-path packages/LibraryOrganization --filter BookshelfMaterialTests` を実行すると素材面PNGを保存する。画像の存在・decode成功だけでは描画成功としない。Mac/両Simulatorでの素材目視と署名アプリ配布も確認する。[回帰検査と証跡](docs/bookshelf-material-themes.md#素材が描画されない問題の修正)。
 
-共通ゴミ箱（本番無効）はviewerの`lifecycle.test.ts`（revision/CAS、計画変更、途中削除と再送、認可、S3 prefix/暗号化/バージョニング）と共有Swiftの`LibraryLifecycleTests`（永続削除通知/古い応答/復元）を検証する。`node --import tsx --test --test-concurrency=1 tests/lifecycle.test.ts tests/trash.test.ts`はviewer内で実行。CLIのIPC待受を使わない。iOSのコピー削除XCTestと実画面/通常ビルドの制約は[作業中の仕様](docs/shared-library-trash.md#検証記録)を参照。
+共通ゴミ箱（本番有効。自動試験はモック）はviewerの`lifecycle.test.ts`（revision/CAS、計画変更、途中削除と再送、認可、S3 prefix/暗号化/バージョニング）と共有Swiftの`LibraryLifecycleTests`（永続削除通知/古い応答/復元）を検証する。`node --import tsx --test --test-concurrency=1 tests/lifecycle.test.ts tests/trash.test.ts`はviewer内で実行。CLIのIPC待受を使わない。iOSのコピー削除XCTestと実画面/通常ビルドの制約は[作業中の仕様](docs/shared-library-trash.md#検証記録)を参照。
 
 実在するコマンドだけを使用する。ルートの`npm test`はNode test runner（単一図解実レンダリング、S3モック、パッケージ・プレゼン契約）。viewerの`npm test`はtsxのAPI試験。lint/format script、ルートtypecheck/build、DB migration/security専用コマンドはない。
 
@@ -107,3 +107,9 @@ S3専用本棚：Mac `CloudBookshelfTests` はURLProtocolで認証API/署名URL/
 S3保存容量：viewer/tests/storage-capacity.test.tsで全版/削除マーカー/ページング/部分失敗/認証/フラグ/キャッシュ/キー非公開を検査。iOSは隣接zukanのCloudLibraryTestsの専用endpoint・scope・履歴分離テスト。AWS CLIの全版実読取と本番新API検証は区別する。[仕様](docs/s3-storage-capacity.md)。
 
 今月のAWS請求：viewer/tests/monthly-billing.test.tsで配賦フィルター/対象account/小数/credit/ページ上限/20並行Lambda/失敗後予約/再起動/月替わり/本人認可/署名HTTPと固定S3 CASをモック検証。iOS CloudLibraryTests.testMonthlyBillingEndpointAllocationAndExactTotalsで取得・Decimal・通信/認証分類・不一致/配賦待ち/欠落拒否。[仕様](docs/monthly-billing.md)。実CE照会とモックを区別する。
+
+フォルダ統合：共通`LibraryFolderTests`が旧まとめの複数所属/順番保持、通常移動/解除、種類別の階層分割・決定的ID・再実行を検査。iOS `testUnifiedFoldersPreserveLegacyMembershipAndSeparateKinds`は統合経路の保存/再起動を確認。Simulatorのpackage module不一致時は`ONLY_ACTIVE_ARCH=YES ARCHS=arm64`で対象を揃える。[証跡](sessions/2026-10-19-folder-unification.md)。
+
+Mac閲覧キャッシュ：`CloudBookshelfTests.testCoverGridDoesNotEvictPreviouslyReadPDFButBudgetsStillApply`で表紙48版と既読PDFの共存、本文版枠、総容量枠を確認する。実機の速度比較とは分離。[調査記録](sessions/2026-10-19-mac-preview-cache-quota.md)。
+
+固定列幅表：`tests/presentation-width-profile.test.cjs`で列役割/列数拒否・旧等幅保持・実測/分割/全セル保持を確認。変換時は`tests/export/presentation-exports.test.cjs`の固定列幅ケースでPDF文字とPPTXネイティブ列幅を確認。目視・実PowerPointは別証跡。

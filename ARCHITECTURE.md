@@ -1,89 +1,55 @@
 # 現在の構成
 
-本棚の外観は共有LibraryOrganizationUIの `BookshelfTheme.swift` と同梱PNGで定義。Macと別repoのiOSが同じ素材・配色・カードを使い、テーマは端末のUserDefaultsへ保存する。整理同期・資料データから分離する。[素材テーマ](docs/bookshelf-material-themes.md)。
+現行状態は[CURRENT](CURRENT.md)、依頼の分岐は[作業経路](docs/work-routes.md)、実装探索は[CODEMAP](CODEMAP.md)。過去のPhase構成案と配備証跡は役割を分けて参照する。
 
-資料を理解するAI、描画、ローカル保存、S3保存、閲覧を分離する。設計上の機能と実装・認定の差分は[CURRENT](CURRENT.md)を参照。
+## 制作基盤
 
 ```text
-資料 → AIの構成設計 → JSON または独自描画ソース
-                      |
-          単一Roadmap CLI / 独立プレゼンCLI
-                      |
-               ローカル outputs/
-                      |
-           upload CLI（単一図解v1） → 非公開S3
-                                         |
-ブラウザー → viewer/ API → 認証・owner認可 → 読取・期限付きURL
+原資料 → AIの理解・調査・構成
+  ├─ 通常プレゼン：登録v2 → SVG共通配置 → PNG/PDF/PPTX
+  ├─ グラフィック版：資料専用契約・固定登録 → PNG/PDF/PPTX
+  ├─ 独立一枚図：SVG/画像/混成 → PNG/PDF
+  └─ 旧定型単一図解：直列Roadmap JSON → SVG/PNG
+                    ↓
+            ローカルoutputs・不変ID/版・原資料/依存ハッシュ・検証
+                    ↓ 資料と保存先の承認後
+          独立upload → 非公開S3（成果物・manifest・catalog）
 ```
 
-## 技術と責務
-ルートはNode.js 22以上・CommonJS。Ajvで契約検査、fontkitでフォント、Playwright/Chromiumで実測と描画、pngjsで画像検査、AWS SDKで保存する。版の正本は`package.json`とlockfile。
+AIは意味理解と構成設計、レンダラーは描画、exportは形式変換、storage/uploadは保存を担当。資料専用登録をシステム登録と混同しない。通常プレゼンの一括CLIは既存生成・検証・保存をつなぎ、自然言語解析や追加DBを持たない。[生成運用](docs/agent-creation.md)、[一括制作](docs/phase12-workflow.md)。差分更新は登録プレゼン経路に限定する。[部分再生成](docs/phase10b-partial-update.md)。
 
-|場所|責務と入口|
+|場所|責務|
 |---|---|
-|rules/、templates/、prompts/|共通仕様、意味・構造、依頼の入口|
-|schemas/、config/|入力・保存契約、スライド登録表|
-|src/cli.cjs → model/rules/font/browser/engine.cjs|単一図解検査・描画。engineはBufferを返す|
-|src/storage.cjs|ローカル保存。生成は保存先を知らない|
-|src/upload-cli.cjs → src/upload/|既存完成図を読み、metadata作成・条件付きPUT・GET照合・catalog掲載|
-|src/presentation/|独立の検査・描画・版別ローカル保存。既存CLIとは別経路|
-|viewer/|Next.js App Router、React、TypeScript、jose。独立package・テスト|
-|infra/、docs/|AWS設定案・既存構築証跡・責務別仕様|
-|tests/、examples/、assets/|検証・入力例・ライセンス付きフォント|
+|rules / templates / prompts|共通原則・意味構造・制作手順|
+|schemas / config|意味入力・保存契約・登録表・配置トークン|
+|src/presentation|プレゼン検査・描画・変換・版別保存|
+|src/illustration|完成SVG/PNGの検査・一枚図パッケージ化|
+|src/workflow / src/update|制作工程の統括 / 更新計画・部分再生成|
+|src/engine.cjs / src/storage.cjs|旧Roadmap描画 / ローカル保存|
+|src/upload|完成成果物の許可リスト、条件付きPUT、GET/SHA256照合、catalog最後掲載|
 
-## APIとデータ
-`viewer/src/app/api/web/[...path]/route.ts`はWeb用、`v1/[...path]/route.ts`はBearer API、`api/artifact/route.ts`はmock成果物用。処理は`viewer/src/lib/api.ts`の`handle`へ集約。login/session/logout、auth/token/revoke、diagrams一覧・詳細・アクセスの契約は[API仕様](docs/viewer-api.md)。
+Node.js 22以上。Ajv・fontkit・Playwright/Chromium・pngjs・AWS SDKを利用し、版はpackage.jsonとlockfileが正本。PDF/PPTXの変換依存は[出力仕様](docs/presentation-export.md)。
 
-DB・ORM・マイグレーションはない。入力JSON、ローカル成果物、S3のmetadata/catalog、サーバー側タグ設定を利用する。セッションと制限はプロセス内管理で、公開・複数インスタンス構成の認証基盤ではない。
+## 閲覧・認証・アプリ
 
-## 認証と外部依存
-ビューアーはローカルパスワード、Cookie/CSRF、短期Bearer、単一owner認可。S3はサーバー側短期認証で読取し、キーをブラウザーへ渡さない。公開ホストでは起動拒否を行う。秘密情報はGit対象外。
+```text
+Mac本棚 / iPhone・iPad本棚
+   → Cognito OIDC（PKCE、端末の安全な認証情報保存）
+   → 公開HTTPS API（JWT検証・owner認可）
+   → 非公開S3 / 期限付き成果物URL
+   → 検証済み端末キャッシュ・閲覧
 
-デプロイはルートのローカルCLIとループバックのviewer。リポジトリにCI/CD workflowはない。`infra/`の提案JSONは自動適用するデプロイ設定ではない。公開案は[Phase 4デプロイ](docs/phase4-deployment.md)、起動条件は[OPERATIONS](OPERATIONS.md)。
+ローカルNext.js viewer → 共通API処理 → mockまたはS3
+```
 
-## Phase 11Aのviewer拡張
+viewer/src/lib/api.tsに共通処理を集約し、lambda.tsが公開API、Next.jsのrouteがローカルWeb/Bearer入口を担当する。公開経路はCognito JWKS・owner認可、ローカルWebはCookie/CSRF等の別認証。ローカル認証を公開サービスの基盤とは扱わない。APIは配備済み。[契約](docs/viewer-api.md)、[配備](docs/phase11b2-deployment.md)。
 
-viewer/src/lib/manifest.tsで旧metadataとPhase 7.6の成果物限定manifestを共通モデルへ正規化する。S3 catalog以外を一覧探索せず、固定バケット・ID・版・許可形式・MIME・キー・ページ連続性を検査する。APIはpageCountとページ指定を提供し、UIはPNGのページ切替、PDF iframe、形式別取得を担う。現行の短期ロールに読取専用session policyを適用する。公開認証は[設計](docs/phase11a-deployment.md)段階。生成・upload・iOSの責務は変更しない。
+Macはこのrepoのmac-app、iOSは隣接Development/zukan。通常本棚の資料正本はS3。Macの旧metadataスキャナ・FSEventsは分離した回帰経路に残り、通常起動の資料入口には使わない。制作原本は保持し、閲覧コピーと管理JSONを端末へ分離する。[S3専用本棚](docs/s3-only-bookshelf.md)。
 
-## Phase 11B-2公開API境界
+共通Swift packageのLibraryOrganizationがフォルダ・タグ・読む順番・同期モデルを所有し、LibraryOrganizationUIが共有画面・認証支援・テーマを所有する。端末固有の認証/保存/受信反映はアダプターへ残す。[共通仕様](docs/library-organization.md)、[実クライアント同期](docs/organization-sync-live-clients.md)。本棚の素材・テーマ選択は端末ローカルで、資料・整理同期から分離する。[テーマ](docs/bookshelf-material-themes.md)。
 
-viewer/src/lambda.tsから共通handleへ入り、OIDCモードでCognito JWKS検証とowner認可を実施。実行ロールの短期認証でS3読取。ローカルNext.jsのcookie/password経路は維持し公開モードで拒否する。iOSは別リポジトリのCloudOIDC.swiftとHTTPSCloudAPI。公開リソースは未適用。[証跡](docs/phase11b2-validation.md)。
+## クラウド状態の分離
 
-Phase 12のsrc/workflowは既存プレゼン生成と独立uploadを呼ぶオーケストレーター。原資料→Codex構成JSON→ローカル生成/検査/プレビュー→内容/目視と送信承認→既存S3 catalog→共通API一覧/詳細確認。Web/iOSは既存catalogを再読込する。状態はoutputs内のローカルJSON、追加DBやAWSリソースなし。
+資料成果物、整理同期の管理状態、資料の移動/復元/削除状態を別責務にする。整理同期は認証済みownerと固定libraryに対するCAS・チェックポイント・バックアップ・回数制限を使う。共通ゴミ箱は資料単位の状態と削除通知を持ち、uploadとの排他・遅い応答による再保存防止を維持する。本番有効化済み。[同期](docs/organization-sync-deployment.md)、[ゴミ箱](docs/shared-trash-deployment.md)。
 
-Phase 10Aのsrc/updateは既存構成JSON＋新旧原資料から更新計画JSON/Markdownを出す独立経路。描画・保存・AWSを呼ばない。[契約](docs/phase10a-update-plan.md)。
-
-独立一枚図はsrc/illustrationで自由SVG／画像部品／全体PNGを変換・ローカル保存。専用loaderから共通upload処理を利用しillustration-s3-1.0をcatalog公開。共通APIがtype=illustrationへ正規化する。[契約](docs/illustration-workflow.md)。
-
-Phase 10B：src/updateは計画を原資料から照合し、既存登録描画へ更新対象だけを渡す。旧成果物のコピー・ネイティブPDF/PPTX再構成は独立のローカル保存工程。旧版とS3/viewer境界を変更しない。[責務・版管理](docs/phase10b-partial-update.md)。
-
-ゴミ箱の状態は成果物から分離し、viewerのowner認可後にlibrary/state/{id}.jsonへ保存するローカル実装。資料全版の可視性だけ変更。承認後の本番反映案と未検証境界は[仕様](docs/library-trash.md)。
-
-## Mac本棚（独立ローカルアプリ）
-
-`mac-app/`は明示依頼によるSwift Package。BookshelfCoreはFoundationの資料/版・フォルダ・設定保存・既存metadata取込、BookshelfはSwiftUI/AppKitのMac画面・アクセス権・PDFKit/Quick Look。生成outputsは参照のみ、分類はApplication Supportへ分離保存。iOSの変更と同期は対象外。[操作・境界](mac-app/README.md)。
-
-Macの変更監視は別ターゲットBookshelfWatchingへ隔離。FSEventsからStoreの既存スキャナを呼び出し、Foundationの共通資料モデルはOS監視APIへ依存しない。
-
-## Mac/iOSの整理共通層
-
-`packages/LibraryOrganization`はFoundationだけのローカルSwiftパッケージ。MacのBookshelfCoreと隣接zukanのXcodeアプリが参照する。フォルダ・タグ・まとめを別概念として保持し、端末固有の取込/認証/保存はアダプターに残す。[データ仕様](docs/library-organization.md)。
-
-整理同期エンジンは共通層内の独立した値型クライアント/模擬authorityとtransportプロトコル。テスト用HTTPブリッジだけがloopback待受し、本体アプリや常駐サービスを追加しない。[境界](docs/organization-sync-local.md)。
-
-LibraryOrganizationのFoundationコアとは別ターゲットLibraryOrganizationUIに検証用SwiftUI/セッションを分離。既定のMac/iOS起動は読取専用アダプターで検証コピーへ投影する。明示的なテスト起動ではTestLibrarySyncBindingが通常Storeの保存差分と受信反映を接続し、端末固有情報の再結合・バックアップ・iOS反映ジャーナルは各アダプターが担当する。[通常本棚のテスト接続](docs/organization-sync-bound.md)。[構成](docs/organization-sync-ui.md)。
-
-同期の復元点は管理JSONだけを端末内に保持する。共通セッションがバックアップ日時/統合件数/復元状態を管理し、Mac/iOSアダプターが元バイトの復元を担う。iOSは受信反映と別の復元ジャーナルを優先回復する。資料本体の保管は既存ローカル/S3経路のまま。[仕様](docs/organization-sync-recovery.md)。
-
-同期回数は利用者単位の永続SyncRateLedger、端末内のSyncThrottleState、期限付き予約を持つtransportで分離する。mockのHTTPロックは検証用。AWS向け認証/CAS保存は[TypeScriptローカルAPI](docs/organization-sync-api-local.md)で検証するが、本番は有効化していない。[境界](docs/organization-sync-quota.md)。
-
-AWS向け同期APIはviewerのorganization/model（状態遷移）・service（認可済みowner/固定library/CAS）・S3保存ポートへ分離。既存OIDCとAPI/Lambdaの明示的な依存注入で接続し、既定の同期ルートは無効。資料保存・読取と生成は独立したまま。[実装境界](docs/organization-sync-api-local.md)。
-
-認証付き同期transportはFoundationコア、PKCE/Keychain/ASWebAuthenticationSessionは共有UI側に隔離する。iOSは既存CloudOIDCを再利用し、Mac/iOSのStoreは同じ明示的なテスト接続を受け取る。bootstrapと実JSONサイズで分割し、確認済み分だけcheckpointへ確定する。[境界](docs/organization-sync-https.md)。
-
-同期の接続準備は共有SyncSetupView→既存認証→通常管理bindingを再利用。Lambdaは明示flagのみで固定キーS3OrganizationStoreを組立て、既定は未接続。未適用構成と復旧は[接続準備](docs/organization-sync-readiness.md)。
-# 共通ゴミ箱の準備（既定無効）
-
-資料の端末共通状態は`viewer/src/lib/lifecycle.ts`が遷移/削除計画を管理し、`lifecycle-runtime.ts`が非公開S3のCAS保存と限定キー削除を担当する。Swiftの`LibraryLifecycleIndex`は端末の永続削除通知と再保存防止を担当。フォルダ整理同期・生成/uploadとは別の責務で、生成との排他と本番有効化は未完了。[仕様と検証境界](docs/shared-library-trash.md)。
-
-2026-10-19：通常起動のMac本棚をローカルスキャナから既存認証付きS3 APIへ切替。閲覧キャッシュと管理JSONだけを端末に置く。iOSのローカル入口を廃止。[責務と検証境界](docs/s3-only-bookshelf.md)。
+DB・ORM・マイグレーションはない。JSON・S3と端末内設定を使用する。AWS構成・権限・予算変更は試算と本人承認後。保存先承認と今回資料の送信承認を区別する。運用条件は[OPERATIONS](OPERATIONS.md)。

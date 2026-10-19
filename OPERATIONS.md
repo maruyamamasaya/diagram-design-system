@@ -62,17 +62,17 @@ Phase 12は`npm run create:presentation`。[資料単位の承認と再実行](d
 
 同期開始前の管理JSONバックアップと画面復元は[管理データ保護](docs/organization-sync-recovery.md)。資料本体を含めない。今後のAWS変更は、適用前に必ず[料金シミュレーション](docs/cost-policy.md#整理同期のaws変更前)を提示し、承認後に実施する。
 
-Mac/iPhone整理同期のAWS案と適用前条件は[未適用設計・試算](docs/organization-sync-aws-plan.md)。再計算は`python3 scripts/estimate-organization-sync.py`（ローカルのみ）。AWS変更時には公式単価/実測/既存設定を再確認し、変更セットと料金を提示して別承認後に適用する。
+Mac/iPhone整理同期の当初案と試算条件は[設計・試算](docs/organization-sync-aws-plan.md)、適用済み状態は[配備記録](docs/organization-sync-deployment.md)。再計算は`python3 scripts/estimate-organization-sync.py`（ローカルのみ）。AWS変更時には公式単価/実測/既存設定を再確認し、変更セットと料金を提示して別承認後に適用する。
 
 通常本棚のテスト同期サーバーは`--limited-serve`を使い、[利用者合計5回/追加同意](docs/organization-sync-quota.md)を確認する。旧コピー検証の`--serve`へ自動で切り替えない。回数台帳は管理バックアップ復元/同期解除で初期化しない。
 
-TypeScript同期APIの`test:organization`は一時loopbackだけを起動し、ローカル署名トークン/Memory store/合成データで検証する。既定Lambdaは同期サービスを注入せず404のまま。実AWS設定・S3初期状態作成・配備前に別承認と再見積もりが必要。[手順](docs/organization-sync-api-local.md)。
+TypeScript同期APIの`test:organization`は一時loopbackだけを起動し、ローカル署名トークン/Memory store/合成データで検証する。設定を注入しないローカルLambda試験では404を返す。本番は明示設定で接続済み。追加のAWS設定変更・初期化・配備には別承認と再見積もりが必要。[手順](docs/organization-sync-api-local.md)。
 
-ローカルHTTPS検証は`npm --prefix viewer run test:organization:https`。一時証明書/秘密鍵/JWTは終了時削除し、OSへCAを追加しない。製品用TLSの例外なし。通常起動/本番同期は無効。[境界](docs/organization-sync-https.md)。
+ローカルHTTPS検証は`npm --prefix viewer run test:organization:https`。一時証明書/秘密鍵/JWTは終了時削除し、OSへCAを追加しない。製品用TLSの例外なし。テストは本番同期から分離する。[境界](docs/organization-sync-https.md)。
 
-整理同期の本番接続はまだ無効。ログインUI/未適用template/オフライン初期状態準備と停止・復元順序は[接続準備](docs/organization-sync-readiness.md)。AWSの短期セッション再認証とライブ差分・料金提示・明示承認を済ませてから適用する。
+整理同期の本番接続は有効。ログインUIと初期接続設計は[接続準備](docs/organization-sync-readiness.md)、実クライアントの運用は[接続状況](docs/organization-sync-live-clients.md)を参照する。追加の配備変更はAWS短期セッション再認証・ライブ差分・料金提示・明示承認後に適用する。
 
-整理同期のAWS準備は承認後に適用済み、現時点はserver無効。固定管理キーCAS用のバケットポリシー例外も追加承認後に適用。以後のS3設定変更でこの限定例外を消さない。[最新の適用状態と検証](docs/organization-sync-deployment.md)。
+整理同期のAWS準備は承認後に適用済み、その後serverを有効化済み。固定管理キーCAS用のバケットポリシー例外も追加承認後に適用。以後のS3設定変更でこの限定例外を消さない。[最新の適用状態と検証](docs/organization-sync-deployment.md)。
 
 整理同期APIは2026-10-18に実認証/合成1フォルダ検証後server enabledとなった。通常アプリへは自動接続しない。停止はstackのOrganizationEnabled=falseを変更セットでレビューして適用し、管理オブジェクトを削除/空で上書きしない。[最新状態](docs/organization-sync-deployment.md)。
 

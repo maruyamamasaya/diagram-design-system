@@ -92,3 +92,26 @@ test("SVG integrity failure preserves local package and never creates PDF", asyn
   );
   assert.equal(f.localArtifactsPreserved, true);
 });
+
+test("fixed explanation widths survive native PPTX export and PDF text extraction", async () => {
+  const p=structuredClone(fixture);
+  p.presentationId=crypto.randomUUID();
+  p.slides=[p.slides.find(s=>s.slideType === "table")];
+  Object.assign(p.slides[0].content, {
+    heading:"項目と説明を対応させる", columns:["項目","仕組みと条件"], widthProfile:"label-detail",
+    rows:[["入力","原資料の前提と根拠を確認し、重要な条件を保持する。"],["出力","共通配置から生成し、文字と図の対応を確認する。"]],
+  });
+  const r=await generatePresentation(p,options);
+  const python=process.env.DIAGRAM_PYTHON || path.join(require("node:os").homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe");
+  const program=`import sys,zipfile,xml.etree.ElementTree as E,json,re
+from pathlib import Path
+from pypdf import PdfReader
+r=Path(sys.argv[1]); ns={'a':'http://schemas.openxmlformats.org/drawingml/2006/main'}
+with zipfile.ZipFile(r/'presentation.pptx') as z:
+ root=E.fromstring(z.read('ppt/slides/slide1.xml')); widths=[int(n.get('w')) for n in root.findall('.//a:tblGrid/a:gridCol',ns)]; assert len(widths)==2; assert abs(widths[1]/widths[0]-3)<0.001,widths
+v=json.loads((r/'validation.json').read_text()); text=''.join(PdfReader(r/'document.pdf').pages[0].extract_text().split()); assert all(''.join(line.split()) in text for b in v['slides'][0]['report']['blocks'] for line in b['lines'])
+print('Native PPTX width ratio 1:3; PDF text preserved')`;
+  require("node:child_process").execFileSync(python,["-c",program,r.directory],{stdio:"inherit"});
+  await fs.mkdir(path.join(root,"outputs/layout-profile-tests"), { recursive: true });
+  await fs.writeFile(path.join(root,"outputs/layout-profile-tests/export-evidence.json"),JSON.stringify({directory:r.directory}));
+});

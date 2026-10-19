@@ -23,3 +23,5 @@ slideTypeとtemplateIdは登録IDに固定。共通のslideId、references、not
 
 ## Phase 6.5：登録済みv2
 改善版ID：`slide.table.v2`。旧v1の契約・描画は維持する。v2の寸法・配置・制限・選択条件は[改善版仕様](../../docs/presentation-layout-v2.md)を正とする。
+
+v2は役割に応じた固定列幅プロファイルを選択できる。契約・数値・分割条件は[改善版仕様](../../docs/presentation-layout-v2.md)を正とする。v1と省略時の等幅は維持。

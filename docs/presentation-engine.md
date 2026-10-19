@@ -1,4 +1,4 @@
-# Phase 6：生成エンジンと保存契約
+# プレゼン生成エンジンと保存契約
 
 ## 責務
 AIが資料読取・意味理解・主張順・テンプレート選択・JSONを担当。src/presentation/validate.cjsは構造/参照、engine.cjsのrenderSlideは入力された一ページを登録配置から描画し、generatePresentationは図解読取・分割・パッケージ保存を統括する。renderSlideはファイル保存をせず、context/font/rules/diagramを注入できる。今後保存オーケストレーターをS3等へ差替えても描画処理を維持できる。大規模資料解析やLLM呼出しは実装していない。
@@ -13,7 +13,7 @@ CLIは--input JSON、--source Markdown（sourceId=input）、--output、--font�
 Diagramはハッシュ検証したリポジトリ内のRoadmap JSONを読取り、既存model.cjsで検査し、スライド専用カード領域へ配置する。ファイル実パスの境界も検査する。直列の順序・接続・ラベルを保持し、図解のoutcome等、現在のスライド領域で扱えない内容は省略せず停止する。全Roadmap入力が組込めるという保証ではない。Flowchart/Architecture/Comparisonは明示エラー。障害調査の検証例は条件分岐ではなく推奨順序。
 
 ## 互換性と追跡
-presentation.schema.jsonは既存1.0を維持し、互換拡張1.1に対応。presentationId/versionを再利用し、metadataでpresentationVersionへ投影。slideVersionは省略時1。sourceReferencesはsourceId/sourceVersion/locator（例lines:3-4）。原資料を渡した場合sourceVersionは実バイト列SHA256と一致が必須。元データの1.0を自動移行しない。
+presentation.schema.jsonは既存1.0を維持し、互換拡張1.1/1.2に対応。presentationId/versionを再利用し、metadataでpresentationVersionへ投影。slideVersionは省略時1。sourceReferencesはsourceId/sourceVersion/locator（例lines:3-4）。原資料を渡した場合sourceVersionは実バイト列SHA256と一致が必須。元データの1.0を自動移行しない。
 
 presentation-metadata.schema.jsonは専用presentation-package-1.0。ID・版・pageId/part・templateId・生成時刻・contentHash・sourceReferences・成果物サイズ/SHA256・原資料のSHA256・フォント・ルール/テンプレート/エンジン依存ハッシュを記録する。contentHashはキー順を正規化し配列順を保持する。部分再生成は[Phase 10B](phase10b-partial-update.md)の専用経路。原資料差分と更新計画は[Phase 10A](phase10a-update-plan.md)で扱い、contentHashは変更しない。依存ハッシュは資料単位で粗く、今後スライド単位の依存集合を追加できる。
 
@@ -22,6 +22,8 @@ outputs/<presentationId>/versions/<版>/source/にpresentation.jsonとinput.md�
 既存図解metadata 1.0/2.0やS3許可リストを変更していない。プレゼンのAWS保存とviewer/iOS API連携は別実装。アップロードを行わずAWSアクセスも不要。全SVGへフォントを埋込むため約13MB/枚と大きい。軽量Web SVG/サブセット化は次フェーズ。
 
 ## 品質と制約
-自動検査で意味の完全性・実運用の正しさは確認しない。自動JSONのcontentAccuracy/visualReviewはnot_reviewed。AI/人間の原資料対応と画像確認は別の証跡に記録する。PDF/PPTX/webSvg/WebPはmetadataでunsupported。編集可能PPTX・日本語PDF・差分更新・構造化大規模解析は次フェーズ。未実装形式の空ファイルを出力しない。
+自動検査で意味の完全性・実運用の正しさは確認しない。自動JSONのcontentAccuracy/visualReviewはnot_reviewed。AI/人間の原資料対応と画像確認は別の証跡に記録する。PDF/PPTXは共通SVGから対応済みで、形式別状態をmetadataへ記録する。[出力仕様](presentation-export.md)。webSvg/WebP・構造化大規模解析は未実装。差分更新は専用経路に限定する。未実装形式の空ファイルを出力しない。
 
 Phase 10Bの部分再生成は[専用経路](phase10b-partial-update.md)。generatePresentationへ更新対象のみを渡し、pageNumberStart（既定1）で開始番号を指定。旧ページの再利用と新版保存/形式再構成はsrc/updateが担当し、既存生成CLIは維持する。
+
+通常v2の表は役割別の固定列幅を選択でき、省略時は旧等幅を保持する。[配置契約](presentation-layout-v2.md)。通常/グラフィック版の選択と専用登録は[レイアウト方針](presentation-layout-policy.md)。

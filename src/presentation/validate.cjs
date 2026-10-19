@@ -2,6 +2,7 @@
 const Ajv = require("ajv");
 const schema = require("../../schemas/presentation.schema.json");
 const registry = require("../../config/slide-templates.json");
+const profile = require("../../config/presentation-profile.json");
 const validate = new Ajv({ strict: true, allErrors: true }).compile(schema);
 function validatePresentation(value) {
   if (!validate(value))
@@ -34,6 +35,15 @@ function validatePresentation(value) {
       slide.content.rows.some((r) => r.length !== slide.content.columns.length)
     )
       throw Error("Nonrectangular table");
+    if (
+      slide.slideType === "table" &&
+      slide.content.widthProfile &&
+      slide.content.widthProfile !== "balanced"
+    ) {
+      const widths = profile.tableWidthProfiles[slide.content.widthProfile];
+      if (!widths || widths.length !== slide.content.columns.length)
+        throw Error("Table width profile column count mismatch");
+    }
     if (slide.slideType === "diagram") {
       const p = slide.content.diagram.sourcePath;
       if (
