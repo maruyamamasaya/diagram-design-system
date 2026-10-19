@@ -80,3 +80,6 @@ AWS向け同期APIはviewerのorganization/model（状態遷移）・service（�
 認証付き同期transportはFoundationコア、PKCE/Keychain/ASWebAuthenticationSessionは共有UI側に隔離する。iOSは既存CloudOIDCを再利用し、Mac/iOSのStoreは同じ明示的なテスト接続を受け取る。bootstrapと実JSONサイズで分割し、確認済み分だけcheckpointへ確定する。[境界](docs/organization-sync-https.md)。
 
 同期の接続準備は共有SyncSetupView→既存認証→通常管理bindingを再利用。Lambdaは明示flagのみで固定キーS3OrganizationStoreを組立て、既定は未接続。未適用構成と復旧は[接続準備](docs/organization-sync-readiness.md)。
+# 共通ゴミ箱の準備（既定無効）
+
+資料の端末共通状態は`viewer/src/lib/lifecycle.ts`が遷移/削除計画を管理し、`lifecycle-runtime.ts`が非公開S3のCAS保存と限定キー削除を担当する。Swiftの`LibraryLifecycleIndex`は端末の永続削除通知と再保存防止を担当。フォルダ整理同期・生成/uploadとは別の責務で、生成との排他と本番有効化は未完了。[仕様と検証境界](docs/shared-library-trash.md)。

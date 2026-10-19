@@ -4,6 +4,8 @@ import {LibraryLifecycle,type LifecycleEntry,type LifecyclePort} from '../src/li
 import {randomBytes,scryptSync} from 'node:crypto';
 import {handle} from '../src/lib/api';
 import {createSession,token} from '../src/lib/auth';
+import {S3LifecyclePort} from '../src/lib/lifecycle-runtime';
+import {s3} from '../src/lib/store';
 process.env.VIEWER_SECRET=randomBytes(32).toString('hex');
 process.env.VIEWER_PASSWORD_HASH='test:'+scryptSync('password','test',64).toString('hex');
 process.env.VIEWER_OWNER='local-owner';process.env.VIEWER_ORIGIN='http://127.0.0.1:3000';process.env.VIEWER_STORAGE='mock';
@@ -16,13 +18,15 @@ function fixture(){
   async list(){return [...rows.values()].map(x=>structuredClone(x.entry));},
   async compareAndSwap(id,etag,entry){assert.equal(rows.get(id)?.etag??null,etag,'CAS conflict');rows.set(id,{entry:structuredClone(entry),etag:String(entry.revision)});},
   async documents(){return {document:{id,title:'資料',type:'presentation',version:1,formats:['pdf'],pageCount:1,tags:[]},keys:files,sizeBytes:100};},
-  async remove(key){if(fail&&removed.size===1)throw Error('connection lost');removed.add(key);}
+  async remove(key){if(fail&&removed.size===1)throw Error('connection lost');removed.add(key);},
+  async verifyRemoved(){if(files.some(k=>!removed.has(k)))throw Error('UNPLANNED_OBJECTS_REMAIN');}
  };
  return {api:new LibraryLifecycle(port),rows,removed,fail:()=>{fail=true;},recover:()=>{fail=false;},change:()=>{files=[...files,`library/diagrams/${id}/versions/000002/document.pdf`];}};
 }
 test('trash and restore use revision checks without deleting artifacts',async()=>{
  const f=fixture();await assert.rejects(f.api.plan(id),/NOT_TRASHED/);
  const entry=await f.api.move(id,0,true);assert.equal(entry.revision,1);assert.equal(await f.api.blocked(id),true);
+ assert.equal((await f.api.move(id,0,true)).revision,1,'ACK loss replay does not duplicate the move');
  await assert.rejects(f.api.move(id,0,false),/LIFECYCLE_CONFLICT/);
  await f.api.move(id,1,false);assert.equal(await f.api.blocked(id),false);assert.equal(f.removed.size,0);
 });
@@ -47,6 +51,13 @@ test('foreign prefixes are rejected before recording or deleting any objects',as
  await f.api.move(id,0,true);await assert.rejects(f.api.plan(id),/INVALID_DELETE_KEYS/);assert.equal(f.removed.size,0);
  await assert.rejects(f.api.move('../private',0,true),/INVALID_ID/);
 });
+test('unexpected objects at final verification keep deletion pending instead of reporting completion',async()=>{
+ const f=fixture();await f.api.move(id,0,true);const plan=await f.api.plan(id);
+ const remove=f.api.port.remove;let changed=false;
+ f.api.port.remove=async key=>{await remove(key);if(!changed){changed=true;f.change();}};
+ await assert.rejects(f.api.erase(id,plan.digest),/UNPLANNED_OBJECTS_REMAIN/);
+ assert.equal(f.rows.get(id)?.entry.status,'deleting');
+});
 test('lifecycle routes require authentication, reject unknown fields, and remain disabled by default',async()=>{
  const f=fixture(),session=createSession();const bearer=await token(session.id,session.sub);
  const req=(path:string,body?:unknown,auth=true)=>new Request('http://127.0.0.1:3000/v1/'+path,{method:body===undefined?'GET':'POST',headers:{...(auth?{Authorization:'Bearer '+bearer}:{}),'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
@@ -57,5 +68,28 @@ test('lifecycle routes require authentication, reject unknown fields, and remain
  assert.equal((await handle(req(route.join('/'),{revision:0}),'api',route,{lifecycle:f.api})).status,200);
  const snapshot=await handle(req('library-lifecycle'),'api',['library-lifecycle'],{lifecycle:f.api});
  assert.equal((await snapshot.json()).entries[0].status,'trashed');
- assert.equal((await handle(req(route.join('/'),{revision:0}),'api',route,{lifecycle:f.api})).status,409);
+ assert.equal((await handle(req(route.join('/'),{revision:0}),'api',route,{lifecycle:f.api})).status,200);
+});
+test('S3 adapter binds CAS, encryption and deletion to reviewed prefixes and refuses versioned buckets',async()=>{
+ const client=s3(),original=client.send,sent:any[]=[];let versioned=false;let conflict=false;
+ (client as any).send=async(command:any)=>{
+  sent.push(command);
+  if(command.constructor.name==='GetBucketVersioningCommand')return versioned?{Status:'Enabled'}:{};
+  if(conflict&&command.constructor.name==='PutObjectCommand')throw {$metadata:{httpStatusCode:412}};
+  return {};
+ };
+ try{
+  const f=fixture();const entry=await f.api.move(id,0,true);const port=new S3LifecyclePort();
+  await port.compareAndSwap(id,null,entry);await port.compareAndSwap(id,'"expected-etag"',entry);
+  const puts=sent.filter(c=>c.constructor.name==='PutObjectCommand');
+  assert.equal(puts[0].input.IfNoneMatch,'*');assert.equal(puts[1].input.IfMatch,'"expected-etag"');
+  assert.equal(puts[1].input.Key,`library/lifecycle/${id}.json`);assert.equal(puts[1].input.ServerSideEncryption,'AES256');
+  assert.equal(puts[1].input.ExpectedBucketOwner,'676643701781');
+  conflict=true;await assert.rejects(port.compareAndSwap(id,'stale',entry),/LIFECYCLE_CONFLICT/);conflict=false;
+  await assert.rejects(port.remove('library/organization/state.json'),/INVALID_DELETE_KEYS/);
+  versioned=true;await assert.rejects(port.remove(keys[0]),/VERSIONED_DELETE_UNSUPPORTED/);
+  assert.equal(sent.filter(c=>c.constructor.name==='DeleteObjectCommand').length,0);
+  versioned=false;await port.remove(keys[0]);const deletion=sent.find(c=>c.constructor.name==='DeleteObjectCommand');
+  assert.equal(deletion.input.Key,keys[0]);assert.equal(deletion.input.ExpectedBucketOwner,'676643701781');
+ }finally{client.send=original;}
 });

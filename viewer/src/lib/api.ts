@@ -160,10 +160,11 @@ export async function handle(
           latest.get(m.diagramId)!.version < m.version
         )
           latest.set(m.diagramId, m);
-      const states = new Map(await Promise.all([...latest.keys()].map(async id => [id, await libraryState(id)] as const)));
-      const lifecycleStates=new Map((await lifecycle?.snapshot())?.entries.map(e=>[e.id,e.status])??[]);
+      const snapshot=await lifecycle?.snapshot();
+      const states = snapshot ? new Map(snapshot.entries.map(e=>[e.id,{trashed:e.status!=='active'}])) : new Map(await Promise.all([...latest.keys()].map(async id => [id, await libraryState(id)] as const)));
+      const lifecycleStates=new Map(snapshot?.entries.map(e=>[e.id,e.status])??[]);
       const all = [...latest.values()]
-        .filter(m=>!lifecycleStates.has(m.diagramId)||lifecycleStates.get(m.diagramId)==='active')
+        .filter(m=>!['deleting','deleted'].includes(lifecycleStates.get(m.diagramId)??''))
         .filter(m => Boolean(states.get(m.diagramId)?.trashed) === (state === "trashed"))
         .map(summary)
         .filter(
@@ -191,7 +192,7 @@ export async function handle(
       if (Object.keys(body).length || url.search) error(400, "INVALID_REQUEST");
       return response(await setLibraryState(segments[1], segments[2] === "trash"));
     }
-    if(lifecycle&&segments[1]&&await lifecycle.blocked(segments[1]))error(404,'NOT_FOUND');
+    if(dependencies.lifecycle&&segments[1]&&await dependencies.lifecycle.blocked(segments[1]))error(404,'NOT_FOUND');
     const v = url.searchParams.get("version");
     const version = v ? Number(v) : undefined;
     if (

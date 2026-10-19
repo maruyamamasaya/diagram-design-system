@@ -4,6 +4,7 @@ const {fromNodeProviderChain}=require('@aws-sdk/credential-providers');
 const {NodeHttpHandler}=require('@smithy/node-http-handler');
 const {sha256,validateConfig}=require('./metadata.cjs');
 const {assertUploadSize}=require('./limits.cjs');
+const {DocumentLock}=require('./document-lock.cjs');
 const notFound=e=>e?.name==='NoSuchKey'||e?.name==='NotFound'||e?.$metadata?.httpStatusCode===404;
 class S3Storage {
   constructor(config,{client}={}) {
@@ -11,6 +12,30 @@ class S3Storage {
     this.client=client||new S3Client({region:config.region,credentials:fromNodeProviderChain(config.profile?{profile:config.profile}:{}),maxAttempts:3,requestHandler:new NodeHttpHandler({connectionTimeout:5000,requestTimeout:30000})});
   }
   params(Key) {return {Bucket:this.config.bucket,ExpectedBucketOwner:this.config.expectedBucketOwner,...(Key?{Key}:{})};}
+  async beginPublication(id) {
+    if(!this.config.lifecycleProtection)return;
+    if(!this.config.approved)throw Error('Destination approval is required before publication locks.');
+    if(this.publication)throw Error('PUBLICATION_ALREADY_ACTIVE');
+    const locks=new DocumentLock(this.client,this.config),owner=await locks.acquire(id,'upload');
+    this.publication={id,owner,locks};
+    try {
+      const optionalState=async key=>{
+        const list=await this.client.send(new ListObjectsV2Command({...this.params(),Prefix:key,MaxKeys:1}));
+        return (list.Contents??[]).some(o=>o.Key===key)?this.read(key):null;
+      };
+      const current=await optionalState(`${this.config.prefix}/lifecycle/${id}.json`);
+      if(current){const state=JSON.parse(current.bytes);if(current.encryption!=='AES256'||state.id!==id||state.status!=='active'||!Number.isSafeInteger(state.revision)||state.revision<1||state.document?.id!==id)throw Error('DOCUMENT_NOT_ACTIVE');}
+      else {
+        const legacy=await optionalState(`${this.config.prefix}/state/${id}.json`);
+        if(legacy){const state=JSON.parse(legacy.bytes);if(legacy.encryption!=='AES256'||state.schemaVersion!=='library-state-1.0'||state.id!==id||state.trashed!==false)throw Error('DOCUMENT_NOT_ACTIVE');}
+      }
+    }catch(e){await this.endPublication();throw e;}
+  }
+  async endPublication() {
+    if(!this.publication)return;
+    const {id,owner,locks}=this.publication;
+    await locks.release(id,'upload',owner);this.publication=null;
+  }
   assertKey(key) {if(!key.startsWith(`${this.config.prefix}/`)||key.includes('..')||key.includes('\\')) throw new Error('Object key outside configured prefix.');}
   async preflight() {
     const p=this.params();
@@ -51,6 +76,7 @@ class S3Storage {
     return {key,sha256:sha256(bytes),sizeBytes:bytes.length,versionId:existing.versionId||null};
   }
   async write(key,bytes,contentType) {
+    if(this.config.lifecycleProtection){const id=new RegExp(`^${this.config.prefix}/(?:diagrams|catalog)/([a-f0-9-]{36})/versions/[0-9]{6}/`).exec(key)?.[1];if(!id||this.publication?.id!==id)throw Error('PUBLICATION_LOCK_REQUIRED');}
     assertUploadSize([{name:key,sizeBytes:bytes.length,sha256:sha256(bytes)}],this.config);
     this.assertKey(key);
     if(!this.config.approved) throw new Error('Destination approval is required before writes.');

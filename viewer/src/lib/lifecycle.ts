@@ -11,6 +11,8 @@ export interface LifecyclePort {
   compareAndSwap(id:string,etag:string|null,entry:LifecycleEntry):Promise<void>;
   documents(id:string):Promise<{document:LifecycleDocument;keys:string[];sizeBytes:number}>;
   remove(key:string):Promise<void>;
+  verifyRemoved(id:string):Promise<void>;
+  exclusive?<T>(id:string,kind:'move'|'delete',owner:string,action:()=>Promise<T>):Promise<T>;
 }
 export function lifecycleID(id:string) {if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id))error(400,'INVALID_ID');return id;}
 export function validateLifecycleEntry(entry:LifecycleEntry,id:string) {
@@ -37,7 +39,14 @@ export class LibraryLifecycle {
   async snapshot():Promise<LifecycleSnapshot> {const entries=await this.port.list();if(entries.length>500)error(503,'LIFECYCLE_CAPACITY');return {schemaVersion:'library-lifecycle-1.0',entries:entries.map(e=>{validateLifecycleEntry(e,e.id);const {plan,...publicEntry}=e;void plan;return publicEntry;})};}
   async blocked(id:string) {const row=await this.port.read(lifecycleID(id));return row!=null&&row.entry.status!=='active';}
   async move(id:string,revision:number,trashed:boolean) {
+    lifecycleID(id);
+    const action=()=>this.moveLocked(id,revision,trashed);
+    const owner=createHash('sha256').update(JSON.stringify({id,revision,trashed})).digest('hex');
+    return this.port.exclusive?this.port.exclusive(id,'move',owner,action):action();
+  }
+  private async moveLocked(id:string,revision:number,trashed:boolean) {
     lifecycleID(id);const old=await this.port.read(id);
+    if(old?.entry.revision===revision+1&&old.entry.status===(trashed?'trashed':'active'))return old.entry;
     if((old?.entry.revision??0)!==revision)error(409,'LIFECYCLE_CONFLICT');
     if(old&&['deleting','deleted'].includes(old.entry.status))error(409,'DELETE_IN_PROGRESS');
     const document=old?.entry.document??(await this.port.documents(id)).document;
@@ -55,6 +64,11 @@ export class LibraryLifecycle {
   }
   async erase(id:string,digest:string) {
     lifecycleID(id);if(!/^[a-f0-9]{64}$/.test(digest))error(400,'INVALID_DELETE_PLAN');
+    const action=()=>this.eraseLocked(id,digest);
+    return this.port.exclusive?this.port.exclusive(id,'delete',digest,action):action();
+  }
+  private async eraseLocked(id:string,digest:string) {
+    lifecycleID(id);if(!/^[a-f0-9]{64}$/.test(digest))error(400,'INVALID_DELETE_PLAN');
     let old=await this.port.read(id);
     if(old?.entry.status==='deleted') {if(old.entry.plan?.digest!==digest)error(409,'LIFECYCLE_CONFLICT');return old.entry;}
     const plan=await this.plan(id);if(plan.digest!==digest)error(409,'DELETE_PLAN_CHANGED');
@@ -68,6 +82,7 @@ export class LibraryLifecycle {
     // Each key is allowlisted from validated manifests. Failures retain the durable
     // deleting record, allowing the exact same confirmed plan to resume after restart.
     for(const key of plan.keys)await this.port.remove(key);
+    await this.port.verifyRemoved(id);
     const next:LifecycleEntry={...old.entry,status:'deleted',revision:old.entry.revision+1,updatedAt:new Date().toISOString()};
     await this.port.compareAndSwap(id,old.etag,next);return next;
   }

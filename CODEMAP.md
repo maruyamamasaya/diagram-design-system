@@ -10,6 +10,7 @@
 |S3保存|src/upload-cli.cjs、src/upload/workflow.cjs `uploadDirectory`、metadata.cjs、s3-storage.cjs|approveContent、IfNoneMatch、catalog、sha256|tests/upload.test.cjs|
 |プレゼン|src/presentation/cli.cjs、engine.cjs `generatePresentation` / `renderSlide`、validate.cjs `validatePresentation`|templateId、OVERFLOW、sourceReferences、rendererImplemented|tests/presentation.test.cjs（契約）、tests/presentation-engine.test.cjs（描画・分割）|
 |閲覧UI|viewer/src/app/page.tsx、components/DiagramCanvas.tsx|zoom、fullscreen、DiagramCanvas|viewer/scripts/browser-check.cjs|
+|共通ゴミ箱（本番無効）|viewer/src/lib/lifecycle.ts、lifecycle-runtime.ts、packages/LibraryOrganization/Sources/LibraryOrganization/LibraryLifecycle.swift|LibraryLifecycle、deletion-plan、LibraryLifecycleIndex|viewer/tests/lifecycle.test.ts、LibraryLifecycleTests.swift|
 |認証・API|viewer/src/lib/api.ts `handle`、auth.ts、config.ts、app/のroute.ts|login、session、bearer、ORIGIN_REJECTED、diagrams|viewer/tests/api.test.ts|
 |S3読取・mock|viewer/src/lib/store.ts `catalog` / `find` / `access`|VIEWER_AWS_SOURCE_PROFILE、GetObject、mockBytes|viewer/tests/api.test.ts、browser-check.cjs|
 |AWS読取検証・運用案|scripts/validate-s3.cjs、infra/、docs/|probe-overwrite、exercise-upload、Budgets|tests/upload.test.cjs（AWS実接続ではない）|
@@ -94,3 +95,5 @@ AWS向け同期APIのローカル入口：viewer/src/lib/organization/{model,ser
 HTTPS同期：LibraryOrganization/AuthenticatedSyncTransport.swift、UI/OrganizationOIDC.swiftとSyncLabSession。Mac Store/iOS CloudOIDC・CloudLibraryStoreの明示注入。HTTPSConnectionTests、viewer/scripts/check-organization-https.ts。[手順](docs/organization-sync-https.md)。
 
 本番接続準備：UI/SyncSetupView.swift、Mac Store.connectOrganizationSync、iOSのonSyncLogin、viewer/lib/organization/runtime.ts、infra/organization-sync.proposed.json、viewer/scripts/prepare-organization-deployment.ts。[未適用手順](docs/organization-sync-readiness.md)。
+
+共通ゴミ箱の資料単位CAS排他は `src/upload/document-lock.cjs`、保存側の有効化はconfigの `lifecycleProtection`。配備差分生成は `scripts/prepare-shared-trash-aws.cjs`、料金再計算は `scripts/estimate-shared-trash.py`。[承認案](docs/shared-trash-aws-proposal.md)。

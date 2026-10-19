@@ -62,7 +62,7 @@ async function loadPresentation(dir,config) {
 async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,approveContent=false,previous=null,loadPackage=loadPresentation}={}) {
   validateConfig(config);if(previous) throw Error('Presentation version is fixed by generation; --previous-metadata unsupported');
   if(!dryRun&&(!config.approved||!approveContent)) throw Error('Approved destination and --approve-content required');
-  const lock=await fs.open(path.join(dir,'.upload.lock'),'wx');let status;
+  const lock=await fs.open(path.join(dir,'.upload.lock'),'wx');let status,publicationStarted=false;
   const save=async()=>{const tmp=path.join(dir,`upload-status.json.${process.pid}.tmp`);await fs.writeFile(tmp,jsonBytes(status));await fs.rename(tmp,path.join(dir,'upload-status.json'));};
   try {
     const {files,manifest}=await loadPackage(dir,config),bytes=jsonBytes(manifest),plan=path.join(dir,'s3-artifacts-manifest.json');
@@ -75,6 +75,8 @@ async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,appr
     status={diagramId:manifest.diagramId,version:manifest.version,state:dryRun?'planned':'uploading',verified:[],lastStage:'preflight'};await save();
     if(dryRun)return {metadata:manifest,status};
     if(!storage)throw Error('Storage adapter required');await storage.preflight();
+    await storage.beginPublication?.(manifest.diagramId);
+    publicationStarted=true;
     const catalog=await storage.read(manifest.catalogKey);
     if(catalog) {
       await storage.verify(manifest.catalogKey,bytes,'application/json');
@@ -88,6 +90,6 @@ async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,appr
     }
     status.state='complete';status.lastStage='complete';await save();return {metadata:manifest,status};
   }catch(e){if(status){status.state=e.name==='UploadSizeLimitError'?'blocked':'failed';status.errorCode=e.name;await save().catch(()=>{});}throw e;}
-  finally{await lock.close();await fs.unlink(path.join(dir,'.upload.lock'));}
+  finally{try{if(publicationStarted)await storage?.endPublication?.();}finally{await lock.close();await fs.unlink(path.join(dir,'.upload.lock'));}}
 }
 module.exports={loadPresentation,uploadPresentationDirectory,safeRead};

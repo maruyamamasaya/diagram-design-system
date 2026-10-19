@@ -110,3 +110,7 @@ npm run upload -- --input <プレゼン版> --config <承認済み設定> --appr
 閲覧APIも同じ資料限定承認を使う変更をローカル検証済み（[API仕様](viewer-api.md#資料限定の大容量対応2026-10-15本番反映済み)）。通常の20MB/50MB制限は維持し、本人の今回限りの承認後、本番反映済み。S3成功だけを実機での表示成功として扱わない。
 
 整理同期の管理JSON（2026-10-18）：資料パッケージとは別の固定キー1個だけ、既存Lambda roleのIf-Match更新を追加承認後に許可した。資料本体の不変キー/If-None-Match、TLS/AES256/BPAを維持する。bucket policyを以前の一律上書き禁止へ戻すと同期CASが拒否されるため、[適用した限定例外](organization-sync-deployment.md#既存バケットポリシーの修正追加承認後に完了)を保持する。
+
+## 共通ゴミ箱との排他（配備承認待ち）
+
+configの任意boolean `lifecycleProtection` は既定無効。承認後の有効化で、全公開処理を資料単位の `library/document-locks/{id}.json` のCASロックで囲み、trashed/deleting/deletedへの再保存を拒否する。完了/失敗時は自分のロックを解放する。CASはAES256/ExpectedBucketOwnerと条件付きPUTを維持。停止した処理のロックは自動期限切れにせず、旧処理停止確認後の個別復旧が必要。未更新CLIや管理者の直接書込は協調排他の対象外。[設計と承認](shared-library-trash.md)。

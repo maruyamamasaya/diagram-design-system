@@ -1,0 +1,60 @@
+{
+  "status": "NOT_APPLIED",
+  "checkedDate": "2026-10-19",
+  "region": "ap-northeast-1",
+  "stack": "diagram-library-api",
+  "resourcesToModify": [
+    "Role",
+    "Function"
+  ],
+  "indirectReferenceUpdate": [
+    "Integration"
+  ],
+  "newAWSResources": [],
+  "replacementOrDeletion": [],
+  "lambda": {
+    "runtime": "nodejs22.x",
+    "memoryMB": 256,
+    "timeoutSeconds": 20,
+    "logRetentionDays": 14,
+    "newParameter": "LibraryLifecycleEnabled",
+    "initialValue": "false",
+    "reviewedValidationThenFinalValue": "true",
+    "newInlinePolicy": "shared-trash-lambda-policy.proposed.json",
+    "code": "New local bundle; new CodeKey under the existing approved code bucket/prefix, previous CodeKey retained for rollback"
+  },
+  "uploader": {
+    "role": "arn:aws:iam::676643701781:role/diagram-design-system-uploader",
+    "newInlinePolicy": "shared-trash-uploader-policy.proposed.json",
+    "localConfigAfterApproval": {
+      "lifecycleProtection": true
+    },
+    "mustUseUpdatedCLI": true
+  },
+  "bucket": {
+    "name": "diagram-design-system-676643701781-apne1",
+    "policy": "shared-trash-bucket-policy.proposed.json",
+    "preservedOrganizationKey": "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/organization/v1/18c9449f68b0d69b37aff414afea31faeb1ae3c97c63b41dbea449128a920a39/state.json",
+    "versioningChange": false,
+    "publicAccessChange": false,
+    "encryptionChange": false
+  },
+  "clients": {
+    "afterServerValidation": "Enable LibraryLifecycleEnabled in iOS and Mac bundles, build/test and update existing installations",
+    "removeLocalCopies": "Only after a durable deleted notification; offline devices process it at next connection",
+    "macSourceFolders": "Preserve production originals"
+  },
+  "excluded": [
+    "Budgets changes",
+    "Cognito changes",
+    "new KMS/WAF/VPC/DB resources",
+    "automatic expiry or blanket cleanup",
+    "delete existing user documents during validation"
+  ],
+  "approvalRequired": [
+    "policies and Lambda deployment",
+    "temporary server enable for synthetic-only validation, retain on success or disable on failure",
+    "synthetic test object upload/trash/restore/permanent deletion",
+    "client enable and updates"
+  ]
+}

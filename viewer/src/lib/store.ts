@@ -279,8 +279,8 @@ function stateKey(id: string) {
   return `${statePrefix}${id}.json`;
 }
 export async function libraryState(id: string): Promise<LibraryState | null> {
-  const current=await lifecycleRuntime()?.port.read(id);
-  if(current)return {schemaVersion:'library-state-1.0',id,trashed:current.entry.status!=='active',updatedAt:current.entry.updatedAt};
+  const service=lifecycleRuntime();
+  if(service){const current=await service.port.read(id);return current?{schemaVersion:'library-state-1.0',id,trashed:current.entry.status!=='active',updatedAt:current.entry.updatedAt}:null;}
   return legacyLibraryState(id);
 }
 export async function legacyLibraryState(id: string): Promise<LibraryState | null> {
@@ -323,6 +323,5 @@ export async function setLibraryState(id: string, trashed: boolean): Promise<Lib
   return state;
 }
 export async function requireActive(id: string) {
-  if(await lifecycleRuntime()?.blocked(id))error(404,'NOT_FOUND');
   if ((await libraryState(id))?.trashed) error(404, "NOT_FOUND");
 }

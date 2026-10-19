@@ -20,7 +20,7 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
   if(!dryRun&&(!config.approved||!approveContent)) throw new Error('Both approved destination config and --approve-content are required for upload.');
   const dir=path.resolve(directory),lock=path.join(dir,'.upload.lock');
   const handle=await fs.open(lock,'wx').catch(e=>{if(e.code==='EEXIST') throw new Error('Upload already running or stale .upload.lock. Confirm no uploader is active before removing this lock.');throw e;});
-  let status;
+  let status,publicationStarted=false;
   try {
     const bundle=await loadBundle(dir), metadataFile=path.join(dir,'metadata.json');
     let metadata;
@@ -32,6 +32,8 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
     if(dryRun) return {metadata,status};
     if(!storage) throw new Error('Storage adapter required.');
     status.preflight=await storage.preflight();
+    await storage.beginPublication?.(metadata.diagramId);
+    publicationStarted=true;
     // A published catalog entry is an immutable completion marker, never changed by retry.
     status.lastStage='catalog-check';
     const catalog=await storage.read(metadata.catalogKey);
@@ -55,6 +57,6 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
   } catch(e) {
     if(status) {status.state='failed';status.failedAt=new Date().toISOString();status.errorCode=/^[A-Za-z0-9_]+$/.test(e.name)?e.name:'UploadError';await atomicJson(path.join(dir,'upload-status.json'),status).catch(()=>{});}
     throw e;
-  } finally {await handle.close();await fs.unlink(lock);}
+  } finally {try{if(publicationStarted)await storage?.endPublication?.();}finally{await handle.close();await fs.unlink(lock);}}
 }
 module.exports={uploadDirectory};

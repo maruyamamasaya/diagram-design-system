@@ -1,5 +1,7 @@
 # 検証の入口
 
+共通ゴミ箱（本番無効）はviewerの`lifecycle.test.ts`（revision/CAS、計画変更、途中削除と再送、認可、S3 prefix/暗号化/バージョニング）と共有Swiftの`LibraryLifecycleTests`（永続削除通知/古い応答/復元）を検証する。`node --import tsx --test --test-concurrency=1 tests/lifecycle.test.ts tests/trash.test.ts`はviewer内で実行。CLIのIPC待受を使わない。iOSのコピー削除XCTestと実画面/通常ビルドの制約は[作業中の仕様](docs/shared-library-trash.md#検証記録)を参照。
+
 実在するコマンドだけを使用する。ルートの`npm test`はNode test runner（単一図解実レンダリング、S3モック、パッケージ・プレゼン契約）。viewerの`npm test`はtsxのAPI試験。lint/format script、ルートtypecheck/build、DB migration/security専用コマンドはない。
 
 ## 実行環境
@@ -93,3 +95,5 @@ TypeScript同期APIは`npm --prefix viewer run test:organization`。Swiftビル�
 整理同期の実AWS検証は本人承認後の限定実行。viewer/scripts/check-organization-aws.tsは固定origin/UUID・空snapshot前提・本人の一時tokenを必要とし、合成フォルダ1件だけを操作してtombstone/receiptsを保持する。通常の自動テストから呼ばない。現在は初回空状態前提を満たさないため、再実行前に別の検証計画が必要。[実検証結果](docs/organization-sync-deployment.md)。
 
 通常クライアント接続：HTTPSConnectionTestsで並行呼出しの要求開始間隔1秒以上、iOS CloudLibraryTestsで同じ管理領域の2画面が単一キューを共有し準備だけでは既存JSONが不変であることを検査。[実機適用・保持確認の範囲](docs/organization-sync-live-clients.md)。
+
+共通ゴミ箱の配備準備（2026-10-19）：`node --test tests/document-lock.test.cjs tests/upload.test.cjs tests/presentation-upload.test.cjs` 16件、viewer 31合格/1スキップ・型検査、日本語SVG/PNG実描画3件、Mac `swift test` 27件/1スキップ/失敗0。Node24、Mac/Chromeは承認付き実行。ログは `outputs/shared-trash-readiness/`。モック検証は実AWSゴミ箱確認とは区別する。[承認案](docs/shared-trash-aws-proposal.md)。

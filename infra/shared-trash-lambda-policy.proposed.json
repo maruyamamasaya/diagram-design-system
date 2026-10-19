@@ -1,0 +1,43 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetBucketVersioning",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::diagram-design-system-676643701781-apne1",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "library/lifecycle/*",
+            "library/document-locks/*",
+            "library/diagrams/*"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/lifecycle/*",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/document-locks/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:DeleteObject",
+      "Resource": [
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/diagrams/*",
+        "arn:aws:s3:::diagram-design-system-676643701781-apne1/library/catalog/*"
+      ]
+    }
+  ]
+}

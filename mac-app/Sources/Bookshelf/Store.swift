@@ -14,31 +14,39 @@ import CryptoKit
     @Published var error: String?
     @Published private(set) var lifecycle = LibraryLifecycleIndex()
     @Published private(set) var lifecycleBusy = false
+    @Published private(set) var lifecycleReadable = true
     var lifecycleEnabled: Bool { Bundle.main.object(forInfoDictionaryKey: "LibraryLifecycleEnabled") as? Bool == true }
     private var lifecycleClient: AuthenticatedLibraryLifecycle?
     private var lifecycleURL: URL?
     var trashEntries: [LibraryLifecycleEntry] { lifecycle.entries.values.filter { $0.status == .trashed || $0.status == .deleting }.sorted { $0.document.title.localizedStandardCompare($1.document.title) == .orderedAscending } }
-    func visibleInLibrary(_ id: String) -> Bool { lifecycle.status(id) == .active }
+    func visibleInLibrary(_ id: String) -> Bool { (!lifecycleEnabled || lifecycleReadable) && lifecycle.status(id) == .active }
     private func prepareLifecycle(login: Bool) async throws {
         guard lifecycleEnabled else { throw OrganizationConnectionError.invalidEndpoint }
         guard let config = try OrganizationOIDCConfiguration.bundled() else { throw OrganizationConnectionError.authentication }
         if organizationAuth == nil { organizationAuth = try OrganizationOIDC(config: config) }
         guard let auth = organizationAuth else { throw OrganizationConnectionError.authentication }
-        if login { try await auth.login() }
+        if login {
+            do { _ = try await auth.access() }
+            catch { try await auth.login() }
+        }
         let connection = try auth.connection()
         let namespace = SHA256.hash(data: Data(connection.identityKey.utf8)).map { String(format: "%02x", $0) }.joined()
         let url = stateURL.deletingLastPathComponent().appendingPathComponent("lifecycle-\(namespace).json")
         if lifecycleURL != url {
-            lifecycle = FileManager.default.fileExists(atPath: url.path) ? try JSONDecoder().decode(LibraryLifecycleIndex.self, from: Data(contentsOf: url)) : LibraryLifecycleIndex()
+            do { lifecycle = FileManager.default.fileExists(atPath: url.path) ? try JSONDecoder().decode(LibraryLifecycleIndex.self, from: Data(contentsOf: url)) : LibraryLifecycleIndex(); lifecycleReadable = true }
+            catch { lifecycleReadable = false; lifecycle = LibraryLifecycleIndex() }
             lifecycleURL = url
         }
-        lifecycleClient = AuthenticatedLibraryLifecycle(connection: connection)
+        if lifecycleClient?.connection.identityKey != connection.identityKey {
+            lifecycleClient = AuthenticatedLibraryLifecycle(connection: connection)
+        }
         try removeDeletedAppCopies()
     }
     private func persistLifecycle() throws {
         guard let lifecycleURL else { throw OrganizationConnectionError.authentication }
         try FileManager.default.createDirectory(at: lifecycleURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try JSONEncoder().encode(lifecycle).write(to: lifecycleURL, options: .atomic)
+        try Data(lifecycleURL.lastPathComponent.utf8).write(to: stateURL.deletingLastPathComponent().appendingPathComponent("lifecycle-account.txt"), options: .atomic)
         try removeDeletedAppCopies()
     }
     private func removeDeletedAppCopies() throws {
@@ -60,7 +68,7 @@ import CryptoKit
             try await prepareLifecycle(login: login)
             guard let lifecycleClient else { throw OrganizationConnectionError.authentication }
             let snapshot = try await lifecycleClient.snapshot()
-            try lifecycle.merge(snapshot); try persistLifecycle()
+            try lifecycle.merge(snapshot); try persistLifecycle(); lifecycleReadable = true
         } catch { self.error = "共通ゴミ箱を更新できませんでした。接続とログインを確認してください。" }
     }
     func setTrashed(_ ids: Set<String>, trashed: Bool) async {
@@ -68,6 +76,7 @@ import CryptoKit
         lifecycleBusy = true; defer { lifecycleBusy = false }
         do {
             try await prepareLifecycle(login: false)
+            guard lifecycleReadable else { throw OrganizationConnectionError.invalidResponse }
             guard let lifecycleClient else { throw OrganizationConnectionError.authentication }
             for rawID in ids.sorted() {
                 let id = rawID.lowercased()
@@ -112,6 +121,16 @@ import CryptoKit
             stateURL = URL(fileURLWithPath: arguments[i + 1])
         } else {
             stateURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("ZukanBookshelf/library.json")
+        }
+        if lifecycleEnabled {
+            let parent = stateURL.deletingLastPathComponent()
+            let marker = parent.appendingPathComponent("lifecycle-account.txt")
+            if let name = try? String(contentsOf: marker, encoding: .utf8),
+               name.range(of: "^lifecycle-[a-f0-9]{64}\\.json$", options: .regularExpression) != nil {
+                let file = parent.appendingPathComponent(name)
+                do { lifecycle = try JSONDecoder().decode(LibraryLifecycleIndex.self, from: Data(contentsOf: file)); lifecycleURL = file }
+                catch { lifecycleReadable = false; self.error = "共通ゴミ箱の端末記録を読み込めません。接続して更新するまで資料表示を停止します。" }
+            }
         }
         if FileManager.default.fileExists(atPath: stateURL.path) {
             do { settings = try LibrarySettings.load(from: stateURL) }
