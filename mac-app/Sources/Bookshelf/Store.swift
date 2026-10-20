@@ -244,13 +244,20 @@ import OSLog
                 cloudClient = CloudBookshelfClient(connection: connection, directory: directory)
             }
             guard let cloudClient, let lifecycleClient else { throw OrganizationConnectionError.authentication }
+            if cloudCatalog.isEmpty {
+                cloudCatalog = cloudClient.cachedCatalog()
+                books = cloudCatalog.filter { visibleInLibrary($0.id) }.map(cloudClient.book)
+            }
             let snapshot = try await lifecycleClient.snapshot()
             try lifecycle.merge(snapshot); try persistLifecycle(); lifecycleReadable = true
             let documents = try await cloudClient.catalog()
             cloudCatalog = documents
             books = documents.filter { visibleInLibrary($0.id) }.map(cloudClient.book)
-            warnings = []; error = nil
-        } catch { self.error = "S3の本棚を更新できませんでした。ログインと接続を確認してください。" }
+            warnings = cloudClient.rejectedCount > 0 ? ["情報を検証できない資料が\(cloudClient.rejectedCount)版あります。他の資料は閲覧できます。"] : []; error = nil
+        } catch {
+            Logger(subsystem: "jp.local.zukan.bookshelf", category: "cloud").error("Catalog refresh failed: \(String(describing: error), privacy: .public)")
+            self.error = "本棚の更新に失敗しました。取得済み資料は引き続き開けます。"
+        }
     }
     func cloudTaskKey(_ id: String) -> String { id + "/" + String(books.first(where: { $0.id == id })?.latest.version ?? 0) }
     func cloudFormats(_ id: String) -> [String] { cloudCatalog.first { $0.id == id }?.formats.filter { ["pdf", "png", "pptx"].contains($0) } ?? [] }

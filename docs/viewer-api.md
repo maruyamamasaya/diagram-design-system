@@ -1,7 +1,7 @@
 # Web・iOS共通API v1（ローカルPhase 4実装／公開認証は設計）
 
 ## 認証・認可
-すべてのAPIはHTTPSとBearerトークン必須。将来選ぶIdPのissuer・audience・署名・有効期限をサーバー側で検証し、認証済みsubjectが個人ライブラリの許可ユーザーであることを毎回確認する。認証だけで図解アクセスを許可しない。個人用のowner allowlistはサーバー設定で管理し、クライアントからowner、bucket、keyを指定させない。多人数対応時は所有者・ACLモデルの追加を必須とする。
+資料・利用者データのAPIはHTTPSとBearerトークン必須。データを含まない読取仕様fingerprintだけを返す `GET /v1/reader-contract` は認証不要（2026-10-20追加）。将来選ぶIdPのissuer・audience・署名・有効期限をサーバー側で検証し、認証済みsubjectが個人ライブラリの許可ユーザーであることを毎回確認する。認証だけで図解アクセスを許可しない。個人用のowner allowlistはサーバー設定で管理し、クライアントからowner、bucket、keyを指定させない。多人数対応時は所有者・ACLモデルの追加を必須とする。
 
 Web・iOSにAWSアクセスキーを配布しない。バックエンドの最小権限IAMロールだけがS3を読み取り、認可後に期限付きGET URLを発行する。S3公開設定、静的Webホスティング、public-read ACLは使用しない。
 
@@ -86,3 +86,7 @@ viewer/tests/large-presentation.test.tsを追加。check-large-presentation.ts�
 ## 今月のAWS請求（2026-10-19、未配備）
 
 本人OIDC/read認証限定GET /v1/monthly-billing。固定account/今月/Project配賦分とタグ未配賦分を返す。7日共有予約・2枠各2ページ上限・強制更新query不可・既定無効。[契約](monthly-billing.md)、[AWS追加費用/適用案](monthly-billing-aws-proposal.md)。
+
+## 取得互換性と障害隔離（2026-10-20）
+
+保存/閲覧の共有検証器、本番fingerprintによる公開前停止、不正manifestの版単位隔離と一覧のwarnings、資料限定サイズ承認の配布条件は[取得互換性](library-fetch-repair.md)を正本とする。資料APIの認証・owner認可・短期URLは維持する。

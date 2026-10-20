@@ -50,6 +50,16 @@ final class HTTPSConnectionTests: XCTestCase {
         XCTAssertEqual(starts.count, 2)
         XCTAssertGreaterThanOrEqual(starts[1].timeIntervalSince(starts[0]), 1.0)
     }
+    func testReadRetriesThrottleAndServerErrorButDoesNotReplayMutation() async throws {
+        var calls = 0
+        let body = try JSONEncoder().encode(bootstrap())
+        HTTPSStub.handler = { _ in calls += 1; return (calls == 1 ? 429 : calls == 2 ? 503 : 200, body, ["Retry-After":"0"]) }
+        _ = try await connection().bootstrap(); XCTAssertEqual(calls,3)
+        calls = 0
+        HTTPSStub.handler = { _ in calls += 1; return (503,Data(),[:]) }
+        do { _ = try await connection().request(path:"v1/library-lifecycle/id/trash",body:Data("{}".utf8));XCTFail("Mutation must fail without automatic replay") } catch { }
+        XCTAssertEqual(calls,1)
+    }
     let id = UUID()
     func bootstrap(bytes: Int = 262144) -> OrganizationBootstrap { OrganizationBootstrap(libraryID: id, protocolVersion: 1, limit: 5, windowSeconds: 3600, maxOperations: 50, maxBodyBytes: bytes) }
     func connection(_ access: @escaping @Sendable (Bool) async throws -> OrganizationAccess = { _ in OrganizationAccess(token: "test", issuer: "https://issuer.example", subject: "owner") }) throws -> AuthenticatedSyncConnection {

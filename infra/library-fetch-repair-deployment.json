@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-20",
+  "region": "ap-northeast-1",
+  "stackName": "diagram-library-api",
+  "codeKey": "deployments/api/0fa9f5205863204cd9a3a499143708dab2b17b2bacf6b699943ba473c6f42106.zip",
+  "codeSHA256": "0fa9f5205863204cd9a3a499143708dab2b17b2bacf6b699943ba473c6f42106",
+  "lambda": {
+    "CodeSha256": "D6n1IFhjIEzZo6SZFDcI2rKxeyus9raZlDukc8b0IQY=",
+    "Memory": 256,
+    "Timeout": 20,
+    "Status": "Successful"
+  },
+  "readerContractMatches": true,
+  "catalogCount": 53,
+  "catalogWarnings": 0,
+  "authenticatedLifecycleStatus": 200,
+  "unauthenticatedCatalogStatus": 401,
+  "scope": "Code-only existing Lambda; no IAM, infrastructure, throttle or budget changes",
+  "evidence": "sessions/2026-10-20-library-fetch-stability.md"
+}

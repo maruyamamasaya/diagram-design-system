@@ -25,11 +25,11 @@ public struct OrganizationBootstrap: Codable, Sendable {
 /// Reserve the next slot before suspension so concurrent callers cannot share it.
 private actor OrganizationRequestPacer {
     private let clock = ContinuousClock()
-    private var next: ContinuousClock.Instant?
-    func wait() async throws {
+    private var next: [String: ContinuousClock.Instant] = [:]
+    func wait(endpoint: String) async throws {
         let now = clock.now
-        let slot = next.map { max($0, now) } ?? now
-        next = slot.advanced(by: .milliseconds(1100))
+        let slot = next[endpoint].map { max($0, now) } ?? now
+        next[endpoint] = slot.advanced(by: .milliseconds(1100))
         try await clock.sleep(until: slot)
         try Task.checkCancellation()
     }
@@ -41,7 +41,7 @@ public struct AuthenticatedSyncConnection: Sendable {
     public let subject: String
     public let access: @Sendable (_ forceRefresh: Bool) async throws -> OrganizationAccess
     public let session: URLSession
-    private let pacer = OrganizationRequestPacer()
+    private static let pacer = OrganizationRequestPacer()
     public var identityKey: String { [baseURL.absoluteString, issuer, subject].joined(separator: "\n") }
     public init(baseURL: URL, issuer: String, subject: String, session: URLSession? = nil, access: @escaping @Sendable (Bool) async throws -> OrganizationAccess) throws {
         guard baseURL.scheme == "https", baseURL.host != nil, baseURL.user == nil, baseURL.password == nil, baseURL.query == nil, baseURL.fragment == nil,
@@ -60,26 +60,39 @@ public struct AuthenticatedSyncConnection: Sendable {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         components.queryItems = query.isEmpty ? nil : query
         guard let url = components.url else { throw OrganizationConnectionError.invalidEndpoint }
-        for attempt in 0...1 {
-            try await pacer.wait()
+        let retryable = body == nil || path.hasSuffix("/access-url")
+        var refreshed = false
+        var forceRefresh = false
+        var retries = 0
+        while true {
+            try Task.checkCancellation()
+            try await Self.pacer.wait(endpoint: baseURL.absoluteString)
             let credentials: OrganizationAccess
-            do { credentials = try await access(attempt == 1) } catch { throw OrganizationConnectionError.authentication }
+            do { credentials = try await access(forceRefresh); forceRefresh = false } catch { throw OrganizationConnectionError.authentication }
             guard credentials.issuer == issuer, credentials.subject == subject else { throw OrganizationConnectionError.accountChanged }
             guard !credentials.token.isEmpty, credentials.token.utf8.count <= 16384, credentials.token.unicodeScalars.allSatisfy({ $0.value >= 33 && $0.value <= 126 }) else { throw OrganizationConnectionError.authentication }
             var request = URLRequest(url: url); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body
             request.setValue("Bearer " + credentials.token, forHTTPHeaderField: "Authorization")
             if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
             let data: Data, response: URLResponse
-            do { (data, response) = try await session.data(for: request, delegate: OrganizationNoRedirect()) } catch { throw SyncRetryFailure(retryAfter: nil) }
+            do { (data, response) = try await session.data(for: request, delegate: OrganizationNoRedirect()) }
+            catch {
+                try Task.checkCancellation()
+                guard retryable, retries < 3 else { throw SyncRetryFailure(retryAfter: nil) }
+                retries += 1; try await Task.sleep(for: .seconds(Double(retries) + Double.random(in: 0...0.5))); continue
+            }
             guard let http = response as? HTTPURLResponse, http.url == url, data.count <= 2 * 1024 * 1024 else { throw OrganizationConnectionError.invalidResponse }
             // A refresh is silent, once only. It must still identify the exact same account.
-            if http.statusCode == 401 && attempt == 0 { continue }
+            if http.statusCode == 401 && !refreshed { refreshed = true; forceRefresh = true; continue }
             if http.statusCode == 401 || http.statusCode == 403 { throw OrganizationConnectionError.authentication }
+            if retryable && (http.statusCode == 429 || http.statusCode >= 500), retries < 3 {
+                let delay = max(Double(retries + 1), SyncRetryFailure.retryDate(http.value(forHTTPHeaderField: "Retry-After"), now: Date())?.timeIntervalSinceNow ?? 0)
+                if delay <= 30 { retries += 1; try await Task.sleep(for: .seconds(delay + Double.random(in: 0...0.5))); continue }
+            }
             if http.statusCode >= 500 { throw SyncRetryFailure(retryAfter: SyncRetryFailure.retryDate(http.value(forHTTPHeaderField: "Retry-After"), now: Date())) }
             guard http.statusCode == 200 || http.statusCode == 429, http.mimeType == "application/json" else { throw OrganizationConnectionError.invalidResponse }
             return (data, http)
         }
-        throw OrganizationConnectionError.authentication
     }
 }
 private final class OrganizationNoRedirect: NSObject, URLSessionTaskDelegate, @unchecked Sendable {

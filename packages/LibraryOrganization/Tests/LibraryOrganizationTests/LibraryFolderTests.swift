@@ -2,6 +2,18 @@ import XCTest
 @testable import LibraryOrganization
 
 final class LibraryFolderTests: XCTestCase {
+    func testCategoryRootsAreNeverFiledDestinations() {
+        var state = OrganizationState<String>();state.ensureShelf(.presentation);state.ensureShelf(.illustration)
+        state.assignments["new"] = LibraryShelf.presentation.rootID
+        XCTAssertFalse(state.isFiled("new",memberID:{$0}))
+        let folder = state.createFolder(name:"美術史",shelf:.presentation)
+        state.moveDocuments(["new"],to:folder,memberID:{$0})
+        XCTAssertTrue(state.isFiled("new",memberID:{$0}))
+        XCTAssertTrue(state.containsDocument("new",in:folder,memberID:{$0}))
+        state.moveDocuments(["new"],to:LibraryShelf.presentation.rootID,memberID:{$0})
+        XCTAssertFalse(state.isFiled("new",memberID:{$0}));XCTAssertNil(state.assignments["new"])
+        XCTAssertFalse(state.folders(in:.presentation).contains { LibraryShelf.isRoot($0.id) })
+    }
     func testLegacyFoldersPreserveOverlappingMembershipAndOrder() throws {
         var state = OrganizationState<String>()
         let first = UUID(), second = UUID()

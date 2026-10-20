@@ -31,6 +31,10 @@ async function uploadDirectory(directory,config,{storage,dryRun=false,approveCon
     await atomicJson(path.join(dir,'upload-status.json'),status);
     if(dryRun) return {metadata,status};
     if(!storage) throw new Error('Storage adapter required.');
+    if(config.bucket === require('../library/presentation-contract.cjs').target.bucket && storage instanceof require('./s3-storage.cjs').S3Storage) {
+      status.lastStage='reader-contract'; await atomicJson(path.join(dir,'upload-status.json'),status);
+      status.readerContract=await require('../library/reader-contract.cjs').verifyDeployedReader();
+    }
     status.preflight=await storage.preflight();
     await storage.beginPublication?.(metadata.diagramId);
     publicationStarted=true;

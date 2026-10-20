@@ -115,3 +115,5 @@ Mac閲覧キャッシュ：`CloudBookshelfTests.testCoverGridDoesNotEvictPreviou
 固定列幅表：`tests/presentation-width-profile.test.cjs`で列役割/列数拒否・旧等幅保持・実測/分割/全セル保持を確認。変換時は`tests/export/presentation-exports.test.cjs`の固定列幅ケースでPDF文字とPPTXネイティブ列幅を確認。目視・実PowerPointは別証跡。
 
 共通グラフィック：`node --test tests/graphic-presentation.test.cjs`で6種実描画、素材ハッシュ/出典/生成表示/危険パス/symlink/型/容量/境界/重なり/超過拒否を確認。`tests/export/graphic-exports.test.cjs`はPNG/JPEG画像とネイティブ要素、PDF文字保持、PPTX画像バイト/生成記録を照合。最終形式の再描画と目視は[記録](sessions/2026-10-19-graphic-renderer.md)。
+
+取得互換性：`node --test tests/reader-contract.test.cjs` は共有読取ソース/SHA256とSwift承認台帳の一致、本番仕様不一致時のAWS通信0を検査。viewerの`catalog-isolation.test.ts`は不正な1版を除外して健全な一覧を維持する。Lambda包装もソースfingerprintが古ければ停止する。実端末の限定本番検証は隣接zukanの `testLiveProductionReadAndOfflineReopen`。通常試験ではスキップし、本人の実機/既存ログイン・明示した読取予算と `ZUKAN_LIVE_READ_VERIFY=1` のときだけ実行する。資料/整理状態は更新せず一時領域に取得し、PDFKit描画とOfflineAPIでの再表示を検査。[実施証跡](docs/library-fetch-repair.md)。

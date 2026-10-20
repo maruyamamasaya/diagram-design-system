@@ -37,8 +37,19 @@ private final class ShelfHTTP: URLProtocol, @unchecked Sendable {
         let connection = try AuthenticatedSyncConnection(baseURL: URL(string:"https://api.example")!, issuer:"https://issuer.example", subject:"owner", session:session()) { _ in OrganizationAccess(token:"test",issuer:"https://issuer.example",subject:"owner") }
         let client = CloudBookshelfClient(connection:connection,directory:FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
         let documents = try await client.catalog(); XCTAssertEqual(documents.map(\.id),[id]); XCTAssertEqual(count,2)
+        let reopened = CloudBookshelfClient(connection:connection,directory:client.directory)
+        XCTAssertEqual(reopened.cachedCatalog(),documents)
         let book = client.book(documents[0]); XCTAssertTrue(book.latest.files.isEmpty); XCTAssertNil(book.latest.thumbnail)
         XCTAssertEqual(book.latest.remoteFormats,["png","pdf"])
+    }
+    func testArtHistoryPathsAndLargeFilesAreStrictlyValidated() throws {
+        let file = CloudShelfFile(name:"slides/slide-022/slide.png",format:"png",sizeBytes:12,sha256:String(repeating:"a",count:64))
+        try file.validate(); XCTAssertEqual(file.page,22)
+        let approved = CloudShelfFile(name:"document.pdf",format:"pdf",sizeBytes:43829069,sha256:"8f920050c622a7c7e263f8b922020d4dfd8385b818949927d0dfeca265093c1e")
+        XCTAssertNoThrow(try approved.validate())
+        XCTAssertThrowsError(try CloudShelfFile(name:"document.pdf",format:"pdf",sizeBytes:approved.sizeBytes+1,sha256:approved.sha256).validate())
+        XCTAssertThrowsError(try CloudShelfFile(name:"slides/slide-../slide.png",format:"png",sizeBytes:12,sha256:String(repeating:"a",count:64)).validate())
+        XCTAssertEqual(LibraryArtifactPolicy.maximumCacheBytes,10_000_000_000)
     }
     func testMalformedIdentityCannotBecomeAFilePath() throws {
         let bytes = try JSONSerialization.data(withJSONObject:document("../../private"))

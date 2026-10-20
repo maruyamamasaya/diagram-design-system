@@ -1,3 +1,5 @@
+> 2026-10-20：タグ反映後にAWSの2フラグは有効化/UPDATE_COMPLETE。ただし実LambdaコードSHAが承認候補と異なり検証を停止。費用取得・iPad更新は未実施。詳細は[配備記録](../sessions/2026-10-19-monthly-billing-deployment.md)。
+
 # 今月のAWS費用：図鑑と共通・未配賦
 
 2026-10-19。本人承認後、AWSコード/IAM/固定cache keyを無効flagで配備し、Project配賦タグをActiveにした。CEのタグ値反映待ちで、金額照会と実機更新は未実施。[配備記録](../sessions/2026-10-19-monthly-billing-deployment.md)。[承認済み費用と構成案](monthly-billing-aws-proposal.md)。

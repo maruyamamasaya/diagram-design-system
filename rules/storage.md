@@ -44,3 +44,6 @@ packageStatusはincomplete / complete。全targetNamesがverifiedのときだけ
 Phase 7.6ではpresentation-package-1.0に限り、upload CLIが専用の不変保存manifest経路へ分岐する。既存1.0経路を保持し、元metadata.jsonを変更しない。詳細は[保存仕様](../docs/s3-storage.md#phase-76プレゼン保存)を参照。一般の独自SVG・HTML・PDF・PPTXや2.0パッケージは引き続き現行CLIへ直接渡さない。ビューアーは旧metadataに加えpresentation-s3-1.0とillustration-s3-1.0の対応済みmanifestを正規化する。一般2.0や任意の独自契約を受理するものではない。適合しない成果物はローカルに保持し、S3保存・閲覧連携の未対応を報告する。許可リストの拡張や既存catalogの自動移行を生成作業に混ぜない。
 
 illustration-package-1.0とillustration-s3-1.0は独立一枚図専用の対応済み経路。一般2.0とは別。[契約](../docs/illustration-workflow.md)。
+
+## ローカル中間ファイルの整理
+完成版と再生成入力・依存・不変manifestを保持し、派生物と確認できたものだけを整理する。分類、参照確認、ハッシュ照合、検証証跡と削除記録は[整理手順](../docs/local-output-cleanup.md)に従う。

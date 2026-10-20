@@ -16,7 +16,7 @@ import {
   verify,
   web,
 } from "./auth";
-import { access, Artifact, catalog, find, mockBytes, summary, libraryState, setLibraryState } from "./store";
+import { access, Artifact, catalog, catalogWarnings, find, mockBytes, summary, libraryState, setLibraryState } from "./store";
 import { SignJWT, jwtVerify, type JWTVerifyGetKey } from "jose";
 const headers = {
   "Cache-Control": "no-store",
@@ -61,6 +61,11 @@ export async function handle(
       });
     }
     const route = segments.join("/");
+    // Public deployment fingerprint only; no account, artifact or credential data.
+    if (mode === "api" && route === "reader-contract" && req.method === "GET" && !url.search) {
+      const {readerContract} = await import('../../../src/library/reader-contract.cjs');
+      return response(readerContract());
+    }
     if (mode === "web" && route === "login" && req.method === "POST") {
       origin(req);
       password((await json(req)).password);
@@ -198,7 +203,8 @@ export async function handle(
               .setExpirationTime("5m")
               .sign(c.secret)
           : null;
-      return response({ items: all.slice(offset, offset + limit), nextCursor });
+      return response({ items: all.slice(offset, offset + limit), nextCursor,
+        ...(catalogWarnings().length ? {warnings:catalogWarnings()} : {}) });
     }
     if (segments.length === 3 && ["trash", "restore"].includes(segments[2]) && req.method === "POST") {
       const body = await json(req);

@@ -73,17 +73,18 @@ extension OrganizationState {
         return collections.contains { children.contains($0.id) && $0.members.contains { memberID($0).lowercased() == id.lowercased() } }
     }
     public func isFiled(_ id: String, memberID: (Member) -> String) -> Bool {
-        assignments[id] != nil || collections.contains { $0.members.contains { memberID($0).lowercased() == id.lowercased() } }
+        assignments[id].map { destination in !LibraryShelf.isRoot(destination) && folders.contains(where: { $0.id == destination }) } == true || collections.contains { $0.members.contains { memberID($0).lowercased() == id.lowercased() } }
     }
     public mutating func moveDocuments(_ ids: Set<String>, to folder: UUID?, memberID: (Member) -> String) {
         integrateFolders()
-        guard folder == nil || folders.contains(where: { $0.id == folder }) else { return }
+        let destination = folder.flatMap { LibraryShelf.isRoot($0) ? nil : $0 }
+        guard destination == nil || folders.contains(where: { $0.id == destination }) else { return }
         let keys = Set(ids.map { $0.lowercased() })
-        for index in collections.indices where collections[index].id != folder {
+        for index in collections.indices where collections[index].id != destination {
             collections[index].members.removeAll { keys.contains(memberID($0).lowercased()) }
         }
         collections.removeAll { $0.members.isEmpty }
-        moveBooks(ids, to: folder)
+        moveBooks(ids, to: destination)
     }
     public mutating func removeIntegratedFolder(_ id: UUID) {
         integrateFolders()

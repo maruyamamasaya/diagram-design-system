@@ -115,3 +115,5 @@ S3保存容量：viewer/src/lib/storage-capacity.ts（全版List/削除マーカ
 通常表の固定列幅：`config/presentation-profile.json`のtableWidthProfiles → `dense.cjs`。契約はtableContentV2.widthProfileとvalidate.cjs、PPTX列幅はexport.cjsのaddNativeTable。
 
 グラフィック共通6構図：`src/presentation/graphic.cjs`、`graphic-assets.cjs`、`config/graphic-profile.json`。`engine.cjs`へ画像・本文の配置を統合し、`export.cjs`でPPTX画像/文字/図形へ変換。回帰は`tests/graphic-presentation.test.cjs`・`tests/export/graphic-exports.test.cjs`。[仕様](docs/graphic-renderer.md)。
+
+取得互換性：`src/library/presentation-contract.cjs`（保存/API共通検証）・`reader-contract.cjs`（fingerprint/本番照合）、`config/library-reader-contract.json`（読取ソース固定）、`src/upload/{presentation,workflow}.cjs`（公開前ゲート）。Swift大容量/10GB保持は `LibraryArtifactPolicy.swift`。回帰は `tests/reader-contract.test.cjs`・`viewer/tests/catalog-isolation.test.ts`。[仕様](docs/library-fetch-repair.md)。

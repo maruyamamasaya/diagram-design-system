@@ -27,6 +27,7 @@ struct ShelfView: View {
     @State private var folderName = ""
     @State private var editingFolder: UUID?
     @State private var folderDialog = false
+    @State private var folderCreationIDs = Set<String>()
     @State private var sortBy = "updated"
     @State private var cardSize = 160.0
     @State private var showWarnings = false
@@ -120,7 +121,7 @@ struct ShelfView: View {
                 }
                 Section {
                     Menu {
-                        Button("フォルダを作成", systemImage: "folder.badge.plus") { editingFolder = nil; folderName = ""; folderDialog = true }
+                        Button("フォルダを作成", systemImage: "folder.badge.plus") { folderCreationIDs = []; editingFolder = nil; folderName = ""; folderDialog = true }
                         Divider()
                         Button("S3へログイン・更新", systemImage: "cloud") { Task { await store.refreshCloud(login: true) } }
                         Button("整理情報の同期", systemImage: "icloud") { syncSetup = true }
@@ -187,7 +188,7 @@ struct ShelfView: View {
                     if !selection.ids.isEmpty {
                         Text("\(selection.ids.count) 冊を選択").font(.callout.bold())
                         assignmentMenu(selection.ids)
-                        Button("選択からフォルダを作成") { editingFolder = nil; folderName = ""; folderDialog = true }
+                        Button("選択からフォルダを作成") { folderCreationIDs = selection.ids; editingFolder = nil; folderName = ""; folderDialog = true }
                         Button("選択を解除") { selection.clear() }.buttonStyle(.plain)
                     } else {
                         Text("⌘クリックで複数選択 · Shiftクリックで範囲選択").font(.caption).foregroundStyle(.secondary)
@@ -237,7 +238,7 @@ struct ShelfView: View {
         }
         .alert(editingFolder == nil ? "フォルダを作成" : "名前を変更", isPresented: $folderDialog) {
             TextField("フォルダ名", text: $folderName)
-            Button("キャンセル", role: .cancel) {}
+            Button("キャンセル", role: .cancel) { folderCreationIDs = [] }
             Button("保存") {
                 let name = folderName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return }
@@ -246,7 +247,7 @@ struct ShelfView: View {
                     if let id = editingFolder, let index = settings.folders.firstIndex(where: { $0.id == id }) { settings.folders[index].name = name }
                     else {
                         settings.createFolder(name: name, shelf: libraryShelf, parentID: folderID)
-                        if let created = settings.folders.last { settings.moveBooks(selection.ids, to: created.id) }
+                        if let created = settings.folders.last { settings.moveBooks(folderCreationIDs, to: created.id) }
                     }
                 }
             }
@@ -269,6 +270,8 @@ struct ShelfView: View {
     }
     @ViewBuilder func assignmentMenu(_ ids: Set<String>) -> some View {
         Menu(ids.count > 1 ? "\(ids.count)冊をフォルダへ移動" : "フォルダへ移動") {
+            Button("新しいフォルダへ移動…") { folderCreationIDs = ids; editingFolder = nil; folderName = ""; folderDialog = true }
+            Divider()
             Button("未整理") { store.change { $0.moveBooks(ids, to: nil) } }
             ForEach(folders) { folder in
                 Button(store.folderPath(folder.id)) { store.change { $0.moveBooks(ids, to: folder.id) } }

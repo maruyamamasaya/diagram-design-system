@@ -38,3 +38,9 @@
 ## 初回を即時確認
 
 本人指示で初回確認を手動実行。2026-10-19T05:56:30.665164+00:00時点も図鑑タグ値は空。1/4回消化、管理照会6/10要求、有料金額照会0。AWS有効化/iPad更新は行わず、残り3回を8時間おきの自動確認へ変更した。
+
+## 2026-10-20 自動確認3回目・想定外コード差分で停止
+
+21:59 UTC（JST 06:59）の3/4回目でCE Project値が反映。管理照会8/10、Active最終再確認で9/10。専用bucket policyは承認案と一致、CloudFormation templateもdisabled案と一致したため既存パラメーターを保持して2フラグtrueへ更新しUPDATE_COMPLETE。
+
+verify-enabledでLambda CodeSha256の不一致を検出（承認3BV5SxWjfHofpQYAoyVMqBJ73+gayOnUVW7E3Wk1ZHg=、実D6n1IFhjIEzZo6SZFDcI2rKxeyus9raZlDukc8b0IQY=）。コードを勝手に上書きせず、指示どおり停止。現時点の2フラグはtrue。GetCostAndUsageは実行せず0/4、公開API検証は今回未実行で累計4/20、iPad未更新。共有予約のリセットなし。progress.jsonに停止理由/実SHA/状態を記録。自動化aws-ipadを既存prompt/間隔を保ってPAUSEDへ変更する。次は現コードの変更由来と承認候補との差分照合が必要。

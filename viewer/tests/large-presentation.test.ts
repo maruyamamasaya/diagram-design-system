@@ -16,3 +16,12 @@ test('large-deck exception rejects altered hashes, size, new identity/version, m
  mutations.push((m:any)=>m.files=m.files.filter((f:any)=>f.name!=='slides/040/slide.png'));
  for(const mutate of mutations){const m=structuredClone(fixture());mutate(m);assert.throws(()=>decode(m),/INVALID_MANIFEST/);}
 });
+
+test('approved art-history deck resolves all slide-NNN paths and exact large artifacts',()=>{
+ const a=approvals.approvals.find(a=>a.files.some(f=>f.name.includes('e64e2471-56b8-4583-bc89-45e549053c22')))!,id='e64e2471-56b8-4583-bc89-45e549053c22',base=`library/diagrams/${id}/versions/000003`;
+ const raw={schemaVersion:'presentation-s3-1.0',uploadPolicy:'pdf-pptx-png-v1',diagramId:id,version:3,title:'美術史',storage:a.storage,formats:['png','pdf','pptx'],metadataKey:base+'/upload-manifest.json',catalogKey:`library/catalog/${id}/versions/000003/upload-manifest.json`,files:a.files.filter(f=>f.name.startsWith(base+'/')&&!f.name.endsWith('upload-manifest.json')).map(f=>({name:f.name.slice(base.length+1),key:f.name,sizeBytes:f.sizeBytes,sha256:f.sha256,contentType:f.name.endsWith('.png')?'image/png':f.name.endsWith('.pdf')?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'}))};
+ const decode=(r:typeof raw)=>presentationManifest(r,r.catalogKey,'2026-10-20T00:00:00Z');
+ const m=decode(raw);assert.equal(m.pageCount,22);assert.equal(file(m,'pdf').sizeBytes,43829069);
+ for(let i=1;i<=22;i++)assert.equal(file(m,'png',i).name,`slides/slide-${String(i).padStart(3,'0')}/slide.png`);
+ for(const mutate of [(r:any)=>r.files[0].sha256='0'.repeat(64),(r:any)=>r.files[0].name='slides/slide-../slide.png',(r:any)=>r.files.push({...r.files[0],name:'slides/001/slide.png',key:base+'/slides/001/slide.png'}),(r:any)=>r.files.pop()]){const r=structuredClone(raw);mutate(r);assert.throws(()=>decode(r),/INVALID_MANIFEST/);}
+});

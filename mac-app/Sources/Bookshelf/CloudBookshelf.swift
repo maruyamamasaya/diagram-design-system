@@ -29,11 +29,11 @@ struct CloudShelfFile: Codable {
     let format: String
     let sizeBytes: Int
     let sha256: String
-    var page: Int { name.hasPrefix("slides/") ? Int(name.split(separator: "/")[1]) ?? 1 : 1 }
+    var page: Int { name.hasPrefix("slides/") ? Int(name.split(separator: "/")[1].replacingOccurrences(of: "slide-", with: "")) ?? 1 : 1 }
     func validate() throws {
-        guard (1...32_000_000).contains(sizeBytes), sha256.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
+        guard LibraryArtifactPolicy.allows(name: name, size: sizeBytes, hash: sha256), sha256.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
               ["png", "pdf", "pptx"].contains(format),
-              name.range(of: "^(diagram\\.(png|pdf)|document\\.pdf|presentation\\.pptx|slides/[0-9]{3}/slide\\.png)$", options: .regularExpression) != nil,
+              name.range(of: "^(diagram\\.(png|pdf)|document\\.pdf|presentation\\.pptx|slides/(?:slide-)?[0-9]{3}/slide\\.png)$", options: .regularExpression) != nil,
               name.hasSuffix("." + format), (1...999).contains(page) else { throw OrganizationConnectionError.invalidResponse }
     }
 }
@@ -63,6 +63,7 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
     let connection: AuthenticatedSyncConnection
     let directory: URL
     private let session: URLSession
+    private struct AssetHTTPFailure: Error { let status: Int }
     private var details: [String: [CloudShelfFile]] = [:]
     private var inUse: [String: Int] = [:]
     private struct CachedDetail: Codable {
@@ -82,7 +83,7 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
         details[key] = cached.files
         return cached.files
     }
-    func pruneCache(maxBytes: Int = 512 * 1024 * 1024, maxVersions: Int = 30) {
+    func pruneCache(maxBytes: Int = Int(LibraryArtifactPolicy.maximumCacheBytes), maxVersions: Int = .max) {
         let fm = FileManager.default
         struct Entry { let url: URL; let key: String; let date: Date; let bytes: Int; let hasPreview: Bool }
         var entries: [Entry] = []
@@ -121,20 +122,32 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
         guard http.statusCode == 200 else { throw OrganizationConnectionError.invalidResponse }
         return try JSONDecoder().decode(T.self, from: data)
     }
+    private(set) var rejectedCount = 0
     func catalog() async throws -> [CloudShelfDocument] {
-        struct Page: Decodable { let items: [CloudShelfDocument]; let nextCursor: String? }
+        struct Warning: Decodable { let id: String; let version: Int; let code: String }
+        struct Page: Decodable { let items: [CloudShelfDocument]; let nextCursor: String?; let warnings: [Warning]? }
+        rejectedCount = 0
         var result: [CloudShelfDocument] = [], cursor: String?, seen = Set<String>(), pages = 0
         repeat {
             pages += 1; guard pages <= 50 else { throw OrganizationConnectionError.invalidResponse }
             var query = [URLQueryItem(name: "limit", value: "100")]
             if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }
             let page: Page = try await request("v1/diagrams", query: query)
+            rejectedCount = max(rejectedCount, page.warnings?.count ?? 0)
             for item in page.items { try item.validate(); guard !result.contains(where: { $0.id == item.id }) else { throw OrganizationConnectionError.invalidResponse }; result.append(item) }
             guard result.count <= 500 else { throw OrganizationConnectionError.invalidResponse }
             cursor = page.nextCursor
             if let cursor { guard !cursor.isEmpty, seen.insert(cursor).inserted else { throw OrganizationConnectionError.invalidResponse } }
         } while cursor != nil
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(result).write(to: directory.appendingPathComponent("catalog.json"), options: .atomic)
         return result
+    }
+    func cachedCatalog() -> [CloudShelfDocument] {
+        guard let data = try? Data(contentsOf: directory.appendingPathComponent("catalog.json")), data.count <= 2_000_000,
+              let documents = try? JSONDecoder().decode([CloudShelfDocument].self, from: data), documents.count <= 500,
+              documents.allSatisfy({ (try? $0.validate()) != nil }) else { return [] }
+        return documents
     }
     func folder(_ d: CloudShelfDocument) -> URL { directory.appendingPathComponent(d.id).appendingPathComponent(String(d.version)) }
     func book(_ d: CloudShelfDocument) -> Book {
@@ -165,7 +178,10 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
             let detail: Detail = try await request("v1/diagrams/" + d.id, query: [URLQueryItem(name: "version", value: String(d.version))])
             guard detail.id == d.id, detail.version == d.version else { throw OrganizationConnectionError.invalidResponse }
             files = detail.files.filter { ["png", "pdf", "pptx"].contains($0.format) }
-            for file in files { try file.validate() }
+            for file in files {
+                try file.validate()
+                guard LibraryArtifactPolicy.allows(name: file.name, size: file.sizeBytes, hash: file.sha256, id: d.id, version: d.version) else { throw OrganizationConnectionError.invalidResponse }
+            }
             guard active() else { throw CancellationError() }
             try FileManager.default.createDirectory(at: folder(d), withIntermediateDirectories: true)
             try JSONEncoder().encode(CachedDetail(document: d, files: files)).write(to: folder(d).appendingPathComponent("detail.json"), options: .atomic)
@@ -183,17 +199,28 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
         for (file, name) in wanted {
             let path = folder(d).appendingPathComponent(name)
             if let data = try? Data(contentsOf: path), Self.matches(data, file) { continue }
-            let body = try JSONSerialization.data(withJSONObject: ["version":d.version,"artifact":file.format,"page":file.page,"purpose":"download"])
-            let grant: CloudShelfGrant = try await request("v1/diagrams/" + d.id + "/access-url", body: body)
-            try grant.validate(file: file)
-            Logger(subsystem: "jp.local.zukan.bookshelf", category: "cloud").debug("Starting asset bytes: \(file.sizeBytes)")
-            let data = try await Self.download(grant, file: file, session: session)
-            Logger(subsystem: "jp.local.zukan.bookshelf", category: "cloud").debug("Received asset bytes: \(data.count)")
+            let data = try await fetch(d, file: file)
             guard Self.matches(data, file), active() else { throw OrganizationConnectionError.invalidResponse }
             try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
             try data.write(to: path, options: .atomic)
         }
         pruneCache()
+    }
+    private func fetch(_ d: CloudShelfDocument, file: CloudShelfFile) async throws -> Data {
+        let body = try JSONSerialization.data(withJSONObject: ["version":d.version,"artifact":file.format,"page":file.page,"purpose":"download"])
+        for attempt in 0...3 {
+            try Task.checkCancellation()
+            let grant: CloudShelfGrant = try await request("v1/diagrams/" + d.id + "/access-url", body: body)
+            try grant.validate(file: file)
+            do { return try await Self.download(grant, file: file, session: session) }
+            catch {
+                try Task.checkCancellation()
+                let retry = (error as? AssetHTTPFailure).map { $0.status == 403 || $0.status == 429 || $0.status >= 500 } ?? (error is URLError)
+                guard attempt < 3, retry else { throw error }
+                try await Task.sleep(for: .seconds(Double(attempt + 1)))
+            }
+        }
+        throw OrganizationConnectionError.invalidResponse
     }
     // AsyncBytes must be consumed away from MainActor: otherwise every byte can
     // schedule a UI actor hop, leaving multi-megabyte previews apparently stuck.
@@ -201,7 +228,9 @@ private final class CloudNoRedirect: NSObject, URLSessionTaskDelegate, @unchecke
         var request = URLRequest(url: grant.url); request.timeoutInterval = 30
         // The S3 request deliberately carries no API Bearer header.
         let (bytes, response) = try await session.bytes(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200, http.url == grant.url,
+        guard let http = response as? HTTPURLResponse else { throw OrganizationConnectionError.invalidResponse }
+        guard http.statusCode == 200 else { throw AssetHTTPFailure(status: http.statusCode) }
+        guard http.url == grant.url,
               http.mimeType == grant.contentType, http.expectedContentLength < 0 || http.expectedContentLength == Int64(file.sizeBytes) else { throw OrganizationConnectionError.invalidResponse }
         var data = Data(); data.reserveCapacity(file.sizeBytes)
         for try await byte in bytes {

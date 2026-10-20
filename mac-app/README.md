@@ -1,3 +1,5 @@
+> 2026-10-20：取得復旧・10GB閲覧キャッシュ・新規分類フォルダへの直接移動をApplicationsへ反映。実PDF表示/再起動再利用と独立設定での分類UIを検証。[現行仕様](../docs/library-fetch-repair.md)、[記録](../sessions/2026-10-20-library-fetch-stability.md)。
+
 > 2026-10-19：S3専用・共通サイドバー版をApplicationsへ反映済み。実機操作は本人確認待ち。[反映記録](../sessions/2026-10-19-s3-unified-app-install.md)。
 
 > 2026-10-19更新：製品の本棚はS3専用へ変更。登録フォルダ/制作outputsの探索は旧版と分離テスト用の記録です。現在の正本・ログイン/キャッシュ/検証境界は[こちら](../docs/s3-only-bookshelf.md)。今回のビルドは実機配布前です。

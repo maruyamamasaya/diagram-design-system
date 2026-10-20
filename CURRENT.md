@@ -1,6 +1,8 @@
+2026-10-20：月内AWS費用は3回目の確認でProject値がCEへ反映。Active最終確認・承認済みtemplate/policy照合後、2フラグ有効化はUPDATE_COMPLETE。ただしLambda実コードSHAが承認候補と不一致でverify-enabled失敗。初回費用照会/iPad更新を行わず自動化を停止。[記録](sessions/2026-10-19-monthly-billing-deployment.md)。
+
 # 現在地
 
-更新日：2026-10-19。依頼の分岐は[作業経路](docs/work-routes.md)、実装の責務は[構成](ARCHITECTURE.md)、所在は[CODEMAP](CODEMAP.md)。過去のPhase文書はその時点の検証証跡であり、現在の未実装一覧として読まない。
+更新日：2026-10-20。依頼の分岐は[作業経路](docs/work-routes.md)、実装の責務は[構成](ARCHITECTURE.md)、所在は[CODEMAP](CODEMAP.md)。過去のPhase文書はその時点の検証証跡であり、現在の未実装一覧として読まない。
 
 ## 資料制作
 
@@ -15,9 +17,10 @@
 
 - 非公開S3とCognito OIDC認証付き公開APIは配備済み。本人のログイン・実資料の取得実績あり。[公開API](docs/phase11b2-deployment.md)、[本人確認](docs/phase11b3-validation.md)。ローカルNext.js viewerは別の検証・閲覧経路として維持する。
 - 通常のMac/iOS本棚はS3正本。Macはこのrepoのmac-app、iPhone/iPadは隣接zukan。端末の閲覧キャッシュと制作原本を区別する。[S3専用本棚](docs/s3-only-bookshelf.md)。
-- フォルダ・タグ・読む順番の共通層、認証付き整理同期は実装・本番接続済み。フォルダ統合はローカル実装済みで、全端末の配布・実同期確認は完了していない。iPadの全資料一覧/種類別親フォルダはMiraへ更新済み、本人手操作は未確認。[整理同期](docs/organization-sync-live-clients.md)、[フォルダ統合](docs/unified-library-folders.md)。
+- フォルダ・タグ・読む順番の共通層、認証付き整理同期は実装・本番接続済み。フォルダ統合と種類の親/分類先の区別を修正してMac/Mira/Vesperaへ配布。作成/移動/未整理の回帰を確認し、本番の全整理情報の双方向一致は未確認。iPadの全資料一覧/種類別親フォルダはMiraへ更新済み、本人手操作は未確認。[整理同期](docs/organization-sync-live-clients.md)、[フォルダ統合](docs/unified-library-folders.md)。
 - 共通ゴミ箱は本番有効。合成資料の移動/復元/全削除と既存catalog保持を検証済み。本人の実資料操作は別確認。[配備証跡](docs/shared-trash-deployment.md)。
-- Macの読込・キャッシュ保持を改善。表紙が本文30版枠を消費する修正はローカル検証済み、Applications反映・修正後速度比較は未実施。[最新記録](sessions/2026-10-19-mac-preview-cache-quota.md)。
+- iPhone/iPadの一覧表紙を長辺640pxへ縮小し、専用actorで生成・ストア別メモリ再利用するローカル改修を実施。Mira/VesperaへRelease署名版を更新・起動済み。実機速度比較は未実施。[記録](sessions/2026-10-20-ios-thumbnail-performance.md)。
+- 資料取得障害を本番修復。保存/読取の検証器共有・公開前fingerprint一致・不正な1版の隔離を追加。両アプリの閲覧キャッシュは10GB。Mac再起動後のPDF再利用、Mira/Vesperaの実取得・PDF描画・通信なし再表示を確認。[仕様・配布と検証](docs/library-fetch-repair.md)。
 - 全版S3容量取得は本番適用済み。今月請求の配賦表示は無効flagで配備済み、CEタグ反映待ちで有料金額照会は未実施。[容量](docs/s3-storage-capacity.md)、[請求](docs/monthly-billing.md)。
 
 ## 制約・今後の扱い

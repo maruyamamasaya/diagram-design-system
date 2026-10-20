@@ -89,11 +89,18 @@ async function uploadPresentationDirectory(dir,config,{storage,dryRun=false,appr
     try {assertUploadSize(sizeFiles,config);} catch(e) {
       status={diagramId:manifest.diagramId,version:manifest.version,state:'blocked',verified:[],lastStage:'size-check',sizeCheck:e.sizeCheck};await save();throw e;
     }
+    require('../library/presentation-contract.cjs').presentationManifest(manifest,manifest.catalogKey,new Date().toISOString(),config);
     try {if(!(await readRegularFile(plan)).equals(bytes)) throw Error('Prepared upload plan changed; use a new version');}
     catch(e){if(e.code!=='ENOENT') throw e;await fs.writeFile(plan,bytes,{flag:'wx'});}
     status={diagramId:manifest.diagramId,version:manifest.version,state:dryRun?'planned':'uploading',verified:[],lastStage:'preflight'};await save();
     if(dryRun)return {metadata:manifest,status};
-    if(!storage)throw Error('Storage adapter required');await storage.preflight();
+    if(!storage)throw Error('Storage adapter required');
+    // Test adapters stay offline. Every real S3 publication verifies live reader parity.
+    if(config.bucket === require('../library/presentation-contract.cjs').target.bucket && storage instanceof require('./s3-storage.cjs').S3Storage) {
+      status.lastStage='reader-contract'; await save();
+      status.readerContract=await require('../library/reader-contract.cjs').verifyDeployedReader();
+    }
+    await storage.preflight();
     await storage.beginPublication?.(manifest.diagramId);
     publicationStarted=true;
     const catalog=await storage.read(manifest.catalogKey);

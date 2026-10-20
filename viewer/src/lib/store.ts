@@ -15,7 +15,7 @@ import {
   fromTemporaryCredentials,
 } from "@aws-sdk/credential-providers";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { config, error } from "./config";
+import { ApiError, config, error } from "./config";
 import {lifecycleRuntime} from './lifecycle-runtime';
 import { token } from "./auth";
 import { presentationManifest, target, type Manifest, type Artifact } from "./manifest";
@@ -82,7 +82,10 @@ export function s3() {
 }
 let cache: { until: number; data: Manifest[] } | null = null;
 let pending: Promise<Manifest[]> | null = null;
-export function invalidateCatalog() { cache=null; }
+export type CatalogWarning = {id:string;version:number;code:string};
+let rejected: CatalogWarning[] = [];
+export function catalogWarnings() { return rejected; }
+export function invalidateCatalog() { cache=null; rejected=[]; }
 const mockFolders=new Map<string,string>();
 async function scan(): Promise<Manifest[]> {
   if (config().storage === "mock") {
@@ -113,6 +116,7 @@ async function scan(): Promise<Manifest[]> {
     if (keys.length > 500) error(503, "CATALOG_CAPACITY");
   }
   const results: Manifest[] = [];
+  const warnings: CatalogWarning[] = [];
   for (let i = 0; i < keys.length; i += 6) {
     const batch = await Promise.all(
       keys.slice(i, i + 6).map(async (key) => {
@@ -123,6 +127,7 @@ async function scan(): Promise<Manifest[]> {
             ExpectedBucketOwner: target.expectedBucketOwner,
           }),
         );
+        try {
         if (!response.ContentLength || response.ContentLength > 131072) {
           (
             response.Body as import("node:stream").Readable | undefined
@@ -132,9 +137,10 @@ async function scan(): Promise<Manifest[]> {
         const bytes = await response.Body!.transformToByteArray();
         if (bytes.length > 131072) error(409, "INVALID_MANIFEST");
         const m = JSON.parse(Buffer.from(bytes).toString("utf8"));
+        if (!m || typeof m !== 'object' || Array.isArray(m)) error(409,'INVALID_MANIFEST');
         const normalized:Manifest=['presentation-s3-1.0','illustration-s3-1.0'].includes(m.schemaVersion)
           ? presentationManifest(m,key,response.LastModified?.toISOString()||'')
-          : {...validateMetadata(m),pageCount:1};
+          : (()=>{try{return {...validateMetadata(m),pageCount:1};}catch{return error(409,'INVALID_MANIFEST');}})();
         if (
           m.catalogKey !== key ||
           Object.entries(m.storage).some(
@@ -144,10 +150,18 @@ async function scan(): Promise<Manifest[]> {
         )
           error(409, "INVALID_MANIFEST");
         return normalized;
+        } catch (e) {
+          if (!(e instanceof SyntaxError) && !(e instanceof ApiError && e.code === 'INVALID_MANIFEST')) throw e;
+          const match=/^library\/catalog\/([a-f0-9-]{36})\/versions\/([0-9]{6})\/(?:metadata|upload-manifest)\.json$/.exec(key);
+          if (!match) throw e;
+          warnings.push({id:match[1],version:Number(match[2]),code:'INVALID_MANIFEST'});
+          return null;
+        }
       }),
     );
-    results.push(...batch);
+    results.push(...batch.filter((m): m is Manifest => m !== null));
   }
+  rejected = warnings.sort((a,b)=>a.id.localeCompare(b.id)||a.version-b.version);
   return results;
 }
 export async function catalog() {
@@ -214,7 +228,7 @@ export function file(m:Manifest,artifact:Artifact,page=1) {
   const name=m.diagramType==='presentation'
     ? artifact==='png'?`slides/${String(page).padStart(3,'0')}/slide.png`:artifact==='pdf'?'document.pdf':artifact==='pptx'?'presentation.pptx':''
     : artifact==='png'||artifact==='svg'||artifact==='pdf'?`diagram.${artifact}`:`${artifact}.json`;
-  const f=m.files.find(f=>f.name===name);if(!f)error(404,'NOT_FOUND');return f;
+  const f=m.files.find(f=>f.name===name || (m.diagramType==='presentation' && artifact==='png' && f.name===`slides/slide-${String(page).padStart(3,'0')}/slide.png`));if(!f)error(404,'NOT_FOUND');return f;
 }
 export async function access(
   m: Manifest,

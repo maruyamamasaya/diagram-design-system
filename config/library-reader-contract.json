@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "reader-contract-1.0",
+  "validatorSHA256": "c85cb32e38c5bbf1730e768bf3abfc73f2fb4b95a79cf9173fe2c8c854d9f0d5",
+  "sourceSHA256": {
+    "src/library/presentation-contract.cjs": "c85cb32e38c5bbf1730e768bf3abfc73f2fb4b95a79cf9173fe2c8c854d9f0d5",
+    "src/upload/metadata.cjs": "94d75b5ed8193d92384f1209d83bce28ce31ade70898e20a6177a1c768e29ce9",
+    "src/upload/limits.cjs": "126d144670134a534bd0f5bbff3b69657baf101124d87def69266402e03b3aad",
+    "schemas/metadata.schema.json": "0d856a0ee0e0a74167c7f1c4344ade2f851a88de35d6a0f7607b0afef03ab22d"
+  }
+}
