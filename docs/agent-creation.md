@@ -39,3 +39,5 @@
 プレゼンの表現モード選択は[presentationプロンプト](../prompts/presentation.md)、グラフィック版の構成・イラスト・専用固定レイアウト・検証は[運用](presentation-graphic-mode.md)を参照する。表現モードと生成モードを混同しない。
 
 新規図解の未指定サイズは[rules/layout](../rules/layout.md)の横長標準。説明不足は[rules/content](../rules/content.md)に従ってエージェントが補足し、原資料と根拠を区別する。CLIは完成した描画ソースを変換するため、既存成果物の寸法や本文を自動変更しない。
+
+人物・もの・端末・サービスの目印には[共通アイコン集](../assets/icons/README.md)から意味に合う素材を選び、原本と由来を制作パッケージへコピーする。SVGと登録グラフィックのPNG/JPEG入力の違いを守る。

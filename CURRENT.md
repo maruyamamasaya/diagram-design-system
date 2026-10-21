@@ -6,6 +6,8 @@
 
 ## 資料制作
 
+- 人物・もの・PC・サーバー等の汎用線画とAWS/Azure公式の[共通アイコン集](assets/icons/README.md)を保持。制作時に用途で選択して素材台帳へ引き継ぐ。既存レンダラーへの自動配置は追加しない。
+
 - 原資料の意味理解・調査・構成はAIが担当する。CLIの自動自然言語解析は未実装。
 - 通常プレゼンは登録6種のv2が標準。v1明示指定は保持。SVG共通配置からPNG/PDF/編集可能PPTXを生成し、一括制作の標準納品では内部SVGを削除する。[生成契約](docs/presentation-engine.md)、[一括制作](docs/phase12-workflow.md)。
 - グラフィック版は共通描画器の6種（構成・手順・原因分岐・比較・大きい図版・図版比較）へ対応。PNG/JPEGの既存/生成素材を台帳付きで埋込み、PNG/PDF/編集可能PPTXを出力。未対応の構成は専用固定登録を使用する。[共通描画器](docs/graphic-renderer.md)。[運用](docs/presentation-graphic-mode.md)、[レイアウト選択](docs/presentation-layout-policy.md)。

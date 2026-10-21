@@ -263,3 +263,7 @@ Phase 12一括ワークフローの標準納品はPNG/PDF/PPTX・サムネイル
 ## グラフィック版の共通描画
 
 構成・手順・原因分岐・同軸比較・大きい図版・図版比較の6種をschema1.3で登録。既存画像と生成画像のPNG/JPEGを台帳・ハッシュ付きで埋込み、PNG/PDF/編集可能PPTXを生成する。画像検索/生成は制作者が行い、描画器は入力済み素材を安全に配置する。[仕様とCLI](docs/graphic-renderer.md)、[入力例](examples/graphic-slides/fixture.cjs)。通常v1/v2の移行は不要。新機能を使う資料だけschema1.3・明示templateIdを指定し、新版へ保存する。画像付き部分更新は全体生成を使う。
+
+## 共通アイコン
+
+人物・もの・PC・サーバーの汎用線画とAWS/Azure公式素材を[共通アイコン集](assets/icons/README.md)へ保持。[検索できる一覧](assets/icons/index.html)から意味で選び、出典・版・利用条件とともに制作パッケージへコピーする。描画器の自動配置は追加していない。

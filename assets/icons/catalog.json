@@ -1,0 +1,2103 @@
+{
+  "schemaVersion": 1,
+  "verified": "2026-10-21",
+  "icons": [
+    {
+      "id": "generic.user",
+      "label": "人・利用者",
+      "family": "generic",
+      "path": "lucide/user.svg",
+      "sha256": "eae3b3b2400031ddd5ec869327d127a96014e5f63aa6e06658dd5d4e90661aa8",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/user.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "user",
+        "人・利用者"
+      ]
+    },
+    {
+      "id": "generic.users",
+      "label": "複数の人・チーム",
+      "family": "generic",
+      "path": "lucide/users.svg",
+      "sha256": "c94a3781b154ab2716e1696c25c50d37b4b5634f26cb80ae1cdea20cfafc49c1",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/users.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "users",
+        "複数の人・チーム"
+      ]
+    },
+    {
+      "id": "generic.contact",
+      "label": "連絡先",
+      "family": "generic",
+      "path": "lucide/contact.svg",
+      "sha256": "605a49bed0891aa74d5c51cb5cd6694a1efd6893ec605f43ea86b9fb1d465bb0",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/contact.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "contact",
+        "連絡先"
+      ]
+    },
+    {
+      "id": "generic.laptop",
+      "label": "PC・ノートPC",
+      "family": "generic",
+      "path": "lucide/laptop.svg",
+      "sha256": "bf850eb2547b25504baf593b63925ed05331e11492b915117d984a2e843a0d81",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/laptop.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "laptop",
+        "PC・ノートPC"
+      ]
+    },
+    {
+      "id": "generic.monitor",
+      "label": "ディスプレイ・デスクトップ",
+      "family": "generic",
+      "path": "lucide/monitor.svg",
+      "sha256": "d1a443233345724859de8e4fb48968ba91e885e12ddbd710701548bd91b39428",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/monitor.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "monitor",
+        "ディスプレイ・デスクトップ"
+      ]
+    },
+    {
+      "id": "generic.smartphone",
+      "label": "スマートフォン",
+      "family": "generic",
+      "path": "lucide/smartphone.svg",
+      "sha256": "f9fdb700b50feb5fc6436f53eb9813e9eb56a9071ac4cdcba69c7f7c1c13877d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/smartphone.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "smartphone",
+        "スマートフォン"
+      ]
+    },
+    {
+      "id": "generic.tablet",
+      "label": "タブレット",
+      "family": "generic",
+      "path": "lucide/tablet.svg",
+      "sha256": "cf58f791bd83c5340362fc0694d3f766aa82b9abfe291ef72e15a3ac3da54125",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/tablet.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "tablet",
+        "タブレット"
+      ]
+    },
+    {
+      "id": "generic.server",
+      "label": "サーバー",
+      "family": "generic",
+      "path": "lucide/server.svg",
+      "sha256": "f7bea54b609dc488f3b848995014041846b2443fd2a880653e9e583d7a034f61",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/server.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "server",
+        "サーバー"
+      ]
+    },
+    {
+      "id": "generic.database",
+      "label": "データベース",
+      "family": "generic",
+      "path": "lucide/database.svg",
+      "sha256": "471eb14bc8d144896a82dfc4aa9daf350f769f0896f4bef33e50aabdbb51130d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/database.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "database",
+        "データベース"
+      ]
+    },
+    {
+      "id": "generic.hard-drive",
+      "label": "ストレージ",
+      "family": "generic",
+      "path": "lucide/hard-drive.svg",
+      "sha256": "af926f1a95128ba25f9a44bedc1d27dc23847ab3fa9166b1ed34ef4e7866188d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/hard-drive.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "hard-drive",
+        "ストレージ"
+      ]
+    },
+    {
+      "id": "generic.cloud",
+      "label": "クラウド",
+      "family": "generic",
+      "path": "lucide/cloud.svg",
+      "sha256": "28a34022ed00177eb1f218eea5d2b7af30d09b529187fe32219e4dd8ea2b9740",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/cloud.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "cloud",
+        "クラウド"
+      ]
+    },
+    {
+      "id": "generic.network",
+      "label": "ネットワーク",
+      "family": "generic",
+      "path": "lucide/network.svg",
+      "sha256": "626be730feea1e5ea7539fbf78b4a3fcb927ce5d7dc43364f2216908672ac792",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/network.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "network",
+        "ネットワーク"
+      ]
+    },
+    {
+      "id": "generic.router",
+      "label": "ルーター",
+      "family": "generic",
+      "path": "lucide/router.svg",
+      "sha256": "6266881cf691541259ea5e07e5e40ffeba1f61b95c76707d967ebe7827414428",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/router.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "router",
+        "ルーター"
+      ]
+    },
+    {
+      "id": "generic.wifi",
+      "label": "無線接続",
+      "family": "generic",
+      "path": "lucide/wifi.svg",
+      "sha256": "5c4c795d014fa95d1e1038362df44a0f0f32ded9cb08c833ae72419ebadc9a91",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/wifi.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "wifi",
+        "無線接続"
+      ]
+    },
+    {
+      "id": "generic.globe",
+      "label": "インターネット",
+      "family": "generic",
+      "path": "lucide/globe.svg",
+      "sha256": "82c6b8fa0b8e8d775ec9becd86f74a4e50bff7bee4c81f7362de45348504f14d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/globe.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "globe",
+        "インターネット"
+      ]
+    },
+    {
+      "id": "generic.building-2",
+      "label": "会社・建物",
+      "family": "generic",
+      "path": "lucide/building-2.svg",
+      "sha256": "dc6cec6c483ea72d8fda92f582d2528f0fdfa0873c877e676582500a1a172e4d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/building-2.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "building-2",
+        "会社・建物"
+      ]
+    },
+    {
+      "id": "generic.house",
+      "label": "家庭",
+      "family": "generic",
+      "path": "lucide/house.svg",
+      "sha256": "1d3bb0587b8ffbe5e59de3436f880785c3eec7911bd06aabd7932195448b120b",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/house.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "house",
+        "家庭"
+      ]
+    },
+    {
+      "id": "generic.factory",
+      "label": "工場",
+      "family": "generic",
+      "path": "lucide/factory.svg",
+      "sha256": "0bb9a67cf2dcb327de4e5e6ea7462c79164040d8458b04fa0f87467525b3789e",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/factory.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "factory",
+        "工場"
+      ]
+    },
+    {
+      "id": "generic.cpu",
+      "label": "CPU・処理装置",
+      "family": "generic",
+      "path": "lucide/cpu.svg",
+      "sha256": "6fb8cf8edbbbaa4b6a47ddbcc6879e8d2166613c663b93db0ac1fde566515362",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/cpu.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "cpu",
+        "CPU・処理装置"
+      ]
+    },
+    {
+      "id": "generic.microchip",
+      "label": "半導体・組込み装置",
+      "family": "generic",
+      "path": "lucide/microchip.svg",
+      "sha256": "7356e01fd9c2cbbc980ee5718f22f26183304e8305b285c5295baea523021dbd",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/microchip.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "microchip",
+        "半導体・組込み装置"
+      ]
+    },
+    {
+      "id": "generic.folder",
+      "label": "フォルダ",
+      "family": "generic",
+      "path": "lucide/folder.svg",
+      "sha256": "f0d92b94b797a8ab7d4c4ae33c3236c47f64068351b4e14bdb5014ee42898a39",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/folder.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "folder",
+        "フォルダ"
+      ]
+    },
+    {
+      "id": "generic.file-text",
+      "label": "文書",
+      "family": "generic",
+      "path": "lucide/file-text.svg",
+      "sha256": "486fab70d8ad3cdc69b5ff9b6c356a58d41fcc4c885359cbf9d6e088a7c47f70",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/file-text.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "file-text",
+        "文書"
+      ]
+    },
+    {
+      "id": "generic.files",
+      "label": "複数の資料",
+      "family": "generic",
+      "path": "lucide/files.svg",
+      "sha256": "5bb407dcae94a429672af886b11abcba16ccdffc2ddd6106b1c33c5745c2b1b1",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/files.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "files",
+        "複数の資料"
+      ]
+    },
+    {
+      "id": "generic.image",
+      "label": "画像",
+      "family": "generic",
+      "path": "lucide/image.svg",
+      "sha256": "619c9db58c879dce6250376ba67d9c9102ca6dbb3b1efb9294c9f180e22273a5",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/image.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "image",
+        "画像"
+      ]
+    },
+    {
+      "id": "generic.mail",
+      "label": "メール",
+      "family": "generic",
+      "path": "lucide/mail.svg",
+      "sha256": "fc5396c50d0cecd4273e1f6cf533827a0d06b9dc3867d52d8031133561d2536a",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/mail.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "mail",
+        "メール"
+      ]
+    },
+    {
+      "id": "generic.message-square",
+      "label": "会話・メッセージ",
+      "family": "generic",
+      "path": "lucide/message-square.svg",
+      "sha256": "e30d9ab9660601815c2f957a64308f5e212715935def1216885d2efc14c58a66",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/message-square.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "message-square",
+        "会話・メッセージ"
+      ]
+    },
+    {
+      "id": "generic.shield-check",
+      "label": "保護・セキュリティ",
+      "family": "generic",
+      "path": "lucide/shield-check.svg",
+      "sha256": "8d4fcdbde5bba4abb1a2f6fe53e37ceb6343a1d5449a9d88f6f97c1971d26c4e",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/shield-check.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "shield-check",
+        "保護・セキュリティ"
+      ]
+    },
+    {
+      "id": "generic.lock-keyhole",
+      "label": "ロック・権限制御",
+      "family": "generic",
+      "path": "lucide/lock-keyhole.svg",
+      "sha256": "fc0b8b7590d1d9e9bb0112c5c2e15a78ade0bfeca6d6f8c79fbbe149236d74be",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/lock-keyhole.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "lock-keyhole",
+        "ロック・権限制御"
+      ]
+    },
+    {
+      "id": "generic.key-round",
+      "label": "鍵・認証",
+      "family": "generic",
+      "path": "lucide/key-round.svg",
+      "sha256": "f8cdea843754ed360e36b04bf6aa2c2b3610935dd39ffc685a36c4d0a05be248",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/key-round.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "key-round",
+        "鍵・認証"
+      ]
+    },
+    {
+      "id": "generic.settings",
+      "label": "設定・運用",
+      "family": "generic",
+      "path": "lucide/settings.svg",
+      "sha256": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/settings.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "settings",
+        "設定・運用"
+      ]
+    },
+    {
+      "id": "generic.search",
+      "label": "検索",
+      "family": "generic",
+      "path": "lucide/search.svg",
+      "sha256": "9322d964b61cf729b3a81210568d5a97eaf4a1f3239f25a056fda3013bf35611",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/search.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "search",
+        "検索"
+      ]
+    },
+    {
+      "id": "generic.chart-no-axes-combined",
+      "label": "分析・推移",
+      "family": "generic",
+      "path": "lucide/chart-no-axes-combined.svg",
+      "sha256": "c78cd9f846108d5edbaf3a16d9df1763a8dde97bd1d4b55f359b78daa01f3c4b",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/chart-no-axes-combined.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "chart-no-axes-combined",
+        "分析・推移"
+      ]
+    },
+    {
+      "id": "generic.workflow",
+      "label": "処理の流れ",
+      "family": "generic",
+      "path": "lucide/workflow.svg",
+      "sha256": "ae99ea8f56a2835a2cca35b2fbb57643ab73443610970dba23e24bd9df75cfec",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/workflow.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "workflow",
+        "処理の流れ"
+      ]
+    },
+    {
+      "id": "generic.package",
+      "label": "もの・パッケージ",
+      "family": "generic",
+      "path": "lucide/package.svg",
+      "sha256": "399c20ee3a2ef58300e30f4c930b8cfa52bbb8faf19053593b0ab027ffd45903",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/package.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "package",
+        "もの・パッケージ"
+      ]
+    },
+    {
+      "id": "generic.shopping-cart",
+      "label": "買い物",
+      "family": "generic",
+      "path": "lucide/shopping-cart.svg",
+      "sha256": "f0e802256fcfac4ed69780fadf4c910f938ea6274ff61a2b4d525f6365e6a5c5",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/shopping-cart.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "shopping-cart",
+        "買い物"
+      ]
+    },
+    {
+      "id": "generic.truck",
+      "label": "配送",
+      "family": "generic",
+      "path": "lucide/truck.svg",
+      "sha256": "61e3eb5c3c73e3d3df34cec1e316b3d8e1804b760d5ae35daa846c3680bd95ed",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/truck.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "truck",
+        "配送"
+      ]
+    },
+    {
+      "id": "generic.book-open",
+      "label": "学習・本",
+      "family": "generic",
+      "path": "lucide/book-open.svg",
+      "sha256": "a5eb669f66989fdbc003b1689ebc93769b3b9d680f840573f2a3ac268756f894",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/book-open.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "book-open",
+        "学習・本"
+      ]
+    },
+    {
+      "id": "generic.graduation-cap",
+      "label": "教育",
+      "family": "generic",
+      "path": "lucide/graduation-cap.svg",
+      "sha256": "326b4a1c18429509a697cbc0c49fdfcf9316da34bcf581569c2fc73cc772b86f",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/graduation-cap.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "graduation-cap",
+        "教育"
+      ]
+    },
+    {
+      "id": "generic.lightbulb",
+      "label": "アイデア",
+      "family": "generic",
+      "path": "lucide/lightbulb.svg",
+      "sha256": "e33bbec15b1e64cca958e086850f951c0dc2201cd5778bb3695fda3cb6ea457d",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/lightbulb.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "lightbulb",
+        "アイデア"
+      ]
+    },
+    {
+      "id": "generic.handshake",
+      "label": "連携・合意",
+      "family": "generic",
+      "path": "lucide/handshake.svg",
+      "sha256": "f58638064a1884e256895720c9a665d9e98cfc6935c52e14782ce0e84ecdad02",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/handshake.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "handshake",
+        "連携・合意"
+      ]
+    },
+    {
+      "id": "generic.bot",
+      "label": "ボット・AI",
+      "family": "generic",
+      "path": "lucide/bot.svg",
+      "sha256": "e46fe72fc5b33d7a17b0112df85da9ded851860312e8353f4fe23d87a4ce77f5",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/bot.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "bot",
+        "ボット・AI"
+      ]
+    },
+    {
+      "id": "generic.camera",
+      "label": "カメラ",
+      "family": "generic",
+      "path": "lucide/camera.svg",
+      "sha256": "f48b4e6cb69c736630202728ed0fd41d8dbe3f2b743a644eaf58a69099dcb6d2",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/camera.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "camera",
+        "カメラ"
+      ]
+    },
+    {
+      "id": "generic.printer",
+      "label": "プリンター",
+      "family": "generic",
+      "path": "lucide/printer.svg",
+      "sha256": "fa9a6381687bc519a62eb9eac2492d5d51e8e659182822296b6e14bf2f00ecfb",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/printer.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "printer",
+        "プリンター"
+      ]
+    },
+    {
+      "id": "generic.circle-alert",
+      "label": "注意",
+      "family": "generic",
+      "path": "lucide/circle-alert.svg",
+      "sha256": "ce3e98b7a03b78c0071131df42466e4e1ff5187fccad30e739ec9ce951cf685a",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/circle-alert.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "circle-alert",
+        "注意"
+      ]
+    },
+    {
+      "id": "generic.circle-check",
+      "label": "完了",
+      "family": "generic",
+      "path": "lucide/circle-check.svg",
+      "sha256": "3e519680ab8e2a8ad8f56a340c10d61957d872237aaa868cf324b0900a74f384",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/circle-check.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "circle-check",
+        "完了"
+      ]
+    },
+    {
+      "id": "generic.clock",
+      "label": "時間",
+      "family": "generic",
+      "path": "lucide/clock.svg",
+      "sha256": "ede96d40554848eaa512664b11e73def3960cd60c260efa59ca9ccc1bbe8ec9c",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/clock.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "clock",
+        "時間"
+      ]
+    },
+    {
+      "id": "generic.calendar",
+      "label": "予定",
+      "family": "generic",
+      "path": "lucide/calendar.svg",
+      "sha256": "c5c59382ebf9c3c2ce6426bd9f36fdda7ef8f0a96bffb8d8316ab38dc4dcc982",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/calendar.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "calendar",
+        "予定"
+      ]
+    },
+    {
+      "id": "generic.map-pin",
+      "label": "場所",
+      "family": "generic",
+      "path": "lucide/map-pin.svg",
+      "sha256": "16f1042a62f1bda20ebab8bfc1cb79c0be285c980dea6c2c733a17902631405b",
+      "source": "https://github.com/lucide-icons/lucide/blob/0.468.0/icons/map-pin.svg",
+      "version": "0.468.0",
+      "license": "ISC / Feather-derived portions MIT; see lucide/LICENSE and lucide/LICENSE.feather",
+      "keywords": [
+        "map-pin",
+        "場所"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Simple-Storage-Service",
+      "label": "Amazon Simple Storage Service",
+      "family": "aws",
+      "path": "aws/Amazon-Simple-Storage-Service.png",
+      "sha256": "2ade2624d7e5893ac82c9fbc01bd9a1cf5cad3eb9d5cf291eb2e07067a510b83",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service_64@5x.png",
+      "keywords": [
+        "Amazon-Simple-Storage-Service",
+        "AWS公式サービスアイコン：Amazon-Simple-Storage-Service"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Simple-Queue-Service",
+      "label": "Amazon Simple Queue Service",
+      "family": "aws",
+      "path": "aws/Amazon-Simple-Queue-Service.png",
+      "sha256": "d1b9326b6e3f4db7b7e3f4b6d2f3fadbe2ec407ee7376d811c0d25d4b8ed85e2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-Simple-Queue-Service_64@5x.png",
+      "keywords": [
+        "Amazon-Simple-Queue-Service",
+        "AWS公式サービスアイコン：Amazon-Simple-Queue-Service"
+      ]
+    },
+    {
+      "id": "aws.Amazon-EC2",
+      "label": "Amazon EC2",
+      "family": "aws",
+      "path": "aws/Amazon-EC2.png",
+      "sha256": "3187eba72879c8c318a9915f156b61b003670ca4065b42733574a008c7dd96b4",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_Amazon-EC2_64@5x.png",
+      "keywords": [
+        "Amazon-EC2",
+        "AWS公式サービスアイコン：Amazon-EC2"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Elastic-Block-Store",
+      "label": "Amazon Elastic Block Store",
+      "family": "aws",
+      "path": "aws/Amazon-Elastic-Block-Store.png",
+      "sha256": "3f921a31635a87f9aab26fe9dce16b88fbda80c87d1a4921d844dbfc58a87f37",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Elastic-Block-Store_64@5x.png",
+      "keywords": [
+        "Amazon-Elastic-Block-Store",
+        "AWS公式サービスアイコン：Amazon-Elastic-Block-Store"
+      ]
+    },
+    {
+      "id": "aws.Amazon-CloudFront",
+      "label": "Amazon CloudFront",
+      "family": "aws",
+      "path": "aws/Amazon-CloudFront.png",
+      "sha256": "eb2ad3234c8e09961e1ac1bc9704c3bc5d7f7fccb0612ee8788d33d0a1a5aad3",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-CloudFront_64@5x.png",
+      "keywords": [
+        "Amazon-CloudFront",
+        "AWS公式サービスアイコン：Amazon-CloudFront"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Virtual-Private-Cloud",
+      "label": "Amazon Virtual Private Cloud",
+      "family": "aws",
+      "path": "aws/Amazon-Virtual-Private-Cloud.png",
+      "sha256": "6797dc690d8c6c90670de375a650aa85cdca4caf4edb2e83841e04ca4b45aff7",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-Virtual-Private-Cloud_64@5x.png",
+      "keywords": [
+        "Amazon-Virtual-Private-Cloud",
+        "AWS公式サービスアイコン：Amazon-Virtual-Private-Cloud"
+      ]
+    },
+    {
+      "id": "aws.Amazon-RDS",
+      "label": "Amazon RDS",
+      "family": "aws",
+      "path": "aws/Amazon-RDS.png",
+      "sha256": "85a5e52a123c945277db79e08dec0ffea053b45fc2f08f9a9811400d02a2d497",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-RDS_64@5x.png",
+      "keywords": [
+        "Amazon-RDS",
+        "AWS公式サービスアイコン：Amazon-RDS"
+      ]
+    },
+    {
+      "id": "aws.Elastic-Load-Balancing",
+      "label": "Elastic Load Balancing",
+      "family": "aws",
+      "path": "aws/Elastic-Load-Balancing.png",
+      "sha256": "7189b389ce54fe5b034728e620ffe31572e1dfeb3c638469cc5432a32503cc06",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Elastic-Load-Balancing_64@5x.png",
+      "keywords": [
+        "Elastic-Load-Balancing",
+        "AWS公式サービスアイコン：Elastic-Load-Balancing"
+      ]
+    },
+    {
+      "id": "aws.Amazon-EC2-Auto-Scaling",
+      "label": "Amazon EC2 Auto Scaling",
+      "family": "aws",
+      "path": "aws/Amazon-EC2-Auto-Scaling.png",
+      "sha256": "9330e91ceeb129e97dee6043b53a29c13c103e1995456634e77782918ff82155",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_Amazon-EC2-Auto-Scaling_64@5x.png",
+      "keywords": [
+        "Amazon-EC2-Auto-Scaling",
+        "AWS公式サービスアイコン：Amazon-EC2-Auto-Scaling"
+      ]
+    },
+    {
+      "id": "aws.Amazon-CloudWatch",
+      "label": "Amazon CloudWatch",
+      "family": "aws",
+      "path": "aws/Amazon-CloudWatch.png",
+      "sha256": "66981fc0403fb86fa1b79bddb70aa153b1737a80f2ede07294ddfe5ddad3dfb4",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_Amazon-CloudWatch_64@5x.png",
+      "keywords": [
+        "Amazon-CloudWatch",
+        "AWS公式サービスアイコン：Amazon-CloudWatch"
+      ]
+    },
+    {
+      "id": "aws.Amazon-EMR",
+      "label": "Amazon EMR",
+      "family": "aws",
+      "path": "aws/Amazon-EMR.png",
+      "sha256": "ffa021b36070632e2a2ba52c8c8b0aeba090f65e740b5f22f4d384dce2647198",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_Amazon-EMR_64@5x.png",
+      "keywords": [
+        "Amazon-EMR",
+        "AWS公式サービスアイコン：Amazon-EMR"
+      ]
+    },
+    {
+      "id": "aws.AWS-Identity-and-Access-Management",
+      "label": "AWS Identity and Access Management",
+      "family": "aws",
+      "path": "aws/AWS-Identity-and-Access-Management.png",
+      "sha256": "35063c9b904b22e39f7ec37e757b51038c3316c2cfb03fbd3aee1c3f8b6ace52",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_AWS-Identity-and-Access-Management_64@5x.png",
+      "keywords": [
+        "AWS-Identity-and-Access-Management",
+        "AWS公式サービスアイコン：AWS-Identity-and-Access-Management"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Route-53",
+      "label": "Amazon Route 53",
+      "family": "aws",
+      "path": "aws/Amazon-Route-53.png",
+      "sha256": "e4d302ff34402b5e679c0fa32cc378210809d3656321b79ae21599717bb27f55",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-Route-53_64@5x.png",
+      "keywords": [
+        "Amazon-Route-53",
+        "AWS公式サービスアイコン：Amazon-Route-53"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Simple-Notification-Service",
+      "label": "Amazon Simple Notification Service",
+      "family": "aws",
+      "path": "aws/Amazon-Simple-Notification-Service.png",
+      "sha256": "c4107fa5af4b2f16de9225d7471c36e3f0a3686bb02f68e5f3b983e0fe899859",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-Simple-Notification-Service_64@5x.png",
+      "keywords": [
+        "Amazon-Simple-Notification-Service",
+        "AWS公式サービスアイコン：Amazon-Simple-Notification-Service"
+      ]
+    },
+    {
+      "id": "aws.AWS-CloudFormation",
+      "label": "AWS CloudFormation",
+      "family": "aws",
+      "path": "aws/AWS-CloudFormation.png",
+      "sha256": "895d930126d4ef82604cfaed457946d30fa6b02acc591185510da0fbd0a71e9f",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_AWS-CloudFormation_64@5x.png",
+      "keywords": [
+        "AWS-CloudFormation",
+        "AWS公式サービスアイコン：AWS-CloudFormation"
+      ]
+    },
+    {
+      "id": "aws.AWS-Elastic-Beanstalk",
+      "label": "AWS Elastic Beanstalk",
+      "family": "aws",
+      "path": "aws/AWS-Elastic-Beanstalk.png",
+      "sha256": "3b72c07a901fe7e359094ead09653403f9efa7e0bd8db3ed64677a5c7ea3eb25",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-Elastic-Beanstalk_64@5x.png",
+      "keywords": [
+        "AWS-Elastic-Beanstalk",
+        "AWS公式サービスアイコン：AWS-Elastic-Beanstalk"
+      ]
+    },
+    {
+      "id": "aws.AWS-Direct-Connect",
+      "label": "AWS Direct Connect",
+      "family": "aws",
+      "path": "aws/AWS-Direct-Connect.png",
+      "sha256": "b3fa921c504a2445bac5033ad89420ea3f5953f1a7a85d7a33766bad458aa1e2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_AWS-Direct-Connect_64@5x.png",
+      "keywords": [
+        "AWS-Direct-Connect",
+        "AWS公式サービスアイコン：AWS-Direct-Connect"
+      ]
+    },
+    {
+      "id": "aws.Amazon-DynamoDB",
+      "label": "Amazon DynamoDB",
+      "family": "aws",
+      "path": "aws/Amazon-DynamoDB.png",
+      "sha256": "b0f1c5a74b4ed81a23183844efdeb6978fa7ea6ee42cf3162b81d340f98e2067",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-DynamoDB_64@5x.png",
+      "keywords": [
+        "Amazon-DynamoDB",
+        "AWS公式サービスアイコン：Amazon-DynamoDB"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Simple-Storage-Service-Glacier",
+      "label": "Amazon Simple Storage Service Glacier",
+      "family": "aws",
+      "path": "aws/Amazon-Simple-Storage-Service-Glacier.png",
+      "sha256": "6e35dd839ee8769e6e2f9dfe8a11651f368fb784c1f819cc63099594fc263635",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service-Glacier_64@5x.png",
+      "keywords": [
+        "Amazon-Simple-Storage-Service-Glacier",
+        "AWS公式サービスアイコン：Amazon-Simple-Storage-Service-Glacier"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Redshift",
+      "label": "Amazon Redshift",
+      "family": "aws",
+      "path": "aws/Amazon-Redshift.png",
+      "sha256": "08baafb52a5e2e61d46793eef10ad6f95c3446b41175c7d99a426b26a9e9e635",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_Amazon-Redshift_64@5x.png",
+      "keywords": [
+        "Amazon-Redshift",
+        "AWS公式サービスアイコン：Amazon-Redshift"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Kinesis",
+      "label": "Amazon Kinesis",
+      "family": "aws",
+      "path": "aws/Amazon-Kinesis.png",
+      "sha256": "fc570c38f5b7379520ec55eca067d3ffbec44764a480eb623273221668c1da1e",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_Amazon-Kinesis_64@5x.png",
+      "keywords": [
+        "Amazon-Kinesis",
+        "AWS公式サービスアイコン：Amazon-Kinesis"
+      ]
+    },
+    {
+      "id": "aws.AWS-CloudTrail",
+      "label": "AWS CloudTrail",
+      "family": "aws",
+      "path": "aws/AWS-CloudTrail.png",
+      "sha256": "da8934d60a3b9ecd267920670ffa9bae521d5a399e5d4870893bacc59411b34b",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_AWS-CloudTrail_64@5x.png",
+      "keywords": [
+        "AWS-CloudTrail",
+        "AWS公式サービスアイコン：AWS-CloudTrail"
+      ]
+    },
+    {
+      "id": "aws.Amazon-WorkSpaces",
+      "label": "Amazon WorkSpaces",
+      "family": "aws",
+      "path": "aws/Amazon-WorkSpaces.png",
+      "sha256": "b3fd0d4861c9aed62b7387afe1ebcd6ede1e1c14b7aa29aa15e87ffc40fa7f98",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_End-User-Computing/64/Arch_Amazon-WorkSpaces_64@5x.png",
+      "keywords": [
+        "Amazon-WorkSpaces",
+        "AWS公式サービスアイコン：Amazon-WorkSpaces"
+      ]
+    },
+    {
+      "id": "aws.AWS-Lambda",
+      "label": "AWS Lambda",
+      "family": "aws",
+      "path": "aws/AWS-Lambda.png",
+      "sha256": "19c9ef75c938fd4a7b11fe3c3065b0fa9196200cdd406bfa58aeddfab286c768",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-Lambda_64@5x.png",
+      "keywords": [
+        "AWS-Lambda",
+        "AWS公式サービスアイコン：AWS-Lambda"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Elastic-Container-Service",
+      "label": "Amazon Elastic Container Service",
+      "family": "aws",
+      "path": "aws/Amazon-Elastic-Container-Service.png",
+      "sha256": "395cc4dc5b54d282ca46e42b50ae6b968e640bca718097d5b3d9cbbcee2cc330",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Containers/64/Arch_Amazon-Elastic-Container-Service_64@5x.png",
+      "keywords": [
+        "Amazon-Elastic-Container-Service",
+        "AWS公式サービスアイコン：Amazon-Elastic-Container-Service"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Aurora",
+      "label": "Amazon Aurora",
+      "family": "aws",
+      "path": "aws/Amazon-Aurora.png",
+      "sha256": "d2b09f44362eed059f89e95897311b8028ccbbadf052257be19efb181e8552f7",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-Aurora_64@5x.png",
+      "keywords": [
+        "Amazon-Aurora",
+        "AWS公式サービスアイコン：Amazon-Aurora"
+      ]
+    },
+    {
+      "id": "aws.AWS-Key-Management-Service",
+      "label": "AWS Key Management Service",
+      "family": "aws",
+      "path": "aws/AWS-Key-Management-Service.png",
+      "sha256": "b2a4f0ecfcf0dadd0acfaa544742b82bedee56cc1c2e6594b3b2693c27b7d742",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_AWS-Key-Management-Service_64@5x.png",
+      "keywords": [
+        "AWS-Key-Management-Service",
+        "AWS公式サービスアイコン：AWS-Key-Management-Service"
+      ]
+    },
+    {
+      "id": "aws.Amazon-API-Gateway",
+      "label": "Amazon API Gateway",
+      "family": "aws",
+      "path": "aws/Amazon-API-Gateway.png",
+      "sha256": "ff7762b429c15f65bddf866b248c814b91dce3eb38ab0689698ab08862b6f91d",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-API-Gateway_64@5x.png",
+      "keywords": [
+        "Amazon-API-Gateway",
+        "AWS公式サービスアイコン：Amazon-API-Gateway"
+      ]
+    },
+    {
+      "id": "aws.AWS-IoT-Core",
+      "label": "AWS IoT Core",
+      "family": "aws",
+      "path": "aws/AWS-IoT-Core.png",
+      "sha256": "db888aca8196450b6f192d68286460c37c7b6282b6bf57b64f06dc5dd69d0969",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Internet-of-Things/64/Arch_AWS-IoT-Core_64@5x.png",
+      "keywords": [
+        "AWS-IoT-Core",
+        "AWS公式サービスアイコン：AWS-IoT-Core"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Athena",
+      "label": "Amazon Athena",
+      "family": "aws",
+      "path": "aws/Amazon-Athena.png",
+      "sha256": "f9b2d148aa429dc89c4bce88114110e3d1ee97f743047ec09384e0b9ee4342fe",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_Amazon-Athena_64@5x.png",
+      "keywords": [
+        "Amazon-Athena",
+        "AWS公式サービスアイコン：Amazon-Athena"
+      ]
+    },
+    {
+      "id": "aws.AWS-Step-Functions",
+      "label": "AWS Step Functions",
+      "family": "aws",
+      "path": "aws/AWS-Step-Functions.png",
+      "sha256": "954b61bce44986ea346f020d31b5432f7225a3b259fb32046195583127634e95",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_AWS-Step-Functions_64@5x.png",
+      "keywords": [
+        "AWS-Step-Functions",
+        "AWS公式サービスアイコン：AWS-Step-Functions"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Rekognition",
+      "label": "Amazon Rekognition",
+      "family": "aws",
+      "path": "aws/Amazon-Rekognition.png",
+      "sha256": "a37e1c631850a3a2c3f59273c03dcaa33cd36871e58775f2e326ba27f01a2cea",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Rekognition_64@5x.png",
+      "keywords": [
+        "Amazon-Rekognition",
+        "AWS公式サービスアイコン：Amazon-Rekognition"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Polly",
+      "label": "Amazon Polly",
+      "family": "aws",
+      "path": "aws/Amazon-Polly.png",
+      "sha256": "0b462ed20d315b5c15897ca2b642ce8ea45a047efae055494a7dc5bd8064c6ce",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Polly_64@5x.png",
+      "keywords": [
+        "Amazon-Polly",
+        "AWS公式サービスアイコン：Amazon-Polly"
+      ]
+    },
+    {
+      "id": "aws.AWS-Fargate",
+      "label": "AWS Fargate",
+      "family": "aws",
+      "path": "aws/AWS-Fargate.png",
+      "sha256": "5db996b578633b1b1a47ba2b8d6091c24ecc390391718eaafb27dadf6d094dcf",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Containers/64/Arch_AWS-Fargate_64@5x.png",
+      "keywords": [
+        "AWS-Fargate",
+        "AWS公式サービスアイコン：AWS-Fargate"
+      ]
+    },
+    {
+      "id": "aws.Amazon-SageMaker-AI",
+      "label": "Amazon SageMaker AI",
+      "family": "aws",
+      "path": "aws/Amazon-SageMaker-AI.png",
+      "sha256": "c62e61b89036fdb666768e417bc5da922e9567f36517d179981f75be0710b819",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-SageMaker-AI_64@5x.png",
+      "keywords": [
+        "Amazon-SageMaker-AI",
+        "AWS公式サービスアイコン：Amazon-SageMaker-AI"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Elastic-Kubernetes-Service",
+      "label": "Amazon Elastic Kubernetes Service",
+      "family": "aws",
+      "path": "aws/Amazon-Elastic-Kubernetes-Service.png",
+      "sha256": "afa599abda0c869d093c78ccdf8ea68c48a85270ff8f4f3635d5f521f380140e",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Containers/64/Arch_Amazon-Elastic-Kubernetes-Service_64@5x.png",
+      "keywords": [
+        "Amazon-Elastic-Kubernetes-Service",
+        "AWS公式サービスアイコン：Amazon-Elastic-Kubernetes-Service"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Connect",
+      "label": "Amazon Connect",
+      "family": "aws",
+      "path": "aws/Amazon-Connect.png",
+      "sha256": "4d1aefdac139a0d2ab15707505b1f900b2694c66d4d5ca5421088b718bbbdb0d",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Business-Applications/64/Arch_Amazon-Connect_64@5x.png",
+      "keywords": [
+        "Amazon-Connect",
+        "AWS公式サービスアイコン：Amazon-Connect"
+      ]
+    },
+    {
+      "id": "aws.AWS-Secrets-Manager",
+      "label": "AWS Secrets Manager",
+      "family": "aws",
+      "path": "aws/AWS-Secrets-Manager.png",
+      "sha256": "af176dc377dbb3c8020517108e5517c0ada16ebcefef2f4ae376b34095f54509",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_AWS-Secrets-Manager_64@5x.png",
+      "keywords": [
+        "AWS-Secrets-Manager",
+        "AWS公式サービスアイコン：AWS-Secrets-Manager"
+      ]
+    },
+    {
+      "id": "aws.Amazon-EventBridge",
+      "label": "Amazon EventBridge",
+      "family": "aws",
+      "path": "aws/Amazon-EventBridge.png",
+      "sha256": "cafdb0f87364b9441a7bfc4dd72f2c45330723e8282bf2ebe632904b004d26c0",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-EventBridge_64@5x.png",
+      "keywords": [
+        "Amazon-EventBridge",
+        "AWS公式サービスアイコン：Amazon-EventBridge"
+      ]
+    },
+    {
+      "id": "aws.AWS-Control-Tower",
+      "label": "AWS Control Tower",
+      "family": "aws",
+      "path": "aws/AWS-Control-Tower.png",
+      "sha256": "e0d6353fe778c5fdad2e27ae9c1c97e4d860d7c55284fa69eeb23f35ee4fc13d",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_AWS-Control-Tower_64@5x.png",
+      "keywords": [
+        "AWS-Control-Tower",
+        "AWS公式サービスアイコン：AWS-Control-Tower"
+      ]
+    },
+    {
+      "id": "aws.AWS-Lake-Formation",
+      "label": "AWS Lake Formation",
+      "family": "aws",
+      "path": "aws/AWS-Lake-Formation.png",
+      "sha256": "02c42f4592a5e74764170c9775282933f3c15f9b32e49e2870a0681da77e95a6",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_AWS-Lake-Formation_64@5x.png",
+      "keywords": [
+        "AWS-Lake-Formation",
+        "AWS公式サービスアイコン：AWS-Lake-Formation"
+      ]
+    },
+    {
+      "id": "aws.Amazon-AppFlow",
+      "label": "Amazon AppFlow",
+      "family": "aws",
+      "path": "aws/Amazon-AppFlow.png",
+      "sha256": "1c55e9a4cc1eb8aacc4bf190b4e3abf568aafd838d6a29fb8dc58f5e26903daf",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-AppFlow_64@5x.png",
+      "keywords": [
+        "Amazon-AppFlow",
+        "AWS公式サービスアイコン：Amazon-AppFlow"
+      ]
+    },
+    {
+      "id": "aws.AWS-App-Runner",
+      "label": "AWS App Runner",
+      "family": "aws",
+      "path": "aws/AWS-App-Runner.png",
+      "sha256": "a140aa2648da92ad98d2fcc9385ab06797b500bdc67d7dcdd4057048295ea49d",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-App-Runner_64@5x.png",
+      "keywords": [
+        "AWS-App-Runner",
+        "AWS公式サービスアイコン：AWS-App-Runner"
+      ]
+    },
+    {
+      "id": "aws.Amazon-MemoryDB",
+      "label": "Amazon MemoryDB",
+      "family": "aws",
+      "path": "aws/Amazon-MemoryDB.png",
+      "sha256": "72c01d87cec1df10c5c83d233381bf3db32e677513db918ddc0593e5778a3205",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-MemoryDB_64@5x.png",
+      "keywords": [
+        "Amazon-MemoryDB",
+        "AWS公式サービスアイコン：Amazon-MemoryDB"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Managed-Grafana",
+      "label": "Amazon Managed Grafana",
+      "family": "aws",
+      "path": "aws/Amazon-Managed-Grafana.png",
+      "sha256": "d9a710aa4ee460159cd77097b3f00696aa4d423623c55a299c7e0b13455c1b72",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_Amazon-Managed-Grafana_64@5x.png",
+      "keywords": [
+        "Amazon-Managed-Grafana",
+        "AWS公式サービスアイコン：Amazon-Managed-Grafana"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Managed-Service-for-Prometheus",
+      "label": "Amazon Managed Service for Prometheus",
+      "family": "aws",
+      "path": "aws/Amazon-Managed-Service-for-Prometheus.png",
+      "sha256": "f1407dcb8081cebe9c104564d266afdf78d145801b1af7e2988c665b9f78e089",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Management-Tools/64/Arch_Amazon-Managed-Service-for-Prometheus_64@5x.png",
+      "keywords": [
+        "Amazon-Managed-Service-for-Prometheus",
+        "AWS公式サービスアイコン：Amazon-Managed-Service-for-Prometheus"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Managed-Streaming-for-Apache-Kafka",
+      "label": "Amazon Managed Streaming for Apache Kafka",
+      "family": "aws",
+      "path": "aws/Amazon-Managed-Streaming-for-Apache-Kafka.png",
+      "sha256": "41bb269acce813cc4c91d3d7ed5371459381ee28668374a1fd1ea7816d4be5b0",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Analytics/64/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_64@5x.png",
+      "keywords": [
+        "Amazon-Managed-Streaming-for-Apache-Kafka",
+        "AWS公式サービスアイコン：Amazon-Managed-Streaming-for-Apache-Kafka"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Bedrock",
+      "label": "Amazon Bedrock",
+      "family": "aws",
+      "path": "aws/Amazon-Bedrock.png",
+      "sha256": "9d63380f96ee2fb150a3425f52df0b765384acd669cc5a95d97fb5156c3c7f37",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Bedrock_64@5x.png",
+      "keywords": [
+        "Amazon-Bedrock",
+        "AWS公式サービスアイコン：Amazon-Bedrock"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Q",
+      "label": "Amazon Q",
+      "family": "aws",
+      "path": "aws/Amazon-Q.png",
+      "sha256": "ccefcd733d676cc8cc2a4a0d8204599e6f46f8f36ff6ed459c607794a2ef4f4c",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Q_64@5x.png",
+      "keywords": [
+        "Amazon-Q",
+        "AWS公式サービスアイコン：Amazon-Q"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Nova",
+      "label": "Amazon Nova",
+      "family": "aws",
+      "path": "aws/Amazon-Nova.png",
+      "sha256": "4818508d8368f56269ac5faa26e3b4d5e03672414ca006a57ec44244412e736f",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Nova_64@5x.png",
+      "keywords": [
+        "Amazon-Nova",
+        "AWS公式サービスアイコン：Amazon-Nova"
+      ]
+    },
+    {
+      "id": "aws.Amazon-Bedrock-AgentCore",
+      "label": "Amazon Bedrock AgentCore",
+      "family": "aws",
+      "path": "aws/Amazon-Bedrock-AgentCore.png",
+      "sha256": "cf5fec9b0910587c29edbcfd40e0180801d860dfb4da5b354cc097035d55c8ff",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/64/Arch_Amazon-Bedrock-AgentCore_64@5x.png",
+      "keywords": [
+        "Amazon-Bedrock-AgentCore",
+        "AWS公式サービスアイコン：Amazon-Bedrock-AgentCore"
+      ]
+    },
+    {
+      "id": "aws.Resource-User",
+      "label": "Resource User",
+      "family": "aws",
+      "path": "aws/Resource-User.svg",
+      "sha256": "82cad1b559b84252e86f17ee9707ff9228e6c92816f207e4fde5daadaa346d38",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_User_48_Light.svg",
+      "keywords": [
+        "Resource-User",
+        "AWS公式汎用リソースアイコン：User"
+      ]
+    },
+    {
+      "id": "aws.Resource-Users",
+      "label": "Resource Users",
+      "family": "aws",
+      "path": "aws/Resource-Users.svg",
+      "sha256": "70a2a73c69e9f21a46133b60a3a07e45b23f35c3f141d572e61a43945cbb4682",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Users_48_Light.svg",
+      "keywords": [
+        "Resource-Users",
+        "AWS公式汎用リソースアイコン：Users"
+      ]
+    },
+    {
+      "id": "aws.Resource-Server",
+      "label": "Resource Server",
+      "family": "aws",
+      "path": "aws/Resource-Server.svg",
+      "sha256": "ae8d259b4fcb30a8f2e2e25ec1026ee27e87e2579b66f67f3b893898c2d8b4b0",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Server_48_Light.svg",
+      "keywords": [
+        "Resource-Server",
+        "AWS公式汎用リソースアイコン：Server"
+      ]
+    },
+    {
+      "id": "aws.Resource-Servers",
+      "label": "Resource Servers",
+      "family": "aws",
+      "path": "aws/Resource-Servers.svg",
+      "sha256": "446bc28a571cb60691387809da9a10de82583ed41d8415b922bf4a47feafdf08",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Servers_48_Light.svg",
+      "keywords": [
+        "Resource-Servers",
+        "AWS公式汎用リソースアイコン：Servers"
+      ]
+    },
+    {
+      "id": "aws.Resource-Document",
+      "label": "Resource Document",
+      "family": "aws",
+      "path": "aws/Resource-Document.svg",
+      "sha256": "d515ca5c5d982055afa4066c73156b345cf0d88da2b078562110d5b530554c61",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Document_48_Light.svg",
+      "keywords": [
+        "Resource-Document",
+        "AWS公式汎用リソースアイコン：Document"
+      ]
+    },
+    {
+      "id": "aws.Resource-Documents",
+      "label": "Resource Documents",
+      "family": "aws",
+      "path": "aws/Resource-Documents.svg",
+      "sha256": "facca61dc882d12a9c83ac7b4759f4f6331adf7081c4b5084e63c30b92f934b4",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Documents_48_Light.svg",
+      "keywords": [
+        "Resource-Documents",
+        "AWS公式汎用リソースアイコン：Documents"
+      ]
+    },
+    {
+      "id": "aws.Resource-Database",
+      "label": "Resource Database",
+      "family": "aws",
+      "path": "aws/Resource-Database.svg",
+      "sha256": "c18bb92be55c5d8c6ce4630bdc70179fb438e078b215210e7b5fb523ed2303da",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Database_48_Light.svg",
+      "keywords": [
+        "Resource-Database",
+        "AWS公式汎用リソースアイコン：Database"
+      ]
+    },
+    {
+      "id": "aws.Resource-Generic-Application",
+      "label": "Resource Generic Application",
+      "family": "aws",
+      "path": "aws/Resource-Generic-Application.svg",
+      "sha256": "adbea176db7aa41aeee5fc2faddb0adef71bd9be8b6dbeb7a199170051838da7",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Generic-Application_48_Light.svg",
+      "keywords": [
+        "Resource-Generic-Application",
+        "AWS公式汎用リソースアイコン：Generic-Application"
+      ]
+    },
+    {
+      "id": "aws.Resource-Mobile-client",
+      "label": "Resource Mobile client",
+      "family": "aws",
+      "path": "aws/Resource-Mobile-client.svg",
+      "sha256": "294246d02cc40e2cd8e2a17dfa52f55657517b1ceca87124762f51146b46524e",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Mobile-client_48_Light.svg",
+      "keywords": [
+        "Resource-Mobile-client",
+        "AWS公式汎用リソースアイコン：Mobile-client"
+      ]
+    },
+    {
+      "id": "aws.Resource-SDK",
+      "label": "Resource SDK",
+      "family": "aws",
+      "path": "aws/Resource-SDK.svg",
+      "sha256": "af2221a1a5d4560e5fa28acb2dfb76767a3027447225846ce627ed063f0aa1ca",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_SDK_48_Light.svg",
+      "keywords": [
+        "Resource-SDK",
+        "AWS公式汎用リソースアイコン：SDK"
+      ]
+    },
+    {
+      "id": "aws.Resource-Source-Code",
+      "label": "Resource Source Code",
+      "family": "aws",
+      "path": "aws/Resource-Source-Code.svg",
+      "sha256": "d1d1ca285fc6f89677e8504c6cfe2c0436d56b16d5e79250d2feaca2e5359333",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Source-Code_48_Light.svg",
+      "keywords": [
+        "Resource-Source-Code",
+        "AWS公式汎用リソースアイコン：Source-Code"
+      ]
+    },
+    {
+      "id": "aws.Resource-Data-Table",
+      "label": "Resource Data Table",
+      "family": "aws",
+      "path": "aws/Resource-Data-Table.svg",
+      "sha256": "358602f85af5276d005b1c64a230b3ed4ced6db4ebb30395b6c9643f2e16c3a4",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Data-Table_48_Light.svg",
+      "keywords": [
+        "Resource-Data-Table",
+        "AWS公式汎用リソースアイコン：Data-Table"
+      ]
+    },
+    {
+      "id": "aws.Resource-Metrics",
+      "label": "Resource Metrics",
+      "family": "aws",
+      "path": "aws/Resource-Metrics.svg",
+      "sha256": "c91f114e433355aab22ce05234c6efb49a8ad239f13af577cf973c6250b27ba2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Metrics_48_Light.svg",
+      "keywords": [
+        "Resource-Metrics",
+        "AWS公式汎用リソースアイコン：Metrics"
+      ]
+    },
+    {
+      "id": "aws.Resource-Magnifying-Glass",
+      "label": "Resource Magnifying Glass",
+      "family": "aws",
+      "path": "aws/Resource-Magnifying-Glass.svg",
+      "sha256": "36c323e5c4b2027bbe38631bd323fc3dfb46a2429905987c273ee294cdb345d7",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Magnifying-Glass_48_Light.svg",
+      "keywords": [
+        "Resource-Magnifying-Glass",
+        "AWS公式汎用リソースアイコン：Magnifying-Glass"
+      ]
+    },
+    {
+      "id": "aws.Resource-Toolkit",
+      "label": "Resource Toolkit",
+      "family": "aws",
+      "path": "aws/Resource-Toolkit.svg",
+      "sha256": "837058a4abe00e9c908cf402d432854d0025be18e71f7666238016a700cb391c",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Toolkit_48_Light.svg",
+      "keywords": [
+        "Resource-Toolkit",
+        "AWS公式汎用リソースアイコン：Toolkit"
+      ]
+    },
+    {
+      "id": "aws.Resource-Shield",
+      "label": "Resource Shield",
+      "family": "aws",
+      "path": "aws/Resource-Shield.svg",
+      "sha256": "fadb5337a76b09e6ae93609714e0d02323093b1e20a31c14f79e2cf6d993e89e",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Shield_48_Light.svg",
+      "keywords": [
+        "Resource-Shield",
+        "AWS公式汎用リソースアイコン：Shield"
+      ]
+    },
+    {
+      "id": "aws.Resource-Folder",
+      "label": "Resource Folder",
+      "family": "aws",
+      "path": "aws/Resource-Folder.svg",
+      "sha256": "6ffe3e1ec3f996ca77f86f4adeff142b6699ba8ff1e7a30738384b5f9a2faed2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Folder_48_Light.svg",
+      "keywords": [
+        "Resource-Folder",
+        "AWS公式汎用リソースアイコン：Folder"
+      ]
+    },
+    {
+      "id": "aws.Resource-Globe",
+      "label": "Resource Globe",
+      "family": "aws",
+      "path": "aws/Resource-Globe.svg",
+      "sha256": "78fb746095387d43e6e1fdc51e10bdc82d946d948eff6f67ee509b46c94801f6",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Globe_48_Light.svg",
+      "keywords": [
+        "Resource-Globe",
+        "AWS公式汎用リソースアイコン：Globe"
+      ]
+    },
+    {
+      "id": "aws.Resource-Gear",
+      "label": "Resource Gear",
+      "family": "aws",
+      "path": "aws/Resource-Gear.svg",
+      "sha256": "15dd5e8ad8128dd3a53768dbc9fcf3432fc7551bb096745dcbf727a4392831f1",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Gear_48_Light.svg",
+      "keywords": [
+        "Resource-Gear",
+        "AWS公式汎用リソースアイコン：Gear"
+      ]
+    },
+    {
+      "id": "aws.Resource-Credentials",
+      "label": "Resource Credentials",
+      "family": "aws",
+      "path": "aws/Resource-Credentials.svg",
+      "sha256": "37dc0bf9d61ad4b8c336d8c894b5fa3d114f763e41a0371de4b33ed84f90bac0",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Credentials_48_Light.svg",
+      "keywords": [
+        "Resource-Credentials",
+        "AWS公式汎用リソースアイコン：Credentials"
+      ]
+    },
+    {
+      "id": "aws.Resource-Question",
+      "label": "Resource Question",
+      "family": "aws",
+      "path": "aws/Resource-Question.svg",
+      "sha256": "95a02eacfd41bf750e369c7a8db8763b510739e6d45c10dc3c87d88a8688fbe2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Question_48_Light.svg",
+      "keywords": [
+        "Resource-Question",
+        "AWS公式汎用リソースアイコン：Question"
+      ]
+    },
+    {
+      "id": "aws.Resource-Camera",
+      "label": "Resource Camera",
+      "family": "aws",
+      "path": "aws/Resource-Camera.svg",
+      "sha256": "e4eb53feeb5c23f8f8627356a1348630f4aa7f3606b67cbced6fc10bd5f86ba2",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Camera_48_Light.svg",
+      "keywords": [
+        "Resource-Camera",
+        "AWS公式汎用リソースアイコン：Camera"
+      ]
+    },
+    {
+      "id": "aws.S3-Tables",
+      "label": "S3 Tables",
+      "family": "aws",
+      "path": "aws/S3-Tables.svg",
+      "sha256": "2ec4474b11f43c7136376f2963ddfc58e4fb07d5390417ec5e7f6e6a790febf9",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_Storage/Res_Amazon-Simple-Storage-Service_S3-Tables_48.svg",
+      "keywords": [
+        "S3-Tables",
+        "AWS公式S3リソースアイコン：S3-Tables"
+      ]
+    },
+    {
+      "id": "aws.S3-Vectors",
+      "label": "S3 Vectors",
+      "family": "aws",
+      "path": "aws/S3-Vectors.svg",
+      "sha256": "7b008596d2c790ddce736d88663971cb0e442a6af391169ea97159902181438f",
+      "source": "https://aws.amazon.com/architecture/icons/",
+      "version": "2026-07-31",
+      "license": "AWS permits use in architecture diagrams and presentations. Original service colors and all geometry retained.",
+      "archivePath": "Resource-Icons_07312026/Res_Storage/Res_Amazon-Simple-Storage-Service_S3-Vectors_48.svg",
+      "keywords": [
+        "S3-Vectors",
+        "AWS公式S3リソースアイコン：S3-Vectors"
+      ]
+    },
+    {
+      "id": "azure.Virtual-Machine",
+      "label": "Azure Virtual Machines",
+      "family": "azure",
+      "path": "azure/Virtual-Machine.svg",
+      "sha256": "092d18ffadec9ec0e5af129186dc7bc2a80544011e55f965604ed4b13873e0fc",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/compute/10021-icon-service-Virtual-Machine.svg",
+      "keywords": [
+        "Virtual-Machine",
+        "Azure Virtual Machines"
+      ]
+    },
+    {
+      "id": "azure.Kubernetes-Services",
+      "label": "Azure Kubernetes Service (AKS)",
+      "family": "azure",
+      "path": "azure/Kubernetes-Services.svg",
+      "sha256": "81954a481503057498d543a51863b2eb4673284e109662cdc421051d11dba25c",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/compute/10023-icon-service-Kubernetes-Services.svg",
+      "keywords": [
+        "Kubernetes-Services",
+        "Azure Kubernetes Service (AKS)"
+      ]
+    },
+    {
+      "id": "azure.Function-Apps",
+      "label": "Azure Functions",
+      "family": "azure",
+      "path": "azure/Function-Apps.svg",
+      "sha256": "1a6c9c108d5f63f7b78bc6fbc464059acd2eaa8c1d111e9bcd28a8b2cdf470b9",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/compute/10029-icon-service-Function-Apps.svg",
+      "keywords": [
+        "Function-Apps",
+        "Azure Functions"
+      ]
+    },
+    {
+      "id": "azure.App-Services",
+      "label": "Azure App Service",
+      "family": "azure",
+      "path": "azure/App-Services.svg",
+      "sha256": "529d83fc80637a96b6d27f6cfac7536e1c5f9b1b67f58aef4e2e3d6f47fd4925",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/app services/10035-icon-service-App-Services.svg",
+      "keywords": [
+        "App-Services",
+        "Azure App Service"
+      ]
+    },
+    {
+      "id": "azure.Container-Registries",
+      "label": "Azure Container Registry",
+      "family": "azure",
+      "path": "azure/Container-Registries.svg",
+      "sha256": "c134b0a442f203a7eeeb6f99a1f02ed34e51373d7fca59f96c9f125874c9d7d4",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/containers/10105-icon-service-Container-Registries.svg",
+      "keywords": [
+        "Container-Registries",
+        "Azure Container Registry"
+      ]
+    },
+    {
+      "id": "azure.Azure-Cosmos-DB",
+      "label": "Azure Cosmos DB",
+      "family": "azure",
+      "path": "azure/Azure-Cosmos-DB.svg",
+      "sha256": "b6f1f2afac15762d1de44366d34984c5a3e6e58f94d9e81407ac01565212e8e3",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/databases/10121-icon-service-Azure-Cosmos-DB.svg",
+      "keywords": [
+        "Azure-Cosmos-DB",
+        "Azure Cosmos DB"
+      ]
+    },
+    {
+      "id": "azure.SQL-Database",
+      "label": "Azure SQL Database",
+      "family": "azure",
+      "path": "azure/SQL-Database.svg",
+      "sha256": "a26124a2b188ccf910520c935c726f7364e0f5935d7a4319ebcab9c80a40e475",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/databases/10130-icon-service-SQL-Database.svg",
+      "keywords": [
+        "SQL-Database",
+        "Azure SQL Database"
+      ]
+    },
+    {
+      "id": "azure.API-Management-Services",
+      "label": "Azure API Management",
+      "family": "azure",
+      "path": "azure/API-Management-Services.svg",
+      "sha256": "cf794288575f2f7b080c50aa8319d42b02a2f2ae5351e4712c574353fc801f9a",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/devops/10042-icon-service-API-Management-Services.svg",
+      "keywords": [
+        "API-Management-Services",
+        "Azure API Management"
+      ]
+    },
+    {
+      "id": "azure.Azure-Service-Bus",
+      "label": "Azure Service Bus",
+      "family": "azure",
+      "path": "azure/Azure-Service-Bus.svg",
+      "sha256": "eaf42cb87aedf608f60d40b601eb86491daaa71b8eab40a935e8e7fa2e62a2cf",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/integration/10836-icon-service-Azure-Service-Bus.svg",
+      "keywords": [
+        "Azure-Service-Bus",
+        "Azure Service Bus"
+      ]
+    },
+    {
+      "id": "azure.Monitor",
+      "label": "Azure Monitor",
+      "family": "azure",
+      "path": "azure/Monitor.svg",
+      "sha256": "1396f59a7d8fd7505a423842b987c9b343a092263d1ab5c7b0d94d58d8b17448",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/management + governance/00001-icon-service-Monitor.svg",
+      "keywords": [
+        "Monitor",
+        "Azure Monitor"
+      ]
+    },
+    {
+      "id": "azure.Virtual-Networks",
+      "label": "Azure Virtual Network",
+      "family": "azure",
+      "path": "azure/Virtual-Networks.svg",
+      "sha256": "64a5e75ecef2f9f69067faa2eb131266cb8f2858706f8ab74bfea5ad0d98b14d",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10061-icon-service-Virtual-Networks.svg",
+      "keywords": [
+        "Virtual-Networks",
+        "Azure Virtual Network"
+      ]
+    },
+    {
+      "id": "azure.Load-Balancers",
+      "label": "Azure Load Balancer",
+      "family": "azure",
+      "path": "azure/Load-Balancers.svg",
+      "sha256": "169edfa4edbc0cab6fdc1eef9243925588504a16f7729734e0e2161a9ca1d16c",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10062-icon-service-Load-Balancers.svg",
+      "keywords": [
+        "Load-Balancers",
+        "Azure Load Balancer"
+      ]
+    },
+    {
+      "id": "azure.Key-Vaults",
+      "label": "Azure Key Vault",
+      "family": "azure",
+      "path": "azure/Key-Vaults.svg",
+      "sha256": "712b426f54f0fc50d0816dc79df709daa7ac5f93ccaf4e9b3527f627f6e9ad97",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/security/10245-icon-service-Key-Vaults.svg",
+      "keywords": [
+        "Key-Vaults",
+        "Azure Key Vault"
+      ]
+    },
+    {
+      "id": "azure.Storage-Accounts",
+      "label": "Azure Storage accounts",
+      "family": "azure",
+      "path": "azure/Storage-Accounts.svg",
+      "sha256": "7190d3bb14ce30ce74bd0af873915830fe821e8c5f6ef6f3149e6f7cfb2aa4f7",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/storage/10086-icon-service-Storage-Accounts.svg",
+      "keywords": [
+        "Storage-Accounts",
+        "Azure Storage accounts"
+      ]
+    },
+    {
+      "id": "azure.Application-Gateways",
+      "label": "Azure Application Gateway",
+      "family": "azure",
+      "path": "azure/Application-Gateways.svg",
+      "sha256": "531e668e47cf61872b2811ec67dcc103cee2ecc1d272f07132d6196d68ba6c19",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10076-icon-service-Application-Gateways.svg",
+      "keywords": [
+        "Application-Gateways",
+        "Azure Application Gateway"
+      ]
+    },
+    {
+      "id": "azure.Firewalls",
+      "label": "Azure Firewall",
+      "family": "azure",
+      "path": "azure/Firewalls.svg",
+      "sha256": "154c416cc15b95b7c6c1ab61a5ecb33f14845197b7d163bd9dc6f1968c14be1e",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10084-icon-service-Firewalls.svg",
+      "keywords": [
+        "Firewalls",
+        "Azure Firewall"
+      ]
+    },
+    {
+      "id": "azure.DNS-Zones",
+      "label": "Azure DNS",
+      "family": "azure",
+      "path": "azure/DNS-Zones.svg",
+      "sha256": "e6aaa1380e974af7d0aba1bb8380ecfab3f95182a595a28692aa3f963bcf9fac",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10064-icon-service-DNS-Zones.svg",
+      "keywords": [
+        "DNS-Zones",
+        "Azure DNS"
+      ]
+    },
+    {
+      "id": "azure.Front-Door-and-CDN-Profiles",
+      "label": "Azure Front Door and CDN profiles",
+      "family": "azure",
+      "path": "azure/Front-Door-and-CDN-Profiles.svg",
+      "sha256": "b2e9c9a8b091a0694532257354dea94bb8c65b33876826e44dbc9b2aae01cf17",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/10073-icon-service-Front-Door-and-CDN-Profiles.svg",
+      "keywords": [
+        "Front-Door-and-CDN-Profiles",
+        "Azure Front Door and CDN profiles"
+      ]
+    },
+    {
+      "id": "azure.Log-Analytics-Workspaces",
+      "label": "Log Analytics workspaces",
+      "family": "azure",
+      "path": "azure/Log-Analytics-Workspaces.svg",
+      "sha256": "7a244a8d7260e84be5c904185db7b04994fe6ed345e2b224163bc5f7e3d97ce0",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/analytics/00009-icon-service-Log-Analytics-Workspaces.svg",
+      "keywords": [
+        "Log-Analytics-Workspaces",
+        "Log Analytics workspaces"
+      ]
+    },
+    {
+      "id": "azure.Private-Link",
+      "label": "Azure Private Link",
+      "family": "azure",
+      "path": "azure/Private-Link.svg",
+      "sha256": "9990bbce78fc1ef3838fbe86e2ff3b297e721b1f6a6d037b4d3f3ce9abf4a5a2",
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+      "version": "V24",
+      "license": "Microsoft permits use/copy/distribution/display for architecture diagrams, training materials or documentation; other rights reserved. Do not crop, flip, rotate or change shape.",
+      "archivePath": "Azure_Public_Service_Icons/Icons/networking/00427-icon-service-Private-Link.svg",
+      "keywords": [
+        "Private-Link",
+        "Azure Private Link"
+      ]
+    }
+  ]
+}

@@ -16,6 +16,8 @@ npm --prefix viewer test
 npm --prefix viewer run typecheck
 ```
 
+MacでもNode.js 22以上を選び、`DIAGRAM_FONT`と`DIAGRAM_BROWSER`を明示する。Windows既定のフォントパスはMacには存在しない。描画試験を個別に追跡したい場合は、同じ環境変数で `node --test --test-concurrency=1 tests/*.test.cjs` としてファイル単位で逐次実行できる。遅い試験をログの無更新だけで失敗と判定せず、試験単位の終了結果を確認する。
+
 `DIAGRAM_FONT`は実レンダリング試験の日本語フォント。Windows既定は`C:/Windows/Fonts/NotoSansJP-VF.ttf`。TEMPのrenameが拒否される環境では、Git対象外のoutputs/下に専用TEMP/TMPを作ってプロセスに設定する。
 
 ## 変更と検証
