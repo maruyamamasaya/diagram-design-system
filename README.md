@@ -13,7 +13,7 @@ AIエージェント向けの、白背景・モノクロを土台にした横長
 
 プレゼンは[内容に応じたページ設計](rules/layout.md#内容に応じたページ設計)を共通方針とする。情報量と構成の工夫が明示された制作では[専用プロンプト](prompts/presentation.md)の専用登録経路を選べる。
 
-プレゼンの新規制作では、表現モードを「通常モード／グラフィック版」から選ぶ。未指定時の確認条件と制作条件から選択できる場合は[専用プロンプト](prompts/presentation.md)と[グラフィック版の運用](docs/presentation-graphic-mode.md)を参照。
+プレゼンの新規制作では、内容に合う図解を標準とし、未指定時は「通常モード／グラフィック版」の既存経路から内容に応じて選ぶ。[専用プロンプト](prompts/presentation.md)と[グラフィック版の運用](docs/presentation-graphic-mode.md)を参照。
 Codexへ「AGENTS.mdを読み、この資料を図解して」と依頼し、資料本文またはファイルパスを渡す。JSONの事前作成は不要。Markdown、テキスト、技術ドキュメント、仕様書・設計資料を標準入力とし、PDF・Word・PowerPointは環境の読取能力を確認する。
 
 依頼例：「AGENTS.mdを読み、examples/agent-creation/input.mdを図解して。図の種類と描画手段は内容に合わせて選び、対応可能な全形式をローカル保存し、検証記録を付けて。」
@@ -245,6 +245,8 @@ Phase 12一括ワークフローの標準納品はPNG/PDF/PPTX・サムネイル
 ### 制作の基本配色と密度
 
 白背景・モノクロは土台とし、公式サービスアイコンと必要な補助色を使えます。配色は[design](rules/design.md)、プレゼンの標準枚数と関連テーマの統合は[layout](rules/layout.md)を正とします。既存の定型レンダラーの配色・分割動作は変更していません。
+
+プレゼンでは[仕組みと関係を直接伝える図解](rules/layout.md#仕組みと関係を直接伝える図解)を標準とします。[伝える関係に合う図](docs/presentation-layout-policy.md#関係から図を選ぶ)を選び、図と短いラベルで理解できるかを確認します。制作上の選択基準であり、既存の登録・描画エンジンを変更するものではありません。
 
 独立した複雑な一枚図は `npm run create:illustration -- --input <job.json> --font <OFL日本語.ttf>`。[制作方法の選択と画像生成](prompts/illustration.md)。新規図解は未指定なら[横長標準](rules/layout.md)とし、説明不足は[補足ルール](rules/content.md)に従って補う。PNG/PDFを既存uploadへ渡せる。
 
