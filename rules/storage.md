@@ -46,4 +46,4 @@ Phase 7.6ではpresentation-package-1.0に限り、upload CLIが専用の不変�
 illustration-package-1.0とillustration-s3-1.0は独立一枚図専用の対応済み経路。一般2.0とは別。[契約](../docs/illustration-workflow.md)。
 
 ## ローカル中間ファイルの整理
-完成版と再生成入力・依存・不変manifestを保持し、派生物と確認できたものだけを整理する。分類、参照確認、ハッシュ照合、検証証跡と削除記録は[整理手順](../docs/local-output-cleanup.md)に従う。
+資料制作・改訂の完了時は、完成版と再生成入力・依存・不変manifestを保持し、不要と確認できた内部SVG・中間ファイルを標準で整理する。対象・例外・実施時期、分類、参照確認、ハッシュ照合、検証証跡と削除記録は[整理手順](../docs/local-output-cleanup.md)に従う。

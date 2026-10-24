@@ -1,5 +1,7 @@
 # 検証の入口
 
+iOS / iPadOSのビルド・起動・テストは[このMacの共通端末方針](AGENTS.md#このmacのios--ipados開発端末)に従う。過去の検証記録にある別端末の指定を現在の実行先として流用しない。
+
 素材UI変更：共有Swift packageの `BookshelfMaterialTests` は実SwiftUI描画の画素変動を検査する。`BOOKSHELF_MATERIAL_EVIDENCE=<出力先>` を指定して `swift test --disable-sandbox --package-path packages/LibraryOrganization --filter BookshelfMaterialTests` を実行すると素材面PNGを保存する。画像の存在・decode成功だけでは描画成功としない。Mac/両Simulatorでの素材目視と署名アプリ配布も確認する。[回帰検査と証跡](docs/bookshelf-material-themes.md#素材が描画されない問題の修正)。
 
 共通ゴミ箱（本番有効。自動試験はモック）はviewerの`lifecycle.test.ts`（revision/CAS、計画変更、途中削除と再送、認可、S3 prefix/暗号化/バージョニング）と共有Swiftの`LibraryLifecycleTests`（永続削除通知/古い応答/復元）を検証する。`node --import tsx --test --test-concurrency=1 tests/lifecycle.test.ts tests/trash.test.ts`はviewer内で実行。CLIのIPC待受を使わない。iOSのコピー削除XCTestと実画面/通常ビルドの制約は[作業中の仕様](docs/shared-library-trash.md#検証記録)を参照。

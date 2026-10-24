@@ -124,3 +124,7 @@ configの任意boolean `lifecycleProtection` は既定無効。承認後の有�
 ## 読取仕様との一致確認（2026-10-20）
 
 承認済み専用S3への実保存は旧/新経路とも、本番APIのreader-contract fingerprintとの完全一致をS3書込前に必須確認する。不一致・未配備・通信不能は停止し、通常アップロードの承認で迂回しない。共有検証器・ソース固定・資料限定承認・アプリ対応の順序と検証は[取得互換性](library-fetch-repair.md)。dry-runは従来どおりAWS通信なし。
+
+## 2026-10-23 音楽史の資料限定容量承認（本番反映・保存完了）
+
+本人が音楽史 `df564633-2ea8-4451-9646-33a22136b7a1` v1だけ、1ファイル40,000,000 bytes未満・全体150,000,000 bytes未満を承認。87オブジェクト/134,774,960 bytesを承認台帳へキー・サイズ・SHA256で固定した。ローカルplan合格。APIとMac/iOS共有ポリシーの候補を準備し、Node11件/Swift50件合格。本人の本番反映承認後、既存Lambdaコード更新・fingerprint一致、Mac/Mira/Vesperaの対応アプリ配布・起動、87オブジェクトの保存・GET/SHA256照合を完了。[具体的な変更案・料金試算](../outputs/personal-music-history/presentation/versions/000001/build/aws-update-proposal.md)。本棚API経由の本人認証付き最終取得確認は、既存refresh tokenの更新がHTTP400となり未完。再ログインが必要。保存成功を実アプリでの資料表示成功と扱わない。証跡は同制作パッケージのbuild/deployment-verification.json。

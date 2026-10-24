@@ -2,6 +2,8 @@
 
 SVGが配置・文字折返し・ページ分割の正本。Chromium印刷でベクターPDF、SVGのtext/rect/pathと登録グラフィックの埋込みimageを共通sceneへ読み、Artifact ToolでネイティブPPTXを作る。表はネイティブ表、矢印は個別編集可能な線分。接続先移動への自動追従は未対応。表セルのOOXMLは順序を保って罫線を設定し、v2へ既定グリッドを加えない。v1は既存グリッドを保持する。新規templateId省略はv2へ補完するが、保存済みの明示v1は移行しない。
 
+上記の正本は変換時の共通描画表現を指す。SVGは制作中のPNG描画・PDF/PPTX変換・検証に必要であり、削除後に同じパッケージをexport CLIへ直接渡して再変換はできない。完成済みPDF/PPTXの通常の閲覧・編集には外置きの内部SVGは不要。制作完了後は[整理手順](local-output-cleanup.md#制作完了時の標準運用)に従って不要分を削除し、再変換が必要なら保持した入力・描画コード・素材・フォントから別の作業先で再描画する。SVG自体の納品指定や必須入力の参照がある場合は保持する。
+
 ## 環境と依存
 既存Node/Chrome、Codex同梱Artifact Tool・Python・Presentationsスキルのfinalizerを使用。初期Windows証跡は2.8.89、MacのMVP再検証は2.8.59。独立線分はgeometry=lineを使い、接続先なしのconnector APIに依存しない。必要に応じDIAGRAM_ARTIFACT_TOOL（mjs）、DIAGRAM_PYTHON、DIAGRAM_PRESENTATIONS_SKILL、RUNTIME_NODE_MODULESを絶対パスで指定する。既定は初期Windowsで確認したCodex primary runtimeの位置。別環境では同じ配置を仮定せず、load_workspace_dependenciesで実行ファイルとスキル位置を確認して上記変数へ渡す。通常の検証は[rules/quality](../rules/quality.md)、MVP証跡は[Phase 7](phase7-validation.md)を参照。依存の不足で出力に失敗したらローカルSVG/PNGを保持し、画像だけの--formats svg,pngを利用できる。
 
